@@ -6,7 +6,7 @@
 
 import type { Task, TaskInput, RuntimeStatus, Checkpoint } from "@fabric/core"
 
-const PORT = parseInt(process.env.PORT || "8765")
+const PORT = parseInt(process.env.PORT || "9000")
 
 // In-memory task store (replace with persistent storage)
 const tasks = new Map<string, Task>()
