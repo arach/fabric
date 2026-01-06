@@ -1,0 +1,15 @@
+{
+  "name": "@fabric/runtime-e2b",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fabric/core": "workspace:*",
+    "@e2b/code-interpreter": "^1.0.0"
+  }
+}
