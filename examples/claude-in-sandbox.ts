@@ -18,6 +18,7 @@
  */
 
 import { Sandbox } from "@e2b/code-interpreter"
+import "dotenv/config"
 
 // ============================================================================
 // Configuration
@@ -25,6 +26,7 @@ import { Sandbox } from "@e2b/code-interpreter"
 
 const E2B_API_KEY = process.env.E2B_API_KEY
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
+const ANTHROPIC_BASE_URL = process.env.ANTHROPIC_BASE_URL
 
 if (!E2B_API_KEY) {
   console.log("⚠️  E2B_API_KEY not set - will use mock sandbox")
@@ -32,6 +34,10 @@ if (!E2B_API_KEY) {
 
 if (!ANTHROPIC_API_KEY) {
   console.log("⚠️  ANTHROPIC_API_KEY not set - Claude Code won't work")
+}
+
+if (ANTHROPIC_BASE_URL) {
+  console.log(`📡 Using custom API endpoint: ${ANTHROPIC_BASE_URL}`)
 }
 
 // ============================================================================
@@ -46,11 +52,15 @@ async function runWithE2B() {
 
   // Create sandbox with E2B's Claude Code template
   console.log("📦 Creating E2B sandbox with Claude Code template...")
+  const envs: Record<string, string> = {
+    ANTHROPIC_API_KEY: ANTHROPIC_API_KEY!,
+  }
+  if (ANTHROPIC_BASE_URL) {
+    envs.ANTHROPIC_BASE_URL = ANTHROPIC_BASE_URL
+  }
   const sbx = await Sandbox.create("anthropic-claude-code", {
     apiKey: E2B_API_KEY,
-    envs: {
-      ANTHROPIC_API_KEY: ANTHROPIC_API_KEY!,
-    },
+    envs,
   })
 
   console.log(`  ✓ Sandbox created: ${sbx.sandboxId}`)

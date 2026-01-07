@@ -5,6 +5,97 @@
  */
 
 // ============================================================================
+// AI Provider Configuration
+// ============================================================================
+
+/**
+ * Supported AI providers for Claude Code execution
+ */
+export type AIProvider =
+  | "anthropic"    // Direct Anthropic API
+  | "bedrock"      // AWS Bedrock
+  | "vertex"       // Google Vertex AI
+  | "azure"        // Microsoft Azure Foundry
+  | "vercel"       // Vercel AI Gateway
+
+/**
+ * Provider-specific configuration
+ */
+export interface AnthropicProviderConfig {
+  provider: "anthropic"
+  apiKey: string
+}
+
+export interface BedrockProviderConfig {
+  provider: "bedrock"
+  profile?: string      // AWS_PROFILE
+  region: string        // AWS_REGION
+  accessKeyId?: string  // AWS_ACCESS_KEY_ID (optional if using profile)
+  secretAccessKey?: string // AWS_SECRET_ACCESS_KEY
+}
+
+export interface VertexProviderConfig {
+  provider: "vertex"
+  projectId: string     // ANTHROPIC_VERTEX_PROJECT_ID
+  region?: string       // CLOUD_ML_REGION (default: "global")
+}
+
+export interface AzureProviderConfig {
+  provider: "azure"
+  apiKey: string        // ANTHROPIC_FOUNDRY_API_KEY
+  resource: string      // ANTHROPIC_FOUNDRY_RESOURCE
+}
+
+export interface VercelProviderConfig {
+  provider: "vercel"
+  token: string         // VERCEL_AI_GATEWAY_TOKEN
+}
+
+export type ProviderConfig =
+  | AnthropicProviderConfig
+  | BedrockProviderConfig
+  | VertexProviderConfig
+  | AzureProviderConfig
+  | VercelProviderConfig
+
+/**
+ * Convert provider config to environment variables for Claude Code
+ */
+export function providerToEnv(config: ProviderConfig): Record<string, string> {
+  switch (config.provider) {
+    case "anthropic":
+      return { ANTHROPIC_API_KEY: config.apiKey }
+
+    case "bedrock":
+      const bedrockEnv: Record<string, string> = {
+        AWS_REGION: config.region,
+      }
+      if (config.profile) bedrockEnv.AWS_PROFILE = config.profile
+      if (config.accessKeyId) bedrockEnv.AWS_ACCESS_KEY_ID = config.accessKeyId
+      if (config.secretAccessKey) bedrockEnv.AWS_SECRET_ACCESS_KEY = config.secretAccessKey
+      return bedrockEnv
+
+    case "vertex":
+      return {
+        ANTHROPIC_VERTEX_PROJECT_ID: config.projectId,
+        CLOUD_ML_REGION: config.region || "global",
+      }
+
+    case "azure":
+      return {
+        ANTHROPIC_FOUNDRY_API_KEY: config.apiKey,
+        ANTHROPIC_FOUNDRY_RESOURCE: config.resource,
+      }
+
+    case "vercel":
+      return { VERCEL_AI_GATEWAY_TOKEN: config.token }
+
+    default:
+      return {}
+  }
+}
+
+// ============================================================================
 // Task - Unit of work
 // ============================================================================
 

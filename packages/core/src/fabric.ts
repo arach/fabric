@@ -26,7 +26,10 @@ import type {
   SandboxSnapshot,
   RuntimeType,
   MountSpec,
+  ProviderConfig,
+  AIProvider,
 } from "./index"
+import { providerToEnv } from "./index"
 import { HandoffManager } from "./handoff"
 
 // ============================================================================
@@ -49,6 +52,15 @@ export interface FabricSessionConfig {
   /** Additional mounts */
   mounts?: MountSpec[]
 
+  /** AI provider configuration for Claude Code */
+  provider?: ProviderConfig
+
+  /** Fallback providers (used when primary hits rate limits) */
+  fallbackProviders?: ProviderConfig[]
+
+  /** Model preference */
+  model?: "opus" | "sonnet" | "haiku"
+
   /** Event callback */
   onEvent?: (event: FabricSessionEvent) => void
 }
@@ -61,6 +73,9 @@ export type FabricSessionEventType =
   | "session:reclaiming"
   | "session:reclaimed"
   | "session:error"
+  | "provider:switching"
+  | "provider:switched"
+  | "provider:fallback"
   | "exec:start"
   | "exec:output"
   | "exec:complete"
@@ -91,6 +106,8 @@ export class FabricSession {
   private handoffManager: HandoffManager
   private config: FabricSessionConfig
   private _currentRuntime: RuntimeType = "local-container"
+  private _currentProvider: ProviderConfig | null = null
+  private _fallbackIndex: number = 0
 
   constructor(
     config: FabricSessionConfig,
@@ -100,11 +117,17 @@ export class FabricSession {
     this.workspacePath = config.workspacePath
     this.config = config
     this.handoffManager = handoffManager
+    this._currentProvider = config.provider || null
   }
 
   /** Current runtime type */
   get currentRuntime(): RuntimeType {
     return this._currentRuntime
+  }
+
+  /** Current AI provider */
+  get currentProvider(): ProviderConfig | null {
+    return this._currentProvider
   }
 
   /** Current sandbox instance */
@@ -268,6 +291,150 @@ export class FabricSession {
       throw new Error("Session not initialized")
     }
     return this.sandbox.snapshot()
+  }
+
+  /**
+   * Authenticate Claude Code inside the sandbox via OAuth
+   * Returns the login URL for the user to complete in their browser
+   */
+  async authenticateClaude(): Promise<{ loginUrl?: string; success: boolean }> {
+    if (!this.sandbox) {
+      throw new Error("Session not initialized")
+    }
+
+    // Check if already authenticated
+    const checkResult = await this.sandbox.exec("claude --version 2>/dev/null || echo 'not-installed'")
+    if (checkResult.stdout.includes("not-installed")) {
+      // Claude Code not installed - install it first
+      console.log("Installing Claude Code in sandbox...")
+      await this.sandbox.exec("npm install -g @anthropic-ai/claude-code")
+    }
+
+    // Initiate OAuth login
+    // Claude login outputs a URL for the user to visit
+    const loginResult = await this.sandbox.exec("claude login --no-open 2>&1 || true")
+
+    // Parse the login URL from output
+    const urlMatch = loginResult.stdout.match(/https:\/\/[^\s]+/)
+
+    if (urlMatch) {
+      return {
+        loginUrl: urlMatch[0],
+        success: false, // Not yet complete - user needs to visit URL
+      }
+    }
+
+    // Check if already logged in
+    const whoamiResult = await this.sandbox.exec("claude whoami 2>&1 || true")
+    if (whoamiResult.stdout.includes("@") || whoamiResult.stdout.includes("logged in")) {
+      return { success: true }
+    }
+
+    return { success: false }
+  }
+
+  /**
+   * Check if Claude is authenticated in the sandbox
+   */
+  async isClaudeAuthenticated(): Promise<boolean> {
+    if (!this.sandbox) {
+      return false
+    }
+
+    const result = await this.sandbox.exec("claude whoami 2>&1 || echo 'not-authenticated'")
+    return !result.stdout.includes("not-authenticated") && !result.stdout.includes("error")
+  }
+
+  /**
+   * Switch to a different AI provider
+   */
+  async switchProvider(provider: ProviderConfig): Promise<void> {
+    const oldProvider = this._currentProvider?.provider || "none"
+    this.emit("provider:switching", { from: oldProvider, to: provider.provider })
+
+    this._currentProvider = provider
+    this._fallbackIndex = 0 // Reset fallback index
+
+    this.emit("provider:switched", { provider: provider.provider })
+  }
+
+  /**
+   * Switch to the next fallback provider
+   * Returns false if no more fallbacks available
+   */
+  async useNextFallback(): Promise<boolean> {
+    const fallbacks = this.config.fallbackProviders || []
+    if (this._fallbackIndex >= fallbacks.length) {
+      return false
+    }
+
+    const nextProvider = fallbacks[this._fallbackIndex]
+    this._fallbackIndex++
+
+    this.emit("provider:fallback", {
+      provider: nextProvider.provider,
+      fallbackIndex: this._fallbackIndex,
+    })
+
+    this._currentProvider = nextProvider
+    return true
+  }
+
+  /**
+   * Run Claude Code with a prompt inside the sandbox
+   */
+  async runClaude(prompt: string, options?: {
+    dangerouslySkipPermissions?: boolean
+    timeoutMs?: number
+    model?: "opus" | "sonnet" | "haiku"
+    provider?: ProviderConfig  // Override session provider for this call
+  }): Promise<{ output: string; exitCode: number }> {
+    if (!this.sandbox) {
+      throw new Error("Session not initialized")
+    }
+
+    // Build flags
+    const flags: string[] = ["-p"]
+    if (options?.dangerouslySkipPermissions) {
+      flags.push("--dangerously-skip-permissions")
+    }
+
+    // Add model flag
+    const model = options?.model || this.config.model
+    if (model) {
+      flags.push(`--model`, model)
+    }
+
+    // Build environment variables from provider config
+    const provider = options?.provider || this._currentProvider
+    const envVars: string[] = []
+    if (provider) {
+      const envMap = providerToEnv(provider)
+      for (const [key, value] of Object.entries(envMap)) {
+        envVars.push(`${key}='${value}'`)
+      }
+    }
+
+    // Escape the prompt for shell
+    const escapedPrompt = prompt.replace(/'/g, "'\\''")
+    const envPrefix = envVars.length > 0 ? envVars.join(" ") + " " : ""
+    const command = `${envPrefix}echo '${escapedPrompt}' | claude ${flags.join(" ")}`
+
+    const result = await this.sandbox.exec(command)
+
+    // Check for rate limit errors and auto-fallback
+    if (result.exitCode !== 0 && result.stderr?.includes("rate limit")) {
+      const hadFallback = await this.useNextFallback()
+      if (hadFallback) {
+        // Retry with new provider
+        return this.runClaude(prompt, options)
+      }
+    }
+
+    return {
+      output: result.stdout + (result.stderr ? `\n${result.stderr}` : ""),
+      exitCode: result.exitCode,
+    }
   }
 
   /**
