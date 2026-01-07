@@ -1,10 +1,10 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <pattern id="gridSmall" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a3a5c" stroke-width="0.5"/>
+    <pattern id="gridSmall" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1a3a5c" stroke-width="0.5"/>
     </pattern>
-    <pattern id="gridLarge" width="200" height="200" patternUnits="userSpaceOnUse">
-      <path d="M 200 0 L 0 0 0 200" fill="none" stroke="#1a3a5c" stroke-width="1"/>
+    <pattern id="gridLarge" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#1a3a5c" stroke-width="1"/>
     </pattern>
     <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#38bdf8"/>
@@ -16,10 +16,12 @@
   <rect width="1200" height="630" fill="url(#gridLarge)" opacity="0.4"/>
   <rect width="1200" height="630" fill="url(#gridSmall)" opacity="0.25"/>
 
-  <!-- Corner accents - L-shaped brackets to frame content -->
-  <g stroke="#38bdf8" stroke-width="2" stroke-dasharray="8,6" opacity="0.5">
-    <path d="M 50 140 L 50 50 L 140 50" fill="none"/>
-    <path d="M 1150 490 L 1150 580 L 1060 580" fill="none"/>
+  <!-- Corner accents - asymmetric crosses at 80px major grid intersections -->
+  <g stroke="#38bdf8" stroke-width="0.75" stroke-dasharray="6,4" opacity="0.9">
+    <path d="M 40 80 L 200 80" fill="none"/>
+    <path d="M 80 40 L 80 200" fill="none"/>
+    <path d="M 1000 560 L 1160 560" fill="none"/>
+    <path d="M 1120 440 L 1120 600" fill="none"/>
   </g>
 
   <!-- fabric × exe.dev header -->
