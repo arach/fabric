@@ -347,3 +347,13 @@ export {
   type HandoffEventType,
   type HandoffEventListener,
 } from "./handoff"
+
+export {
+  Fabric,
+  FabricSession,
+  fabric,
+  type FabricSessionConfig,
+  type FabricSessionEvent,
+  type FabricSessionEventType,
+  type ExecResult,
+} from "./fabric"
