@@ -405,6 +405,8 @@ await session.stop()
 
 ## Running Claude Code
 
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code) is Anthropic's official CLI for AI-assisted coding. You can run it inside Fabric sandboxes for autonomous development tasks.
+
 \`\`\`typescript
 import { Sandbox } from "@e2b/code-interpreter"
 
@@ -422,6 +424,49 @@ console.log(result.stdout)
 await sandbox.kill()
 \`\`\`
 
+## Error Handling
+
+Always clean up sandboxes, even when errors occur:
+
+\`\`\`typescript
+const sandbox = await factory.create({})
+try {
+  await sandbox.exec("some-command")
+  await sandbox.exec("another-command")
+} finally {
+  await sandbox.stop() // Always runs
+}
+\`\`\`
+
+For transient failures, use retry with backoff:
+
+\`\`\`typescript
+async function execWithRetry(sandbox, cmd, maxAttempts = 3) {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      return await sandbox.exec(cmd)
+    } catch (e) {
+      if (i === maxAttempts - 1) throw e
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)))
+    }
+  }
+}
+\`\`\`
+
+## Pricing
+
+**Fabric is free.** You bring your own API keys for cloud providers.
+
+| Component | Cost |
+|-----------|------|
+| Fabric CLI & SDK | Free |
+| Local containers | Free (runs on your Mac) |
+| Daytona sandboxes | [Daytona pricing](https://daytona.io/pricing) |
+| E2B sandboxes | [E2B pricing](https://e2b.dev/pricing) |
+| exe.dev VMs | [exe.dev pricing](https://exe.dev) |
+
+We may introduce optional paid features in the future, but the core framework will remain free and open source.
+
 ## Next Steps
 
 - [Daytona Guide](/daytona) - Enterprise features and network policies
@@ -434,6 +479,20 @@ await sandbox.kill()
     content: `# Philosophy
 
 Fabric is built on a simple premise: **compute should follow you**.
+
+## Why Fabric?
+
+You could use provider SDKs directly—Daytona, E2B, and exe.dev all have great APIs. So why add Fabric?
+
+**1. Unified interface.** Write code once, run anywhere. Switch providers by changing one line.
+
+**2. Handoffs.** Move running work between local and cloud without losing context. No other tool does this.
+
+**3. Local-first.** Start development locally with Apple containers (no Docker), scale to cloud when needed.
+
+**4. Future-proof.** As new providers emerge, your code stays the same.
+
+If you only use one provider and don't need handoffs, use their SDK directly. If you want flexibility, use Fabric.
 
 ## The Problem
 
@@ -518,6 +577,8 @@ Each transition preserves context through snapshots.
   'local-containers': {
     title: 'Local Containers',
     content: `# Local Containers
+
+> **macOS only.** Local containers require macOS 13+ on Apple Silicon (M1/M2/M3/M4). On other platforms, use cloud providers instead.
 
 Fabric provides native container support on macOS using Apple's Virtualization.framework.
 
@@ -627,6 +688,148 @@ await cloudSandbox.restore(snapshot)
 
 Your files, environment, and state transfer seamlessly.
 `
+  },
+  'api-reference': {
+    title: 'API Reference',
+    content: `# API Reference
+
+TypeScript interfaces for the Fabric SDK.
+
+## Sandbox
+
+The main interface for interacting with a sandbox.
+
+\`\`\`typescript
+interface Sandbox {
+  readonly id: string
+  readonly runtimeType: "daytona" | "e2b" | "exe" | "local-container"
+  readonly status: "starting" | "running" | "stopped" | "error"
+
+  exec(command: string, options?: ExecOptions): Promise<ExecResult>
+  runCode(code: string, language?: string): Promise<RunCodeResult>
+  writeFile(path: string, content: string | Buffer): Promise<void>
+  readFile(path: string): Promise<string>
+  listFiles(path: string): Promise<string[]>
+  snapshot(): Promise<SandboxSnapshot>
+  restore(snapshot: SandboxSnapshot): Promise<void>
+  stop(): Promise<void>
+}
+\`\`\`
+
+## ExecOptions
+
+\`\`\`typescript
+interface ExecOptions {
+  /** Timeout in milliseconds. Default: 30000 */
+  timeoutMs?: number
+  /** Working directory */
+  cwd?: string
+  /** Additional environment variables */
+  env?: Record<string, string>
+}
+\`\`\`
+
+## ExecResult
+
+\`\`\`typescript
+interface ExecResult {
+  stdout: string
+  stderr: string
+  exitCode: number
+}
+\`\`\`
+
+## RunCodeResult
+
+\`\`\`typescript
+interface RunCodeResult {
+  output: string
+  error?: string
+}
+\`\`\`
+
+## CreateOptions
+
+\`\`\`typescript
+interface CreateOptions {
+  /** Language: "typescript" | "python" | "go" | "rust" | "javascript" */
+  language?: string
+  /** Environment variables */
+  envVars?: Record<string, string>
+  /** Container image (local only) */
+  image?: string
+  /** Sandbox name (exe.dev only) */
+  name?: string
+  /** Creation timeout in ms */
+  timeoutMs?: number
+}
+\`\`\`
+
+## SandboxSnapshot
+
+Used for handoffs between providers.
+
+\`\`\`typescript
+interface SandboxSnapshot {
+  files: Array<{
+    path: string
+    content: string
+    encoding: "utf-8" | "base64"
+  }>
+  env: Record<string, string>
+  metadata?: Record<string, unknown>
+  timestamp: string
+}
+\`\`\`
+
+## SandboxFactory
+
+\`\`\`typescript
+interface SandboxFactory {
+  create(options?: CreateOptions): Promise<Sandbox>
+  resume(id: string): Promise<Sandbox>
+  list(): Promise<Array<{ id: string; status: string }>>
+}
+\`\`\`
+
+## Provider Constructors
+
+### Daytona
+
+\`\`\`typescript
+import { DaytonaSandboxFactory } from "fabric-ai-daytona"
+
+new DaytonaSandboxFactory({
+  apiKey: string,
+  defaultLanguage?: string,
+  apiUrl?: string,
+})
+\`\`\`
+
+### E2B
+
+\`\`\`typescript
+import { E2BSandboxFactory } from "fabric-ai-e2b"
+
+new E2BSandboxFactory(apiKey: string, template?: string)
+\`\`\`
+
+### exe.dev
+
+\`\`\`typescript
+import { ExeSandboxFactory } from "fabric-ai-exe"
+
+new ExeSandboxFactory({ sshKeyPath?: string })
+\`\`\`
+
+### Local
+
+\`\`\`typescript
+import { LocalContainerFactory } from "fabric-ai-local"
+
+new LocalContainerFactory({ defaultImage?: string })
+\`\`\`
+`
   }
 };
 
@@ -635,6 +838,7 @@ const docsNav = [
   { slug: 'getting-started', title: 'Getting Started' },
   { slug: 'philosophy', title: 'Philosophy' },
   { slug: 'local-containers', title: 'Local Containers' },
+  { slug: 'api-reference', title: 'API Reference' },
 ];
 
 export const DocsPage: React.FC = () => {
