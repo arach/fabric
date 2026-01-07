@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(sw_vers)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(mkdir:*)",
+      "Bash(curl:*)",
+      "Bash(tar:*)",
+      "Bash(cp:*)",
+      "Bash(swift build:*)",
+      "Bash(swift:*)",
+      "Bash(/Users/arach/dev/fabric/packages/runtime-local/FabricContainer/.build/debug/fabric-container status:*)",
+      "Bash(/Users/arach/dev/fabric/packages/runtime-local/FabricContainer/.build/debug/fabric-container run:*)"
+    ]
+  }
+}

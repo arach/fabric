@@ -6,6 +6,11 @@ dist/
 .build/
 *.xcodeproj/xcuserdata/
 
+# Downloaded binaries (Kata, kernels, etc.)
+**/.local/
+**/bin/vmlinux
+*.tar.xz
+
 # Bun
 bun.lockb
 

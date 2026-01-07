@@ -4,14 +4,14 @@
  * Local execution runtime - subprocess and Apple containers
  */
 
-import { spawn } from "bun"
+import { spawn, spawnSync } from "bun"
+import { dirname, join } from "path"
 import type {
   Runtime,
   RuntimeType,
   RuntimeStatus,
   Task,
   TaskResult,
-  TaskStatus,
 } from "@fabric/core"
 
 // ============================================================================
@@ -95,7 +95,6 @@ export class SubprocessRuntime implements Runtime {
   }
 
   async getStatus(taskId: string): Promise<Task | null> {
-    // For subprocess, we don't track state beyond the process
     return null
   }
 }
@@ -107,86 +106,162 @@ export class SubprocessRuntime implements Runtime {
 export class ContainerRuntime implements Runtime {
   type: RuntimeType = "local-container"
 
-  private containerBinaryPath: string
+  private binaryPath: string
+  private _status: { kernelExists: boolean; kernelPath: string } | null = null
 
-  constructor(containerBinaryPath?: string) {
-    // Default to looking in the package's FabricContainer build
-    this.containerBinaryPath =
-      containerBinaryPath ||
-      new URL(
-        "../FabricContainer/.build/release/fabric-container",
-        import.meta.url
-      ).pathname
+  constructor(binaryPath?: string) {
+    // Default path relative to this package
+    const packageDir = dirname(dirname(new URL(import.meta.url).pathname))
+    this.binaryPath =
+      binaryPath ||
+      join(packageDir, "FabricContainer/.build/release/fabric-container")
+  }
+
+  private async getBinaryStatus(): Promise<{
+    kernelExists: boolean
+    kernelPath: string
+    status: string
+  }> {
+    if (this._status) {
+      return { ...this._status, status: "ready" }
+    }
+
+    try {
+      const proc = spawnSync({
+        cmd: [this.binaryPath, "status"],
+        stdout: "pipe",
+        stderr: "pipe",
+      })
+
+      if (proc.exitCode === 0) {
+        const output = proc.stdout.toString()
+        this._status = JSON.parse(output)
+        return this._status as any
+      }
+    } catch {}
+
+    return { kernelExists: false, kernelPath: "", status: "error" }
   }
 
   async isAvailable(): Promise<boolean> {
     try {
-      const file = Bun.file(this.containerBinaryPath)
-      return await file.exists()
+      const file = Bun.file(this.binaryPath)
+      if (!(await file.exists())) return false
+
+      const status = await this.getBinaryStatus()
+      return status.kernelExists
     } catch {
       return false
     }
   }
 
   async healthCheck(): Promise<RuntimeStatus> {
-    const available = await this.isAvailable()
-
-    if (!available) {
+    // Check binary exists
+    try {
+      const file = Bun.file(this.binaryPath)
+      if (!(await file.exists())) {
+        return {
+          type: this.type,
+          available: false,
+          healthy: false,
+          message: `Binary not found at ${this.binaryPath}. Run 'swift build -c release' in FabricContainer/`,
+        }
+      }
+    } catch {
       return {
         type: this.type,
         available: false,
         healthy: false,
-        message: `Container binary not found at ${this.containerBinaryPath}. Run 'bun run build:container' first.`,
+        message: `Cannot access binary at ${this.binaryPath}`,
       }
     }
 
-    // Check if fabric-container responds
+    // Check kernel
+    const status = await this.getBinaryStatus()
+
+    if (!status.kernelExists) {
+      return {
+        type: this.type,
+        available: false,
+        healthy: false,
+        message: `Kernel not found at ${status.kernelPath}. Run setup script to download kernel.`,
+      }
+    }
+
+    return {
+      type: this.type,
+      available: true,
+      healthy: true,
+      message: `Container runtime ready (kernel: ${status.kernelPath})`,
+    }
+  }
+
+  async execute(task: Task): Promise<TaskResult> {
+    const startTime = Date.now()
+
+    // Build the command
+    let cmd: string
+    if (task.command) {
+      cmd = task.command
+    } else if (task.code) {
+      // For code execution, we need to write it to a file or use echo
+      // For now, assume it's shell code
+      cmd = task.code
+    } else {
+      return {
+        taskId: task.id,
+        status: "failed",
+        error: "No command or code provided",
+        duration: Date.now() - startTime,
+      }
+    }
+
+    // Default to alpine for simple commands, bun for code
+    const image = task.code ? "docker.io/oven/bun:latest" : "alpine:latest"
+
     try {
       const proc = spawn({
-        cmd: [this.containerBinaryPath, "status"],
+        cmd: [
+          this.binaryPath,
+          "run",
+          "--image",
+          image,
+          "--cmd",
+          cmd,
+        ],
         stdout: "pipe",
         stderr: "pipe",
       })
 
       const stdout = await new Response(proc.stdout).text()
+      const stderr = await new Response(proc.stderr).text()
       const exitCode = await proc.exited
 
-      if (exitCode === 0) {
-        return {
-          type: this.type,
-          available: true,
-          healthy: true,
-          message: "Container runtime ready",
-        }
-      }
+      // Parse output from fabric-container
+      // It prints status messages, then "Exit code: N"
+      const exitMatch = stdout.match(/Exit code: (\d+)/)
+      const containerExitCode = exitMatch ? parseInt(exitMatch[1]) : exitCode
 
       return {
-        type: this.type,
-        available: true,
-        healthy: false,
-        message: `Container runtime unhealthy: ${stdout}`,
+        taskId: task.id,
+        status: containerExitCode === 0 ? "completed" : "failed",
+        output: stdout,
+        error: stderr || undefined,
+        exitCode: containerExitCode,
+        duration: Date.now() - startTime,
       }
     } catch (error) {
       return {
-        type: this.type,
-        available: true,
-        healthy: false,
-        message: `Health check failed: ${error}`,
+        taskId: task.id,
+        status: "failed",
+        error: error instanceof Error ? error.message : String(error),
+        duration: Date.now() - startTime,
       }
-    }
-  }
-
-  async execute(task: Task): Promise<TaskResult> {
-    // TODO: Implement container execution via fabric-container binary
-    return {
-      taskId: task.id,
-      status: "failed",
-      error: "Container runtime not yet implemented",
     }
   }
 
   async cancel(taskId: string): Promise<void> {
-    // TODO: Implement via fabric-container stop
+    // TODO: Track running containers and stop them
   }
 
   async getStatus(taskId: string): Promise<Task | null> {

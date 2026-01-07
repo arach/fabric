@@ -4,16 +4,42 @@
  * HTTP API for ambient compute orchestration
  */
 
-import type { Task, TaskInput, RuntimeStatus, Checkpoint } from "@fabric/core"
+import type { Task, TaskInput, RuntimeStatus, Checkpoint, Runtime } from "@fabric/core"
+import { subprocess, container } from "@fabric/runtime-local"
 
 const PORT = parseInt(process.env.PORT || "9000")
 
 // In-memory task store (replace with persistent storage)
 const tasks = new Map<string, Task>()
-const contexts = new Map<string, any>()
+
+// Available runtimes
+const runtimes: Runtime[] = [subprocess, container]
 
 // Generate unique IDs
 const generateId = () => crypto.randomUUID()
+
+// Get runtime by type
+function getRuntime(type: string): Runtime | undefined {
+  return runtimes.find((r) => r.type === type)
+}
+
+// Auto-select runtime (prefer container if available, else subprocess)
+async function selectRuntime(preferred?: string): Promise<Runtime> {
+  if (preferred && preferred !== "auto") {
+    const runtime = getRuntime(preferred)
+    if (runtime && (await runtime.isAvailable())) {
+      return runtime
+    }
+  }
+
+  // Try container first
+  if (await container.isAvailable()) {
+    return container
+  }
+
+  // Fall back to subprocess
+  return subprocess
+}
 
 // ============================================================================
 // HTTP Server
@@ -52,35 +78,33 @@ const server = Bun.serve({
         )
       }
 
-      // List runtimes
+      // List runtimes with actual health checks
       if (path === "/runtimes" && method === "GET") {
-        const runtimes: RuntimeStatus[] = [
-          {
-            type: "local-subprocess",
-            available: true,
-            healthy: true,
-            message: "Direct subprocess execution",
-          },
-          {
-            type: "local-container",
-            available: false, // TODO: Check FabricContainer binary
-            healthy: false,
-            message: "Apple Containerization (requires setup)",
-          },
-          {
-            type: "e2b",
-            available: false, // TODO: Check API key
-            healthy: false,
-            message: "E2B cloud sandbox (requires API key)",
-          },
-          {
-            type: "modal",
-            available: false, // TODO: Check API key
-            healthy: false,
-            message: "Modal serverless (requires API key)",
-          },
-        ]
-        return Response.json({ runtimes }, { headers })
+        const statuses: RuntimeStatus[] = await Promise.all(
+          runtimes.map((r) => r.healthCheck())
+        )
+
+        // Add cloud runtimes (not yet implemented)
+        statuses.push({
+          type: "e2b",
+          available: !!process.env.E2B_API_KEY,
+          healthy: !!process.env.E2B_API_KEY,
+          message: process.env.E2B_API_KEY
+            ? "E2B API key configured"
+            : "E2B cloud sandbox (requires E2B_API_KEY)",
+        })
+
+        statuses.push({
+          type: "modal",
+          available: !!(process.env.MODAL_TOKEN_ID && process.env.MODAL_TOKEN_SECRET),
+          healthy: !!(process.env.MODAL_TOKEN_ID && process.env.MODAL_TOKEN_SECRET),
+          message:
+            process.env.MODAL_TOKEN_ID && process.env.MODAL_TOKEN_SECRET
+              ? "Modal credentials configured"
+              : "Modal serverless (requires MODAL_TOKEN_ID + MODAL_TOKEN_SECRET)",
+        })
+
+        return Response.json({ runtimes: statuses }, { headers })
       }
 
       // Submit task
@@ -102,23 +126,31 @@ const server = Bun.serve({
 
         tasks.set(task.id, task)
 
-        // TODO: Actually execute the task via orchestrator
-        // For now, just simulate
-        setTimeout(() => {
-          const t = tasks.get(task.id)
-          if (t && t.status === "pending") {
-            t.status = "running"
-            t.startedAt = new Date()
+        // Execute task asynchronously
+        ;(async () => {
+          try {
+            const runtime = await selectRuntime(task.runtime as string)
+            task.status = "running"
+            task.startedAt = new Date()
 
-            // Simulate execution
-            setTimeout(() => {
-              t.status = "completed"
-              t.completedAt = new Date()
-              t.output = `Executed: ${t.code || t.command}`
-              t.exitCode = 0
-            }, 1000)
+            console.log(`[${task.id}] Executing on ${runtime.type}...`)
+
+            const result = await runtime.execute(task)
+
+            task.status = result.status
+            task.completedAt = new Date()
+            task.output = result.output
+            task.error = result.error
+            task.exitCode = result.exitCode
+
+            console.log(`[${task.id}] ${result.status} (exit: ${result.exitCode}, ${result.duration}ms)`)
+          } catch (error) {
+            task.status = "failed"
+            task.completedAt = new Date()
+            task.error = error instanceof Error ? error.message : String(error)
+            console.error(`[${task.id}] Error:`, error)
           }
-        }, 100)
+        })()
 
         return Response.json({ task }, { headers, status: 201 })
       }
@@ -152,6 +184,10 @@ const server = Bun.serve({
         }
 
         if (task.status === "running" || task.status === "pending") {
+          const runtime = getRuntime(task.runtime as string)
+          if (runtime) {
+            await runtime.cancel(taskId)
+          }
           task.status = "cancelled"
         }
 

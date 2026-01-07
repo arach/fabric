@@ -73,8 +73,32 @@ curl http://localhost:8765/runtimes
 - **Runtime**: Execution environment (local subprocess, E2B, Modal)
 - **Orchestrator**: Routes tasks to runtimes based on availability and cost
 
+## Runtimes
+
+| Runtime | Status | Notes |
+|---------|--------|-------|
+| `local-subprocess` | ✅ Ready | Direct host execution |
+| `local-container` | 🟡 Ready | Requires TTY (see below) |
+| `e2b` | ❌ Not configured | Needs `E2B_API_KEY` |
+| `modal` | ❌ Not configured | Needs `MODAL_TOKEN_ID` + `MODAL_TOKEN_SECRET` |
+
+### Container Runtime (TTY Limitation)
+
+Apple's Virtualization.framework requires a proper TTY. This means:
+- ❌ Cannot run containers via HTTP API (subprocess has no TTY)
+- ✅ Can run containers from Terminal manually
+
+**Workaround:** Run container tasks from Terminal:
+```bash
+./scripts/run-container.sh "echo hello"
+./scripts/run-container.sh --image oven/bun:latest "bun --version"
+```
+
+**Future:** Build a daemon that maintains a TTY and accepts requests over IPC.
+
 ## Development
 
 - TypeScript + Bun
 - Monorepo with workspaces
 - Runtime adapters implement common interface
+- Swift (FabricContainer) for Apple Virtualization.framework
