@@ -5,6 +5,7 @@ import App from './App';
 import { DaytonaPage } from './pages/DaytonaPage';
 import { E2BPage } from './pages/E2BPage';
 import { ExePage } from './pages/ExePage';
+import { DocsPage } from './pages/DocsPage';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -20,6 +21,8 @@ root.render(
         <Route path="/daytona" element={<DaytonaPage />} />
         <Route path="/e2b" element={<E2BPage />} />
         <Route path="/exe" element={<ExePage />} />
+        <Route path="/docs/:slug" element={<DocsPage />} />
+        <Route path="/docs" element={<DocsPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

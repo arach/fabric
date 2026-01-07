@@ -32,7 +32,7 @@ export const Navbar: React.FC = () => {
             <span>GitHub</span>
           </a>
           <div className="w-px h-4 bg-dark-border mx-2"></div>
-          <a href="#" className="text-sm font-medium text-white hover:text-brand-400 transition-colors">Documentation</a>
+          <a href="/docs/getting-started" className="text-sm font-medium text-white hover:text-brand-400 transition-colors">Documentation</a>
         </div>
 
         <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -45,7 +45,7 @@ export const Navbar: React.FC = () => {
         <div className="absolute top-full left-0 right-0 bg-dark-950 border-b border-dark-border p-6 md:hidden flex flex-col gap-4 shadow-xl">
            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-gray-400 hover:text-white">Features</a>
           <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-gray-400 hover:text-white">How it Works</a>
-          <a href="#" className="text-sm font-medium text-gray-400 hover:text-white">Documentation</a>
+          <a href="/docs/getting-started" className="text-sm font-medium text-gray-400 hover:text-white">Documentation</a>
           <a href="#" className="text-sm font-medium text-gray-400 hover:text-white">GitHub</a>
         </div>
       )}
