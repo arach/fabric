@@ -1,9 +1,66 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import { ArrowLeft, Book, FileText, Box } from 'lucide-react';
+import { ArrowLeft, Book, Box, Copy, Check } from 'lucide-react';
+
+// Code block component with syntax highlighting
+const CodeBlock: React.FC<{ className?: string; children?: React.ReactNode }> = ({ className, children }) => {
+  const [copied, setCopied] = React.useState(false);
+  const match = /language-(\w+)/.exec(className || '');
+  const language = match ? match[1] : '';
+  const code = String(children).replace(/\n$/, '');
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (!match) {
+    // Inline code
+    return (
+      <code className="text-brand-300 bg-zinc-800 px-1.5 py-0.5 rounded text-sm">
+        {children}
+      </code>
+    );
+  }
+
+  // Code block with syntax highlighting
+  return (
+    <div className="relative group">
+      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={handleCopy}
+          className="p-2 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 transition-colors"
+          title="Copy code"
+        >
+          {copied ? <Check size={14} /> : <Copy size={14} />}
+        </button>
+      </div>
+      <div className="absolute left-3 top-2 text-xs text-zinc-500 font-mono">
+        {language}
+      </div>
+      <SyntaxHighlighter
+        style={oneDark}
+        language={language}
+        PreTag="div"
+        customStyle={{
+          margin: 0,
+          borderRadius: '0.5rem',
+          padding: '2.5rem 1rem 1rem 1rem',
+          backgroundColor: '#18181b',
+          border: '1px solid #27272a',
+        }}
+      >
+        {code}
+      </SyntaxHighlighter>
+    </div>
+  );
+};
 
 // Docs content - embedded for static site generation
 const docsContent: Record<string, { title: string; content: string }> = {
@@ -403,7 +460,13 @@ export const DocsPage: React.FC = () => {
                 prose-strong:text-white
                 prose-li:text-zinc-300
               ">
-                <ReactMarkdown>{doc.content}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    code: CodeBlock,
+                  }}
+                >
+                  {doc.content}
+                </ReactMarkdown>
               </article>
             </main>
           </div>
