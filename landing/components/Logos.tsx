@@ -41,12 +41,12 @@ export const Logos: React.FC = () => {
 
              {/* E2B */}
              <LogoItem name="E2B">
-                <span className="font-mono text-2xl font-bold tracking-tighter">E2B</span>
+                <img src="https://github.com/e2b-dev/E2B/raw/main/readme-assets/e2b-sdk-dark.png" alt="E2B" className="h-6 w-auto" />
              </LogoItem>
 
              {/* Daytona */}
              <LogoItem name="Daytona">
-                <span className="font-sans text-xl font-bold tracking-wide uppercase">Daytona</span>
+                <img src="https://github.com/daytonaio/daytona/raw/main/assets/images/Daytona-logotype-white.png" alt="Daytona" className="h-5 w-auto" />
              </LogoItem>
 
         </div>
@@ -69,10 +69,10 @@ export const Logos: React.FC = () => {
                  <svg viewBox="0 0 24 24" className="h-8 w-8" fill="currentColor"><path d="M3 5v14h4.5v-5.25h9V19H21V5h-4.5v5.25h-9V5H3z"/></svg>
              </LogoItem>
              <LogoItem name="E2B">
-                <span className="font-mono text-2xl font-bold tracking-tighter">E2B</span>
+                <img src="https://github.com/e2b-dev/E2B/raw/main/readme-assets/e2b-sdk-dark.png" alt="E2B" className="h-6 w-auto" />
              </LogoItem>
              <LogoItem name="Daytona">
-                <span className="font-sans text-xl font-bold tracking-wide uppercase">Daytona</span>
+                <img src="https://github.com/daytonaio/daytona/raw/main/assets/images/Daytona-logotype-white.png" alt="Daytona" className="h-5 w-auto" />
              </LogoItem>
         </div>
       </div>
