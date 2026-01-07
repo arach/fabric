@@ -60,66 +60,55 @@ export const ExePage: React.FC = () => {
             <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">1</span>
-                <h3 className="font-semibold">Install Fabric</h3>
+                <h3 className="font-semibold">Set up SSH access</h3>
               </div>
-              <CodeBlock code="npm install fabric-ai-core fabric-ai-exe" language="bash" />
-            </div>
-
-            <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">2</span>
-                <h3 className="font-semibold">Set Up SSH Access</h3>
-              </div>
-              <CodeBlock
-                code={`# First, authenticate with exe.dev
-ssh exe.dev
-
-# Your SSH key (~/.ssh/id_ed25519 or ~/.ssh/id_rsa)
-# will be used automatically by Fabric`}
-                language="bash"
-              />
+              <CodeBlock code="ssh exe.dev" language="bash" />
               <p className="text-zinc-500 text-sm mt-3">
                 Sign up at{' '}
                 <a href="https://exe.dev" className="text-brand-400 hover:underline" target="_blank" rel="noopener noreferrer">
                   exe.dev
                 </a>
-                {' '}to get started
+                {' '}— your SSH key is used automatically by Fabric.
+              </p>
+            </div>
+
+            <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">2</span>
+                <h3 className="font-semibold">Push your project to exe.dev</h3>
+              </div>
+              <CodeBlock code="fabric push --provider exe" language="bash" />
+              <p className="text-zinc-500 text-sm mt-3">
+                Fabric provisions a persistent VM and syncs your project via SFTP.
               </p>
             </div>
 
             <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">3</span>
-                <h3 className="font-semibold">Create an exe.dev VM</h3>
+                <h3 className="font-semibold">Your agent runs in a persistent VM</h3>
               </div>
-              <CodeBlock
-                code={`import { ExeSandboxFactory } from "fabric-ai-exe"
-
-const factory = new ExeSandboxFactory()
-
-const sandbox = await factory.create({ name: "my-agent" })
-
-// Execute commands via SSH
-const result = await sandbox.exec("echo 'Hello from exe.dev!'")
-console.log(result.stdout)
-
-// Run Python code
-const output = await sandbox.runCode(\`
-print("2 + 2 =", 2 + 2)
-\`, "python")
-
-// File operations via SFTP
-await sandbox.writeFile("/home/user/hello.py", "x = 42")
-const content = await sandbox.readFile("/home/user/hello.py")
-
-// List existing VMs
-const vms = await factory.list()
-console.log("Your VMs:", vms)
-
-// Cleanup
-await sandbox.stop()`}
-                language="typescript"
-              />
+              <div className="space-y-3 text-sm text-zinc-400">
+                <p>Once pushed, your project runs on a real Ubuntu VM:</p>
+                <ul className="space-y-2 ml-4">
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Persistent disk</strong> — Your data stays between sessions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Full root access</strong> — Install anything with <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">sudo</code></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Full internet</strong> — No network restrictions whatsoever</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Agents pre-installed</strong> — Claude Code, Codex, and Shelley ready to go</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -130,31 +119,31 @@ await sandbox.stop()`}
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-6 text-center">Built-in Shelley Agent</h2>
           <p className="text-zinc-400 text-center mb-10">
-            exe.dev VMs come with Shelley pre-installed - a web-based coding agent accessible at port 9999.
+            exe.dev VMs come with Shelley pre-installed — a web-based coding agent accessible at port 9999.
           </p>
 
           <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
-            <CodeBlock
-              code={`// Shelley is accessible at https://vmname.exe.xyz:9999/
-// Claude and Codex are also pre-installed
-
-const sandbox = await factory.create({ name: "coding-agent" })
-
-// Check installed agents
-const result = await sandbox.exec("which claude codex")
-console.log(result.stdout)
-// /usr/local/bin/claude
-// /usr/local/bin/codex
-
-// Run Claude Code directly
-await sandbox.exec(\`
-  echo 'Build a fibonacci function' | claude -p
-\`)
-
-// Or use Shelley via web UI at:
-// https://coding-agent.exe.xyz:9999/`}
-              language="typescript"
-            />
+            <div className="space-y-3 text-sm text-zinc-400">
+              <p>When you push to exe.dev, you get:</p>
+              <ul className="space-y-2 ml-4">
+                <li className="flex items-start gap-2">
+                  <span className="text-brand-400 mt-1">•</span>
+                  <span><strong className="text-white">Shelley web UI</strong> at <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">https://vmname.exe.xyz:9999/</code></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-brand-400 mt-1">•</span>
+                  <span><strong className="text-white">Claude Code</strong> pre-installed at <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">/usr/local/bin/claude</code></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-brand-400 mt-1">•</span>
+                  <span><strong className="text-white">Codex</strong> pre-installed at <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">/usr/local/bin/codex</code></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-brand-400 mt-1">•</span>
+                  <span><strong className="text-white">Full Ubuntu environment</strong> with Node.js, Python, Go, Rust</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>

@@ -55,23 +55,11 @@ export const DaytonaPage: React.FC = () => {
             <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">1</span>
-                <h3 className="font-semibold">Install Fabric</h3>
+                <h3 className="font-semibold">Set your Daytona API key</h3>
               </div>
-              <CodeBlock code="npm install fabric-ai-core fabric-ai-daytona" language="bash" />
-            </div>
-
-            <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">2</span>
-                <h3 className="font-semibold">Set Environment Variables</h3>
-              </div>
-              <CodeBlock
-                code={`DAYTONA_API_KEY=your_daytona_api_key
-ANTHROPIC_API_KEY=your_anthropic_api_key`}
-                language="bash"
-              />
+              <CodeBlock code="export DAYTONA_API_KEY=your_daytona_api_key" language="bash" />
               <p className="text-zinc-500 text-sm mt-3">
-                Get your Daytona API key from{' '}
+                Get your API key from{' '}
                 <a href="https://app.daytona.io" className="text-brand-400 hover:underline" target="_blank" rel="noopener noreferrer">
                   app.daytona.io
                 </a>
@@ -80,36 +68,41 @@ ANTHROPIC_API_KEY=your_anthropic_api_key`}
 
             <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
-                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">3</span>
-                <h3 className="font-semibold">Create a Daytona Sandbox</h3>
+                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">2</span>
+                <h3 className="font-semibold">Push your project to Daytona</h3>
               </div>
-              <CodeBlock
-                code={`import { DaytonaSandboxFactory } from "fabric-ai-daytona"
+              <CodeBlock code="fabric push --provider daytona" language="bash" />
+              <p className="text-zinc-500 text-sm mt-3">
+                Fabric provisions a Daytona sandbox and syncs your project automatically.
+              </p>
+            </div>
 
-const factory = new DaytonaSandboxFactory({
-  apiKey: process.env.DAYTONA_API_KEY,
-  defaultLanguage: "typescript"
-})
-
-const sandbox = await factory.create({})
-
-// Execute commands
-const result = await sandbox.exec("echo 'Hello from Daytona!'")
-console.log(result.stdout)
-
-// Run code directly
-const output = await sandbox.runCode(\`
-  console.log("2 + 2 =", 2 + 2)
-\`)
-
-// File operations
-await sandbox.writeFile("/workspace/hello.ts", "export const x = 42")
-const content = await sandbox.readFile("/workspace/hello.ts")
-
-// Cleanup
-await sandbox.stop()`}
-                language="typescript"
-              />
+            <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">3</span>
+                <h3 className="font-semibold">Your agent runs in the cloud</h3>
+              </div>
+              <div className="space-y-3 text-sm text-zinc-400">
+                <p>Once pushed, your project is running in a secure Daytona sandbox:</p>
+                <ul className="space-y-2 ml-4">
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Files synced</strong> — Your local directory is mirrored to <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">/workspace</code></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Environment ready</strong> — Node.js, Python, Go, Rust pre-installed</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Checkpoints enabled</strong> — Snapshot and restore state anytime</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Reclaim anytime</strong> — Pull back to local with <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">fabric pull</code></span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

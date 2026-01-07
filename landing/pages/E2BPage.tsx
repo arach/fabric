@@ -55,23 +55,11 @@ export const E2BPage: React.FC = () => {
             <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">1</span>
-                <h3 className="font-semibold">Install Fabric</h3>
+                <h3 className="font-semibold">Set your E2B API key</h3>
               </div>
-              <CodeBlock code="npm install fabric-ai-core fabric-ai-e2b" language="bash" />
-            </div>
-
-            <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">2</span>
-                <h3 className="font-semibold">Set Environment Variables</h3>
-              </div>
-              <CodeBlock
-                code={`E2B_API_KEY=your_e2b_api_key
-ANTHROPIC_API_KEY=your_anthropic_api_key`}
-                language="bash"
-              />
+              <CodeBlock code="export E2B_API_KEY=your_e2b_api_key" language="bash" />
               <p className="text-zinc-500 text-sm mt-3">
-                Get your E2B API key from{' '}
+                Get your API key from{' '}
                 <a href="https://e2b.dev/dashboard" className="text-brand-400 hover:underline" target="_blank" rel="noopener noreferrer">
                   e2b.dev/dashboard
                 </a>
@@ -80,33 +68,41 @@ ANTHROPIC_API_KEY=your_anthropic_api_key`}
 
             <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
               <div className="flex items-center gap-3 mb-4">
-                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">3</span>
-                <h3 className="font-semibold">Create an E2B Sandbox</h3>
+                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">2</span>
+                <h3 className="font-semibold">Push your project to E2B</h3>
               </div>
-              <CodeBlock
-                code={`import { E2BSandboxFactory } from "fabric-ai-e2b"
+              <CodeBlock code="fabric push --provider e2b" language="bash" />
+              <p className="text-zinc-500 text-sm mt-3">
+                Fabric provisions an E2B sandbox and syncs your project automatically.
+              </p>
+            </div>
 
-const factory = new E2BSandboxFactory(process.env.E2B_API_KEY)
-
-const sandbox = await factory.create({})
-
-// Execute commands
-const result = await sandbox.exec("echo 'Hello from E2B!'")
-console.log(result.stdout)
-
-// Run Python code (E2B default)
-const output = await sandbox.runCode(\`
-print("2 + 2 =", 2 + 2)
-\`)
-
-// File operations
-await sandbox.writeFile("/home/user/hello.py", "x = 42")
-const content = await sandbox.readFile("/home/user/hello.py")
-
-// Cleanup
-await sandbox.stop()`}
-                language="typescript"
-              />
+            <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">3</span>
+                <h3 className="font-semibold">Your agent runs in the cloud</h3>
+              </div>
+              <div className="space-y-3 text-sm text-zinc-400">
+                <p>Once pushed, your project is running in a secure E2B sandbox:</p>
+                <ul className="space-y-2 ml-4">
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Files synced</strong> — Your local directory is mirrored to <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">/home/user</code></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Instant startup</strong> — Sandboxes boot in under 200ms</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Full internet</strong> — No network restrictions or allowlists</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-brand-400 mt-1">•</span>
+                    <span><strong className="text-white">Reclaim anytime</strong> — Pull back to local with <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">fabric pull</code></span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -117,36 +113,31 @@ await sandbox.stop()`}
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-6 text-center">Claude Code Template</h2>
           <p className="text-zinc-400 text-center mb-10">
-            E2B provides a pre-built template with Claude Code installed. Run AI agents instantly.
+            E2B provides a pre-built template with Claude Code installed. Fabric uses this automatically when you push.
           </p>
 
           <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
-            <CodeBlock
-              code={`import { Sandbox } from "@e2b/code-interpreter"
-
-// Use E2B's Claude Code template
-const sandbox = await Sandbox.create("anthropic-claude-code", {
-  apiKey: process.env.E2B_API_KEY,
-  envs: {
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY
-  }
-})
-
-// Run Claude Code with a mission
-const result = await sandbox.commands.run(
-  \`echo 'Create a fibonacci function' | claude -p --dangerously-skip-permissions\`,
-  { timeoutMs: 120_000 }
-)
-
-console.log(result.stdout)
-
-// Check what Claude created
-const files = await sandbox.files.list("/home/user")
-console.log("Files:", files.map(f => f.name))
-
-await sandbox.kill()`}
-              language="typescript"
-            />
+            <div className="space-y-3 text-sm text-zinc-400">
+              <p>When you run <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">fabric push --provider e2b</code>, Fabric:</p>
+              <ul className="space-y-2 ml-4">
+                <li className="flex items-start gap-2">
+                  <span className="text-brand-400 mt-1">•</span>
+                  <span>Provisions an E2B sandbox with the <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">anthropic-claude-code</code> template</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-brand-400 mt-1">•</span>
+                  <span>Syncs your project files to <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">/home/user</code></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-brand-400 mt-1">•</span>
+                  <span>Injects your <code className="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">ANTHROPIC_API_KEY</code> securely</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-brand-400 mt-1">•</span>
+                  <span>Sets up the Jupyter kernel for code execution</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
