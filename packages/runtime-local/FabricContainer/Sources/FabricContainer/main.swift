@@ -176,14 +176,33 @@ struct FabricContainerCLI {
                 printUsage()
             }
         } catch {
-            print("Error: \(error.localizedDescription)")
+            print("Error: \(error)")
+            print("Localized: \(error.localizedDescription)")
+            if let underlying = (error as NSError).userInfo[NSUnderlyingErrorKey] as? Error {
+                print("Underlying: \(underlying)")
+            }
             exit(1)
         }
     }
 
+    /// Normalize image reference to fully-qualified form
+    static func normalizeImageRef(_ ref: String) -> String {
+        // If already has a domain (contains .), return as-is
+        if ref.contains(".") {
+            return ref
+        }
+        // If it's a simple name like "alpine:latest", prepend docker.io/library/
+        let parts = ref.split(separator: "/")
+        if parts.count == 1 {
+            return "docker.io/library/\(ref)"
+        }
+        // If it's like "oven/bun:latest", prepend docker.io/
+        return "docker.io/\(ref)"
+    }
+
     static func runCommand(args: [String]) async throws {
         // Parse arguments
-        var image = "alpine:latest"
+        var image = "docker.io/library/alpine:latest"
         var command: [String] = ["/bin/sh", "-c", "echo hello"]
         var kernelPath = defaultKernelPath
 
@@ -192,7 +211,7 @@ struct FabricContainerCLI {
             switch args[i] {
             case "--image", "-i":
                 i += 1
-                if i < args.count { image = args[i] }
+                if i < args.count { image = normalizeImageRef(args[i]) }
             case "--cmd", "-c":
                 i += 1
                 if i < args.count {

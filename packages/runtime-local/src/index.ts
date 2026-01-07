@@ -216,12 +216,26 @@ export class ContainerRuntime implements Runtime {
       }
     }
 
+    // Normalize image reference to fully-qualified form
+    const normalizeImage = (ref: string): string => {
+      if (ref.includes(".")) return ref
+      const parts = ref.split("/")
+      if (parts.length === 1) return `docker.io/library/${ref}`
+      return `docker.io/${ref}`
+    }
+
     // Default to alpine for simple commands, bun for code
-    const image = task.code ? "docker.io/oven/bun:latest" : "alpine:latest"
+    const image = normalizeImage(
+      task.code ? "oven/bun:latest" : "alpine:latest"
+    )
 
     try {
+      // Use 'script' to provide a PTY - required by Virtualization.framework
       const proc = spawn({
         cmd: [
+          "script",
+          "-q",
+          "/dev/null",
           this.binaryPath,
           "run",
           "--image",
@@ -233,9 +247,15 @@ export class ContainerRuntime implements Runtime {
         stderr: "pipe",
       })
 
-      const stdout = await new Response(proc.stdout).text()
+      let stdout = await new Response(proc.stdout).text()
       const stderr = await new Response(proc.stderr).text()
       const exitCode = await proc.exited
+
+      // Clean up PTY control characters from script wrapper
+      stdout = stdout
+        .replace(/\^\[?D\\b\\b/g, "")  // Remove ^D and backspaces
+        .replace(/\r\n/g, "\n")         // Normalize line endings
+        .replace(/^\s+/, "")            // Trim leading whitespace
 
       // Parse output from fabric-container
       // It prints status messages, then "Exit code: N"
