@@ -3,8 +3,16 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { CodeBlock } from '../components/CodeBlock';
 import { ArrowRight, Terminal, Cloud, Shield, Zap, Code, Box } from 'lucide-react';
+import { useMeta } from '../hooks/useMeta';
 
 export const DaytonaPage: React.FC = () => {
+  useMeta({
+    title: 'fabric × Daytona | Secure Cloud Sandboxes',
+    description: 'Run Claude agents in secure Daytona cloud sandboxes. Enterprise-grade isolation with seamless file sync and checkpoint support.',
+    image: '/og-daytona.png',
+    url: '/daytona',
+  });
+
   return (
     <div className="min-h-screen bg-dark-950 text-white selection:bg-brand-500/30 overflow-x-hidden">
       <Navbar />

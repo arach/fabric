@@ -3,8 +3,16 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { CodeBlock } from '../components/CodeBlock';
 import { ArrowRight, Terminal, Cloud, Shield, Zap, Code, Box, Server } from 'lucide-react';
+import { useMeta } from '../hooks/useMeta';
 
 export const ExePage: React.FC = () => {
+  useMeta({
+    title: 'fabric × exe.dev | Persistent VMs',
+    description: 'Run Claude agents in persistent exe.dev Ubuntu VMs. Full root access, SSH native, and Shelley agent built-in.',
+    image: '/og-exe.png',
+    url: '/exe',
+  });
+
   return (
     <div className="min-h-screen bg-dark-950 text-white selection:bg-brand-500/30 overflow-x-hidden">
       <Navbar />

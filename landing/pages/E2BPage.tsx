@@ -3,8 +3,16 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { CodeBlock } from '../components/CodeBlock';
 import { ArrowRight, Terminal, Cloud, Cpu, Zap, Code, Box } from 'lucide-react';
+import { useMeta } from '../hooks/useMeta';
 
 export const E2BPage: React.FC = () => {
+  useMeta({
+    title: 'fabric × E2B | Code Interpreter Sandboxes',
+    description: 'Run Claude agents in E2B code interpreter sandboxes. Instant startup, full internet access, and Jupyter kernel built-in.',
+    image: '/og-e2b.png',
+    url: '/e2b',
+  });
+
   return (
     <div className="min-h-screen bg-dark-950 text-white selection:bg-brand-500/30 overflow-x-hidden">
       <Navbar />
