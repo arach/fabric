@@ -36,7 +36,7 @@ const App: React.FC = () => {
             <div className="flex-1 text-center lg:text-left opacity-0 animate-fade-in-up" style={{ animationFillMode: 'forwards' }}>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono text-zinc-400 mb-8 hover:bg-white/10 transition-colors cursor-pointer tracking-wide uppercase">
                 <span className="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]"></span>
-                v0.9.2 is live
+                v0.1.1 is live
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-8 leading-[1.05] text-white">

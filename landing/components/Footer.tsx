@@ -35,7 +35,7 @@ export const Footer: React.FC = () => {
       </div>
       
       <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-dark-border flex flex-col sm:flex-row justify-between items-center gap-4">
-        <p className="text-xs text-zinc-600 font-mono">MIT License • 2024</p>
+        <p className="text-xs text-zinc-600 font-mono">MIT License • 2026</p>
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-dark-border">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
             <span className="text-xs text-zinc-400 font-medium">All systems operational</span>
