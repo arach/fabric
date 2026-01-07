@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-static.js",
+    "build": "npm run og:generate && vite build && node scripts/generate-static.js",
+    "og:generate": "node scripts/generate-og.js",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -15,7 +16,9 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.11.0",
     "react-syntax-highlighter": "^16.1.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "satori": "^0.18.3",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
