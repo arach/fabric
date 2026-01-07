@@ -7,8 +7,15 @@ import { Footer } from './components/Footer';
 import { Logos } from './components/Logos';
 import { ArrowRight, ChevronRight, Terminal as TerminalIcon } from 'lucide-react';
 
+const providers = [
+  { name: 'Daytona', href: '/daytona' },
+  { name: 'E2B', href: '/e2b' },
+  { name: 'exe.dev', href: '/exe' },
+];
+
 const App: React.FC = () => {
   const [scrollY, setScrollY] = useState(0);
+  const [currentProvider, setCurrentProvider] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +23,14 @@ const App: React.FC = () => {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Rotate providers every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentProvider((prev) => (prev + 1) % providers.length);
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -45,15 +60,19 @@ const App: React.FC = () => {
               </h1>
 
               <p className="text-lg text-zinc-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
-                One interface to run agents across Daytona, E2B, and exe.dev.
-                Switch providers seamlessly while your agent keeps working.
+                One interface to run agents locally in Apple containers or in the cloud with Daytona, E2B, and exe.dev.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                <button className="h-12 px-6 bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.25)]">
-                  Get Started
+                <a
+                  href={providers[currentProvider].href}
+                  className="h-12 px-6 bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.25)]"
+                >
+                  <span className="w-24 text-center">
+                    {providers[currentProvider].name}
+                  </span>
                   <ArrowRight size={16} />
-                </button>
+                </a>
                 <div className="h-12 px-6 bg-zinc-900 border border-dark-border hover:border-zinc-700 hover:bg-zinc-800/80 text-zinc-400 rounded-lg font-mono text-sm flex items-center gap-3 transition-all duration-200 group">
                   <span className="select-none text-zinc-600 group-hover:text-zinc-500 transition-colors">$</span>
                   <span className="group-hover:text-zinc-300 transition-colors">npm install -g fabric-ai</span>
