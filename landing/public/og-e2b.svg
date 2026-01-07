@@ -16,10 +16,10 @@
   <rect width="1200" height="630" fill="url(#gridLarge)" opacity="0.4"/>
   <rect width="1200" height="630" fill="url(#gridSmall)" opacity="0.25"/>
 
-  <!-- Corner accents -->
-  <g stroke="#38bdf8" stroke-width="2" stroke-dasharray="6,8" opacity="0.4">
-    <path d="M 0 80 L 0 0 L 80 0"/>
-    <path d="M 1200 550 L 1200 630 L 1120 630"/>
+  <!-- Corner accents - L-shaped brackets to frame content -->
+  <g stroke="#38bdf8" stroke-width="2" stroke-dasharray="8,6" opacity="0.5">
+    <path d="M 50 140 L 50 50 L 140 50" fill="none"/>
+    <path d="M 1150 490 L 1150 580 L 1060 580" fill="none"/>
   </g>
 
   <!-- fabric × E2B header -->
