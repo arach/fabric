@@ -14,7 +14,7 @@ import type {
   Sandbox as FabricSandbox,
   SandboxSnapshot,
   SandboxFactory,
-} from "@fabric/core"
+} from "fabric-ai-core"
 
 // Dynamic import type for E2B SDK
 // The actual Sandbox type from @e2b/code-interpreter has runCode,

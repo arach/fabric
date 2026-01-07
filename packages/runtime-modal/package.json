@@ -1,5 +1,5 @@
 {
-  "name": "@fabric/runtime-modal",
+  "name": "@arach/runtime-modal",
   "version": "0.1.0",
   "type": "module",
   "main": "src/index.ts",
@@ -9,6 +9,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fabric/core": "workspace:*"
+    "fabric-ai-core": "workspace:*"
   }
 }

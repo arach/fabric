@@ -17,7 +17,7 @@ import type {
   Sandbox,
   SandboxSnapshot,
   SandboxFactory,
-} from "@fabric/core"
+} from "fabric-ai-core"
 
 // ============================================================================
 // Subprocess Runtime - Direct execution on host

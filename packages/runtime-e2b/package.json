@@ -1,15 +1,46 @@
 {
-  "name": "@fabric/runtime-e2b",
+  "name": "fabric-ai-e2b",
   "version": "0.1.0",
+  "description": "E2B cloud sandbox adapter for Fabric",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist",
-    "typecheck": "tsc --noEmit"
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@fabric/core": "workspace:*",
     "@e2b/code-interpreter": "^1.0.0"
-  }
+  },
+  "peerDependencies": {
+    "fabric-ai-core": "^0.1.0"
+  },
+  "devDependencies": {
+    "fabric-ai-core": "workspace:*",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "fabric",
+    "e2b",
+    "sandbox",
+    "cloud",
+    "ai"
+  ],
+  "author": "Arach Tchoupani",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arach/fabric.git",
+    "directory": "packages/runtime-e2b"
+  },
+  "homepage": "https://fabric.arach.dev"
 }

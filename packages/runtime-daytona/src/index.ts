@@ -11,7 +11,7 @@ import type {
   SandboxSnapshot,
   RuntimeType,
   MountSpec,
-} from "@fabric/core"
+} from "fabric-ai-core"
 
 // ============================================================================
 // DaytonaSandbox - Implements Fabric's Sandbox interface

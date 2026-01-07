@@ -1,5 +1,5 @@
 {
-  "name": "@fabric/server",
+  "name": "@arach/server",
   "version": "0.1.0",
   "type": "module",
   "main": "src/server.ts",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fabric/core": "workspace:*",
-    "@fabric/runtime-local": "workspace:*"
+    "fabric-ai-core": "workspace:*",
+    "@arach/runtime-local": "workspace:*"
   }
 }

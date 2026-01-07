@@ -57,7 +57,7 @@ export const E2BPage: React.FC = () => {
                 <h3 className="font-semibold">Install Fabric</h3>
               </div>
               <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>npm install @fabric/core @fabric/runtime-e2b</code>
+                <code>npm install fabric-ai-core fabric-ai-e2b</code>
               </pre>
             </div>
 
@@ -84,7 +84,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key`}</code>
                 <h3 className="font-semibold">Create an E2B Sandbox</h3>
               </div>
               <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>{`import { E2BSandboxFactory } from "@fabric/runtime-e2b"
+                <code>{`import { E2BSandboxFactory } from "fabric-ai-e2b"
 
 const factory = new E2BSandboxFactory(process.env.E2B_API_KEY)
 

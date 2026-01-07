@@ -57,7 +57,7 @@ export const DaytonaPage: React.FC = () => {
                 <h3 className="font-semibold">Install Fabric</h3>
               </div>
               <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>npm install @fabric/core @fabric/runtime-daytona</code>
+                <code>npm install fabric-ai-core fabric-ai-daytona</code>
               </pre>
             </div>
 
@@ -84,7 +84,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key`}</code>
                 <h3 className="font-semibold">Create a Daytona Sandbox</h3>
               </div>
               <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>{`import { DaytonaSandboxFactory } from "@fabric/runtime-daytona"
+                <code>{`import { DaytonaSandboxFactory } from "fabric-ai-daytona"
 
 const factory = new DaytonaSandboxFactory({
   apiKey: process.env.DAYTONA_API_KEY,

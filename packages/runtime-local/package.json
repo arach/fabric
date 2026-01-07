@@ -1,5 +1,5 @@
 {
-  "name": "@fabric/runtime-local",
+  "name": "@arach/runtime-local",
   "version": "0.1.0",
   "type": "module",
   "main": "src/index.ts",
@@ -10,6 +10,6 @@
     "build:container": "cd FabricContainer && swift build -c release"
   },
   "dependencies": {
-    "@fabric/core": "workspace:*"
+    "fabric-ai-core": "workspace:*"
   }
 }

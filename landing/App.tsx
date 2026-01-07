@@ -56,7 +56,7 @@ const App: React.FC = () => {
                 </button>
                 <div className="h-12 px-6 bg-zinc-900 border border-dark-border hover:border-zinc-700 hover:bg-zinc-800/80 text-zinc-400 rounded-lg font-mono text-sm flex items-center gap-3 transition-all duration-200 group">
                   <span className="select-none text-zinc-600 group-hover:text-zinc-500 transition-colors">$</span>
-                  <span className="group-hover:text-zinc-300 transition-colors">npm install -g @fabric/cli</span>
+                  <span className="group-hover:text-zinc-300 transition-colors">npm install -g fabric-ai</span>
                   <CopyButton />
                 </div>
               </div>
@@ -111,9 +111,9 @@ const App: React.FC = () => {
 
 const CopyButton = () => {
     const [copied, setCopied] = React.useState(false);
-    
+
     const handleCopy = () => {
-        navigator.clipboard.writeText('npm install -g @fabric/cli');
+        navigator.clipboard.writeText('npm install -g fabric-ai');
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     }

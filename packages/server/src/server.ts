@@ -14,9 +14,9 @@ import type {
   Message,
   AgentCheckpoint,
   RuntimeType,
-} from "@fabric/core"
-import { checkpointStore, encodeFileForCheckpoint } from "@fabric/core"
-import { subprocess, container } from "@fabric/runtime-local"
+} from "fabric-ai-core"
+import { checkpointStore, encodeFileForCheckpoint } from "fabric-ai-core"
+import { subprocess, container } from "@fabric-ai/runtime-local"
 
 const PORT = parseInt(process.env.PORT || "9000")
 

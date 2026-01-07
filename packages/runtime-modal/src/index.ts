@@ -11,7 +11,7 @@ import type {
   RuntimeStatus,
   Task,
   TaskResult,
-} from "@fabric/core"
+} from "fabric-ai-core"
 
 // ============================================================================
 // Modal Runtime

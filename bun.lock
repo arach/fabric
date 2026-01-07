@@ -11,53 +11,87 @@
         "typescript": "^5.3.0",
       },
     },
-    "packages/core": {
-      "name": "@fabric/core",
+    "packages/cli": {
+      "name": "fabric-ai",
       "version": "0.1.0",
-    },
-    "packages/runtime-daytona": {
-      "name": "@fabric/runtime-daytona",
-      "version": "0.1.0",
-      "dependencies": {
-        "@daytonaio/sdk": "^0.128.1",
-        "@fabric/core": "workspace:*",
+      "bin": {
+        "fabric": "./dist/cli.js",
       },
+      "dependencies": {
+        "fabric-ai-core": "^0.1.0",
+        "fabric-ai-daytona": "^0.1.0",
+        "fabric-ai-e2b": "^0.1.0",
+      },
+      "devDependencies": {
+        "@types/node": "^22.0.0",
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/core": {
+      "name": "fabric-ai-core",
+      "version": "0.1.0",
       "devDependencies": {
         "typescript": "^5.0.0",
       },
     },
+    "packages/runtime-daytona": {
+      "name": "fabric-ai-daytona",
+      "version": "0.1.0",
+      "dependencies": {
+        "@daytonaio/sdk": "^0.128.1",
+      },
+      "devDependencies": {
+        "fabric-ai-core": "workspace:*",
+        "typescript": "^5.0.0",
+      },
+      "peerDependencies": {
+        "fabric-ai-core": "^0.1.0",
+      },
+    },
     "packages/runtime-e2b": {
-      "name": "@fabric/runtime-e2b",
+      "name": "fabric-ai-e2b",
       "version": "0.1.0",
       "dependencies": {
         "@e2b/code-interpreter": "^1.0.0",
-        "@fabric/core": "workspace:*",
+      },
+      "devDependencies": {
+        "fabric-ai-core": "workspace:*",
+        "typescript": "^5.0.0",
+      },
+      "peerDependencies": {
+        "fabric-ai-core": "^0.1.0",
       },
     },
     "packages/runtime-local": {
-      "name": "@fabric/runtime-local",
+      "name": "@arach/runtime-local",
       "version": "0.1.0",
       "dependencies": {
-        "@fabric/core": "workspace:*",
+        "fabric-ai-core": "workspace:*",
       },
     },
     "packages/runtime-modal": {
-      "name": "@fabric/runtime-modal",
+      "name": "@arach/runtime-modal",
       "version": "0.1.0",
       "dependencies": {
-        "@fabric/core": "workspace:*",
+        "fabric-ai-core": "workspace:*",
       },
     },
     "packages/server": {
-      "name": "@fabric/server",
+      "name": "@arach/server",
       "version": "0.1.0",
       "dependencies": {
-        "@fabric/core": "workspace:*",
-        "@fabric/runtime-local": "workspace:*",
+        "@arach/runtime-local": "workspace:*",
+        "fabric-ai-core": "workspace:*",
       },
     },
   },
   "packages": {
+    "@arach/runtime-local": ["@arach/runtime-local@workspace:packages/runtime-local"],
+
+    "@arach/runtime-modal": ["@arach/runtime-modal@workspace:packages/runtime-modal"],
+
+    "@arach/server": ["@arach/server@workspace:packages/server"],
+
     "@aws-crypto/crc32": ["@aws-crypto/crc32@5.2.0", "", { "dependencies": { "@aws-crypto/util": "^5.2.0", "@aws-sdk/types": "^3.222.0", "tslib": "^2.6.2" } }, "sha512-nLbCWqQNgUiwwtFsen1AdzAtvuLRsQS8rYgMuxCrdKf9kOssamGLuPwyTY9wyYblNr9+1XM8v6zoDTPPSIeANg=="],
 
     "@aws-crypto/crc32c": ["@aws-crypto/crc32c@5.2.0", "", { "dependencies": { "@aws-crypto/util": "^5.2.0", "@aws-sdk/types": "^3.222.0", "tslib": "^2.6.2" } }, "sha512-+iWb8qaHLYKrNvGRbiYRHSdKRWhto5XlZUEBwDjYNf+ly5SVYG6zEoYIdxvf5R3zyeP16w4PLBn3rH1xc74Rag=="],
@@ -155,18 +189,6 @@
     "@daytonaio/toolbox-api-client": ["@daytonaio/toolbox-api-client@0.128.1", "", { "dependencies": { "axios": "^1.6.1" } }, "sha512-3g2SOTJWGmDhcTG9iU6P4gTvqGtMmHgVRGwJxPlE9iZPi93dwnPMumAmYAoRUwHpRUOXUeS/Ymb57ZzcVzyPAg=="],
 
     "@e2b/code-interpreter": ["@e2b/code-interpreter@1.5.1", "", { "dependencies": { "e2b": "^1.4.0" } }, "sha512-mkyKjAW2KN5Yt0R1I+1lbH3lo+W/g/1+C2lnwlitXk5wqi/g94SEO41XKdmDf5WWpKG3mnxWDR5d6S/lyjmMEw=="],
-
-    "@fabric/core": ["@fabric/core@workspace:packages/core"],
-
-    "@fabric/runtime-daytona": ["@fabric/runtime-daytona@workspace:packages/runtime-daytona"],
-
-    "@fabric/runtime-e2b": ["@fabric/runtime-e2b@workspace:packages/runtime-e2b"],
-
-    "@fabric/runtime-local": ["@fabric/runtime-local@workspace:packages/runtime-local"],
-
-    "@fabric/runtime-modal": ["@fabric/runtime-modal@workspace:packages/runtime-modal"],
-
-    "@fabric/server": ["@fabric/server@workspace:packages/server"],
 
     "@iarna/toml": ["@iarna/toml@2.2.5", "", {}, "sha512-trnsAYxU3xnS1gPHPyU961coFyLkh4gAD/0zQ5mymY4yOZ+CYvsPqUbOFSw0aDM4y0tV7tiFxL/1XfXPNC6IPg=="],
 
@@ -280,7 +302,7 @@
 
     "@types/bun": ["@types/bun@1.3.5", "", { "dependencies": { "bun-types": "1.3.5" } }, "sha512-RnygCqNrd3srIPEWBd5LFeUYG7plCoH2Yw9WaZGyNmdTEei+gWaHqydbaIRkIkcbXwhBT94q78QljxN0Sk838w=="],
 
-    "@types/node": ["@types/node@25.0.3", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-W609buLVRVmeW693xKfzHeIV6nJGGz98uCPfeXI1ELMLXVeKYZ9m15fAMSaUPBHYLGFsVRcMmSCksQOrZV9BYA=="],
+    "@types/node": ["@types/node@22.19.3", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-1N9SBnWYOJTrNZCdh/yJE+t910Y128BoyY+zBLWhL3r0TYzlTmFdXrPwHL9DyFZmlEXNQQolTZh3KHV31QDhyA=="],
 
     "asynckit": ["asynckit@0.4.0", "", {}, "sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q=="],
 
@@ -325,6 +347,14 @@
     "events": ["events@3.3.0", "", {}, "sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q=="],
 
     "expand-tilde": ["expand-tilde@2.0.2", "", { "dependencies": { "homedir-polyfill": "^1.0.1" } }, "sha512-A5EmesHW6rfnZ9ysHQjPdJRni0SRar0tjtG5MNtm9n5TUvsYU8oozprtRD4AqHxcZWWlVuAmQo2nWKfN9oyjTw=="],
+
+    "fabric-ai": ["fabric-ai@workspace:packages/cli"],
+
+    "fabric-ai-core": ["fabric-ai-core@workspace:packages/core"],
+
+    "fabric-ai-daytona": ["fabric-ai-daytona@workspace:packages/runtime-daytona"],
+
+    "fabric-ai-e2b": ["fabric-ai-e2b@workspace:packages/runtime-e2b"],
 
     "fast-glob": ["fast-glob@3.3.3", "", { "dependencies": { "@nodelib/fs.stat": "^2.0.2", "@nodelib/fs.walk": "^1.2.3", "glob-parent": "^5.1.2", "merge2": "^1.3.0", "micromatch": "^4.0.8" } }, "sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg=="],
 
@@ -428,7 +458,7 @@
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
-    "undici-types": ["undici-types@7.16.0", "", {}, "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw=="],
+    "undici-types": ["undici-types@6.21.0", "", {}, "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="],
 
     "util-deprecate": ["util-deprecate@1.0.2", "", {}, "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw=="],
 
@@ -442,6 +472,8 @@
 
     "@aws-crypto/util/@smithy/util-utf8": ["@smithy/util-utf8@2.3.0", "", { "dependencies": { "@smithy/util-buffer-from": "^2.2.0", "tslib": "^2.6.2" } }, "sha512-R8Rdn8Hy72KKcebgLiv8jQcQkXoLMOGGv5uI1/k0l+snqkOzQ1R0ChUBCxWMlBsFMekWjq0wRudIweFs7sKT5A=="],
 
+    "bun-types/@types/node": ["@types/node@25.0.3", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-W609buLVRVmeW693xKfzHeIV6nJGGz98uCPfeXI1ELMLXVeKYZ9m15fAMSaUPBHYLGFsVRcMmSCksQOrZV9BYA=="],
+
     "fs-minipass/minipass": ["minipass@3.3.6", "", { "dependencies": { "yallist": "^4.0.0" } }, "sha512-DxiNidxSEK+tHG6zOIklvNOwm3hvCrbUrdtzY74U6HKTJxvIDfOUL5W5P2Ghd3DTkhhKPYGqeNUIh5qcM4YBfw=="],
 
     "minizlib/minipass": ["minipass@3.3.6", "", { "dependencies": { "yallist": "^4.0.0" } }, "sha512-DxiNidxSEK+tHG6zOIklvNOwm3hvCrbUrdtzY74U6HKTJxvIDfOUL5W5P2Ghd3DTkhhKPYGqeNUIh5qcM4YBfw=="],
@@ -451,6 +483,8 @@
     "@aws-crypto/sha256-browser/@smithy/util-utf8/@smithy/util-buffer-from": ["@smithy/util-buffer-from@2.2.0", "", { "dependencies": { "@smithy/is-array-buffer": "^2.2.0", "tslib": "^2.6.2" } }, "sha512-IJdWBbTcMQ6DA0gdNhh/BwrLkDR+ADW5Kr1aZmd4k3DIF6ezMV4R2NIAmT08wQJ3yUK82thHWmC/TnK/wpMMIA=="],
 
     "@aws-crypto/util/@smithy/util-utf8/@smithy/util-buffer-from": ["@smithy/util-buffer-from@2.2.0", "", { "dependencies": { "@smithy/is-array-buffer": "^2.2.0", "tslib": "^2.6.2" } }, "sha512-IJdWBbTcMQ6DA0gdNhh/BwrLkDR+ADW5Kr1aZmd4k3DIF6ezMV4R2NIAmT08wQJ3yUK82thHWmC/TnK/wpMMIA=="],
+
+    "bun-types/@types/node/undici-types": ["undici-types@7.16.0", "", {}, "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw=="],
 
     "@aws-crypto/sha1-browser/@smithy/util-utf8/@smithy/util-buffer-from/@smithy/is-array-buffer": ["@smithy/is-array-buffer@2.2.0", "", { "dependencies": { "tslib": "^2.6.2" } }, "sha512-GGP3O9QFD24uGeAXYUjwSTXARoqpZykHadOmA8G5vfJPK0/DC67qa//0qvqrJzL1xc8WQWX7/yc7fwudjPHPhA=="],
 

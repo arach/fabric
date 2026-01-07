@@ -1,11 +1,39 @@
 {
-  "name": "@fabric/core",
+  "name": "fabric-ai-core",
   "version": "0.1.0",
+  "description": "Core interfaces and types for Fabric ambient compute framework",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist",
-    "typecheck": "tsc --noEmit"
-  }
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "fabric",
+    "ai",
+    "claude",
+    "sandbox",
+    "compute"
+  ],
+  "author": "Arach Tchoupani",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arach/fabric.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://fabric.arach.dev"
 }

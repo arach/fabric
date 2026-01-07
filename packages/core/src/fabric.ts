@@ -2,7 +2,7 @@
  * Fabric SDK - Main entrypoint for external applications
  *
  * Usage:
- *   import { Fabric } from "@fabric/core"
+ *   import { Fabric } from "fabric-ai-core"
  *
  *   const session = await Fabric.createSession({
  *     workspacePath: "/path/to/project",
