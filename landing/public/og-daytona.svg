@@ -1,0 +1,53 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Blueprint grid pattern - small -->
+    <pattern id="gridSmall" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a3a5c" stroke-width="0.5"/>
+    </pattern>
+    <!-- Blueprint grid pattern - large -->
+    <pattern id="gridLarge" width="200" height="200" patternUnits="userSpaceOnUse">
+      <path d="M 200 0 L 0 0 0 200" fill="none" stroke="#1a3a5c" stroke-width="1"/>
+    </pattern>
+
+    <!-- Brand gradient -->
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark background -->
+  <rect width="1200" height="630" fill="#050508"/>
+
+  <!-- Blueprint grid -->
+  <rect width="1200" height="630" fill="url(#gridLarge)" opacity="0.4"/>
+  <rect width="1200" height="630" fill="url(#gridSmall)" opacity="0.25"/>
+
+  <!-- fabric × Daytona header -->
+  <g transform="translate(100, 180)">
+    <!-- fabric text -->
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="700" fill="white" letter-spacing="-0.03em">fabric</text>
+
+    <!-- × symbol -->
+    <text x="280" y="0" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="300" fill="#52525b">×</text>
+
+    <!-- Daytona text -->
+    <text x="340" y="0" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="700" fill="url(#brandGradient)" letter-spacing="-0.03em">Daytona</text>
+  </g>
+
+  <!-- Tagline -->
+  <text x="100" y="280" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#a1a1aa" font-weight="400">Run Claude agents in secure Daytona cloud sandboxes</text>
+
+  <!-- Features -->
+  <g transform="translate(100, 360)" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#71717a">
+    <text x="0" y="0">Enterprise-grade isolation</text>
+    <text x="0" y="40">Seamless file sync</text>
+    <text x="0" y="80">Checkpoint &amp; restore</text>
+    <text x="350" y="0">Multi-language support</text>
+    <text x="350" y="40">One command deploy</text>
+    <text x="350" y="80">Context preserved</text>
+  </g>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="622" width="1200" height="8" fill="url(#brandGradient)" opacity="0.5"/>
+</svg>

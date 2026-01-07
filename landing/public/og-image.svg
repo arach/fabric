@@ -1,102 +1,63 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Background gradient -->
-    <linearGradient id="bgGradient" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#050508"/>
-      <stop offset="50%" stop-color="#0a0a0f"/>
-      <stop offset="100%" stop-color="#050508"/>
-    </linearGradient>
+    <!-- Blueprint grid pattern - small -->
+    <pattern id="gridSmall" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a3a5c" stroke-width="0.5"/>
+    </pattern>
+    <!-- Blueprint grid pattern - large -->
+    <pattern id="gridLarge" width="200" height="200" patternUnits="userSpaceOnUse">
+      <path d="M 200 0 L 0 0 0 200" fill="none" stroke="#1a3a5c" stroke-width="1"/>
+    </pattern>
 
-    <!-- Brand gradient for text -->
+    <!-- Brand gradient -->
     <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#38bdf8"/>
       <stop offset="100%" stop-color="#818cf8"/>
     </linearGradient>
-
-    <!-- Glow effect for accent elements -->
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="20" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-
-    <!-- Subtle grid pattern -->
-    <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
-      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#272730" stroke-width="0.5" opacity="0.5"/>
-    </pattern>
   </defs>
 
-  <!-- Background -->
-  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  <!-- Dark background -->
+  <rect width="1200" height="630" fill="#050508"/>
 
-  <!-- Subtle grid overlay -->
-  <rect width="1200" height="630" fill="url(#grid)" opacity="0.3"/>
+  <!-- Blueprint grid -->
+  <rect width="1200" height="630" fill="url(#gridLarge)" opacity="0.4"/>
+  <rect width="1200" height="630" fill="url(#gridSmall)" opacity="0.25"/>
 
-  <!-- Decorative gradient orbs -->
-  <ellipse cx="200" cy="500" rx="300" ry="200" fill="#38bdf8" opacity="0.05" filter="url(#glow)"/>
-  <ellipse cx="1000" cy="150" rx="250" ry="180" fill="#818cf8" opacity="0.05" filter="url(#glow)"/>
-
-  <!-- Flow visualization: Local to Cloud -->
-  <g opacity="0.6">
-    <!-- Local node -->
-    <rect x="180" y="380" width="100" height="60" rx="8" fill="#13131a" stroke="#272730" stroke-width="1"/>
-    <text x="230" y="415" font-family="monospace" font-size="11" fill="#71717a" text-anchor="middle">local</text>
-
-    <!-- Arrow/flow line -->
-    <path d="M 290 410 C 350 410, 350 380, 410 380" stroke="url(#brandGradient)" stroke-width="2" fill="none" stroke-dasharray="6,4" opacity="0.6"/>
-
-    <!-- Cloud node -->
-    <rect x="420" y="350" width="100" height="60" rx="8" fill="#13131a" stroke="#272730" stroke-width="1"/>
-    <text x="470" y="385" font-family="monospace" font-size="11" fill="#71717a" text-anchor="middle">cloud</text>
-
-    <!-- Second arrow -->
-    <path d="M 530 380 C 590 380, 590 350, 650 350" stroke="url(#brandGradient)" stroke-width="2" fill="none" stroke-dasharray="6,4" opacity="0.6"/>
-
-    <!-- Third node -->
-    <rect x="660" y="320" width="100" height="60" rx="8" fill="#13131a" stroke="#272730" stroke-width="1"/>
-    <text x="710" y="355" font-family="monospace" font-size="11" fill="#71717a" text-anchor="middle">anywhere</text>
-  </g>
-
-  <!-- Logo container -->
-  <g transform="translate(100, 120)">
-    <!-- Logo box -->
-    <rect width="48" height="48" rx="8" fill="white"/>
-    <!-- Box icon (simplified) -->
-    <g transform="translate(12, 12)">
-      <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#050508" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
-      <path d="M12 22V12" stroke="#050508" stroke-width="2.5"/>
-      <path d="M22 7L12 12L2 7" stroke="#050508" stroke-width="2.5"/>
-      <path d="M2 7L12 12" stroke="#050508" stroke-width="2.5"/>
+  <!-- Simple Box icon -->
+  <g transform="translate(100, 140)">
+    <rect width="40" height="40" rx="6" fill="white"/>
+    <g transform="translate(8, 8)">
+      <path d="M12 2L3 7V17L12 22L21 17V7L12 2Z" stroke="#050508" stroke-width="2" fill="none" stroke-linejoin="round"/>
+      <path d="M12 22V12" stroke="#050508" stroke-width="2"/>
+      <path d="M21 7L12 12L3 7" stroke="#050508" stroke-width="2"/>
     </g>
   </g>
 
   <!-- Product name -->
-  <text x="168" y="160" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="700" fill="white" letter-spacing="-0.02em">fabric</text>
+  <text x="156" y="172" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="700" fill="white" letter-spacing="-0.02em">fabric</text>
 
   <!-- Main headline -->
-  <text x="100" y="260" font-family="Inter, system-ui, sans-serif" font-size="56" font-weight="700" fill="white" letter-spacing="-0.03em">Seamless handoffs for</text>
-  <text x="100" y="330" font-family="Inter, system-ui, sans-serif" font-size="56" font-weight="700" fill="url(#brandGradient)" letter-spacing="-0.03em">Agent Sandboxes</text>
+  <text x="100" y="280" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="700" fill="white" letter-spacing="-0.03em">Seamless handoffs for</text>
+  <text x="100" y="345" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="700" fill="url(#brandGradient)" letter-spacing="-0.03em">Agent Sandboxes</text>
 
   <!-- Tagline -->
-  <text x="100" y="420" font-family="Inter, system-ui, sans-serif" font-size="24" fill="#a1a1aa" font-weight="400">Run agents locally or in the cloud with one interface</text>
+  <text x="100" y="420" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#71717a" font-weight="400">Run agents locally or in the cloud with one interface</text>
 
   <!-- Provider badges -->
   <g transform="translate(100, 480)">
-    <rect width="90" height="32" rx="6" fill="#13131a" stroke="#272730" stroke-width="1"/>
-    <text x="45" y="21" font-family="monospace" font-size="12" fill="#71717a" text-anchor="middle">Daytona</text>
+    <rect width="90" height="32" rx="6" fill="#0f1419" stroke="#1a3a5c" stroke-width="1"/>
+    <text x="45" y="21" font-family="ui-monospace, monospace" font-size="13" fill="#71717a" text-anchor="middle">Daytona</text>
 
-    <rect x="100" width="70" height="32" rx="6" fill="#13131a" stroke="#272730" stroke-width="1"/>
-    <text x="135" y="21" font-family="monospace" font-size="12" fill="#71717a" text-anchor="middle">E2B</text>
+    <rect x="100" width="65" height="32" rx="6" fill="#0f1419" stroke="#1a3a5c" stroke-width="1"/>
+    <text x="132" y="21" font-family="ui-monospace, monospace" font-size="13" fill="#71717a" text-anchor="middle">E2B</text>
 
-    <rect x="180" width="80" height="32" rx="6" fill="#13131a" stroke="#272730" stroke-width="1"/>
-    <text x="220" y="21" font-family="monospace" font-size="12" fill="#71717a" text-anchor="middle">exe.dev</text>
+    <rect x="175" width="80" height="32" rx="6" fill="#0f1419" stroke="#1a3a5c" stroke-width="1"/>
+    <text x="215" y="21" font-family="ui-monospace, monospace" font-size="13" fill="#71717a" text-anchor="middle">exe.dev</text>
 
-    <rect x="270" width="100" height="32" rx="6" fill="#13131a" stroke="#272730" stroke-width="1"/>
-    <text x="320" y="21" font-family="monospace" font-size="12" fill="#71717a" text-anchor="middle">Local Mac</text>
+    <rect x="265" width="70" height="32" rx="6" fill="#0f1419" stroke="#1a3a5c" stroke-width="1"/>
+    <text x="300" y="21" font-family="ui-monospace, monospace" font-size="13" fill="#71717a" text-anchor="middle">Local</text>
   </g>
 
   <!-- Bottom accent line -->
-  <rect x="0" y="620" width="1200" height="10" fill="url(#brandGradient)" opacity="0.8"/>
+  <rect x="0" y="622" width="1200" height="8" fill="url(#brandGradient)" opacity="0.5"/>
 </svg>
