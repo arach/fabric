@@ -20,6 +20,12 @@ export type TaskStatus =
   | "failed"
   | "cancelled"
 
+export interface MountSpec {
+  source: string      // Host path
+  destination: string // Container path
+  readOnly?: boolean
+}
+
 export interface Task {
   id: string
   type: TaskType
@@ -33,6 +39,7 @@ export interface Task {
   command?: string
   workingDirectory?: string
   env?: Record<string, string>
+  mounts?: MountSpec[]  // Directory mounts for container runtimes
 
   // Runtime preference
   runtime?: RuntimeType | "auto"
@@ -53,8 +60,30 @@ export interface TaskInput {
   command?: string
   workingDirectory?: string
   env?: Record<string, string>
+  mounts?: MountSpec[]
   runtime?: RuntimeType | "auto"
   contextId?: string
+}
+
+// ============================================================================
+// Agent Task - Long-running LLM agent with conversation state
+// ============================================================================
+
+export interface AgentTask extends Task {
+  type: "agent"
+
+  // Conversation state
+  messages: Message[]
+  systemPrompt?: string
+
+  // Current turn
+  currentTurn?: number
+}
+
+export interface AgentTaskInput extends TaskInput {
+  type: "agent"
+  messages: Message[]
+  systemPrompt?: string
 }
 
 // ============================================================================
@@ -179,6 +208,110 @@ export interface Orchestrator {
 }
 
 // ============================================================================
+// Sandbox - Unified interface for container execution environments
+// ============================================================================
+
+/**
+ * Snapshot of sandbox filesystem and state
+ */
+export interface SandboxSnapshot {
+  id: string
+  timestamp: string
+  workspacePath: string
+  files: {
+    path: string
+    content: string // base64 encoded
+    encoding: "base64" | "utf8"
+  }[]
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Sandbox provides a unified interface for executing code in isolated environments.
+ * Implementations can be local containers, cloud sandboxes (E2B), or other runtimes.
+ */
+export interface Sandbox {
+  /** Unique identifier for this sandbox instance */
+  readonly id: string
+
+  /** Runtime type (local-container, e2b, etc.) */
+  readonly runtimeType: RuntimeType
+
+  /** Sandbox status */
+  readonly status: "starting" | "running" | "stopped" | "error"
+
+  /** IP address if available (for network access) */
+  readonly ipAddress?: string
+
+  // Lifecycle
+  /** Start the sandbox */
+  start(): Promise<void>
+
+  /** Stop the sandbox */
+  stop(): Promise<void>
+
+  // Execution
+  /** Run a command in the sandbox */
+  exec(command: string): Promise<{
+    stdout: string
+    stderr: string
+    exitCode: number
+  }>
+
+  /** Run code (language-specific) */
+  runCode?(code: string, language?: string): Promise<{
+    output: string
+    error?: string
+  }>
+
+  // File System
+  /** Write a file to the sandbox */
+  writeFile(path: string, content: string | Buffer): Promise<void>
+
+  /** Read a file from the sandbox */
+  readFile(path: string): Promise<string>
+
+  /** List files in a directory */
+  listFiles(path: string): Promise<string[]>
+
+  // Snapshot/Restore
+  /** Capture current state as a snapshot */
+  snapshot(): Promise<SandboxSnapshot>
+
+  /** Restore from a snapshot */
+  restore(snapshot: SandboxSnapshot): Promise<void>
+
+  // Handoff
+  /** Delegate execution to another runtime (returns handoff token) */
+  delegate(targetRuntime: RuntimeType): Promise<{
+    token: string
+    snapshot: SandboxSnapshot
+  }>
+
+  /** Reclaim execution from a delegated sandbox */
+  reclaim(token: string, snapshot: SandboxSnapshot): Promise<void>
+}
+
+/**
+ * Factory for creating sandbox instances
+ */
+export interface SandboxFactory {
+  /** Create a new sandbox */
+  create(options: {
+    id?: string
+    image?: string
+    workspacePath?: string
+    mounts?: MountSpec[]
+  }): Promise<Sandbox>
+
+  /** Resume an existing sandbox by ID */
+  resume(id: string): Promise<Sandbox | null>
+
+  /** List all sandboxes */
+  list(): Promise<{ id: string; status: string }[]>
+}
+
+// ============================================================================
 // Events - For real-time updates
 // ============================================================================
 
@@ -191,3 +324,26 @@ export type FabricEvent =
   | { type: "task:cancelled"; task: Task }
   | { type: "checkpoint:saved"; checkpoint: Checkpoint }
   | { type: "runtime:status"; status: RuntimeStatus }
+
+// ============================================================================
+// Re-exports
+// ============================================================================
+
+export {
+  CheckpointStore,
+  checkpointStore,
+  encodeFileForCheckpoint,
+  decodeFileFromCheckpoint,
+  type AgentCheckpoint,
+  type CheckpointFile,
+} from "./checkpoint-store"
+
+export {
+  HandoffManager,
+  handoffManager,
+  type HandoffToken,
+  type HandoffResult,
+  type HandoffEvent,
+  type HandoffEventType,
+  type HandoffEventListener,
+} from "./handoff"
