@@ -16,22 +16,29 @@
   <rect width="1200" height="630" fill="url(#gridLarge)" opacity="0.4"/>
   <rect width="1200" height="630" fill="url(#gridSmall)" opacity="0.25"/>
 
-  <!-- fabric × exe.dev header -->
-  <g transform="translate(100, 180)">
-    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="700" fill="white" letter-spacing="-0.03em">fabric</text>
-    <text x="280" y="0" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="300" fill="#52525b">×</text>
-    <text x="340" y="0" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="700" fill="url(#brandGradient)" letter-spacing="-0.03em">exe.dev</text>
+  <!-- Corner accents -->
+  <g stroke="#38bdf8" stroke-width="2" stroke-dasharray="6,8" opacity="0.4">
+    <path d="M 0 80 L 0 0 L 80 0"/>
+    <path d="M 1200 550 L 1200 630 L 1120 630"/>
   </g>
 
-  <text x="100" y="280" font-family="Inter, system-ui, sans-serif" font-size="28" fill="#a1a1aa" font-weight="400">Run Claude agents in persistent exe.dev VMs</text>
+  <!-- fabric × exe.dev header -->
+  <g transform="translate(100, 160)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="56" font-weight="700" fill="white" letter-spacing="-0.03em">fabric</text>
+    <text x="220" y="0" font-family="Inter, system-ui, sans-serif" font-size="40" font-weight="300" fill="#52525b">×</text>
+    <text x="270" y="0" font-family="Inter, system-ui, sans-serif" font-size="56" font-weight="700" fill="url(#brandGradient)" letter-spacing="-0.03em">exe.dev</text>
+  </g>
 
-  <g transform="translate(100, 360)" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#71717a">
+  <!-- Main headline -->
+  <text x="100" y="280" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="600" fill="white" letter-spacing="-0.02em">Seamless Claude Code Sessions</text>
+  <text x="100" y="340" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="600" fill="#a1a1aa" letter-spacing="-0.02em">with exe.dev</text>
+
+  <!-- Features -->
+  <g transform="translate(100, 420)" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#71717a">
     <text x="0" y="0">Persistent Ubuntu VMs</text>
     <text x="0" y="40">Full root access</text>
-    <text x="0" y="80">Sub-second startup</text>
-    <text x="350" y="0">Shelley agent built-in</text>
-    <text x="350" y="40">SSH/SFTP native</text>
-    <text x="350" y="80">Full internet access</text>
+    <text x="400" y="0">Shelley agent built-in</text>
+    <text x="400" y="40">SSH/SFTP native</text>
   </g>
 
   <rect x="0" y="622" width="1200" height="8" fill="url(#brandGradient)" opacity="0.5"/>
