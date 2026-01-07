@@ -162,8 +162,18 @@ const TableCell: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
   <td className="py-3 px-4 text-zinc-300">{children}</td>
 );
 
-// Provider cards data
+// Provider cards data - Local first, then cloud providers
 const providers = [
+  {
+    name: 'Local',
+    tagline: 'Development, offline, no cloud costs',
+    features: ['Apple Virtualization.framework', 'No Docker required', '~1s startup', 'macOS only'],
+    setup: 'fabric create --provider local',
+    link: { text: 'Setup guide', url: '/docs/local-containers' },
+    color: 'from-purple-500/10 to-purple-600/5',
+    border: 'border-purple-500/20 hover:border-purple-500/40',
+    accent: 'text-purple-400',
+  },
   {
     name: 'Daytona',
     tagline: 'Enterprise teams, TypeScript/Node.js',
@@ -172,6 +182,7 @@ const providers = [
     link: { text: 'Get your key', url: 'https://app.daytona.io' },
     color: 'from-blue-500/10 to-blue-600/5',
     border: 'border-blue-500/20 hover:border-blue-500/40',
+    accent: 'text-blue-400',
   },
   {
     name: 'E2B',
@@ -181,6 +192,7 @@ const providers = [
     link: { text: 'Get your key', url: 'https://e2b.dev/dashboard' },
     color: 'from-orange-500/10 to-orange-600/5',
     border: 'border-orange-500/20 hover:border-orange-500/40',
+    accent: 'text-orange-400',
   },
   {
     name: 'exe.dev',
@@ -190,46 +202,47 @@ const providers = [
     link: { text: 'Learn more', url: 'https://exe.dev' },
     color: 'from-green-500/10 to-green-600/5',
     border: 'border-green-500/20 hover:border-green-500/40',
-  },
-  {
-    name: 'Local',
-    tagline: 'Development, offline, no cloud costs',
-    features: ['Apple Virtualization.framework', 'No Docker required', '~1s startup'],
-    setup: 'fabric create --provider local',
-    link: { text: 'Setup guide', url: '/docs/local-containers' },
-    color: 'from-purple-500/10 to-purple-600/5',
-    border: 'border-purple-500/20 hover:border-purple-500/40',
+    accent: 'text-green-400',
   },
 ];
 
-// Provider cards component
+// Provider cards component - vertical list layout
 const ProviderCards: React.FC = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+  <div className="space-y-4 my-8">
     {providers.map((provider) => (
       <div
         key={provider.name}
-        className={`rounded-lg border bg-gradient-to-br ${provider.color} ${provider.border} p-5 transition-colors`}
+        className={`rounded-lg border bg-gradient-to-r ${provider.color} ${provider.border} p-5 transition-colors`}
       >
-        <h4 className="text-lg font-semibold text-white mb-1">{provider.name}</h4>
-        <p className="text-sm text-zinc-500 mb-4">{provider.tagline}</p>
-        <ul className="space-y-1.5 mb-4">
-          {provider.features.map((feature, i) => (
-            <li key={i} className="text-sm text-zinc-400 flex items-start gap-2">
-              <span className="text-zinc-600 mt-1">•</span>
-              {feature}
-            </li>
-          ))}
-        </ul>
-        <code className="block text-xs bg-zinc-900/50 text-zinc-300 px-3 py-2 rounded font-mono mb-3">
-          {provider.setup}
-        </code>
-        <a
-          href={provider.link.url}
-          className="text-sm text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1"
-        >
-          {provider.link.text}
-          <span className="text-zinc-600">→</span>
-        </a>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h4 className={`text-lg font-semibold ${provider.accent}`}>{provider.name}</h4>
+              <span className="text-xs text-zinc-600">•</span>
+              <p className="text-sm text-zinc-500">{provider.tagline}</p>
+            </div>
+            <ul className="flex flex-wrap gap-x-4 gap-y-1">
+              {provider.features.map((feature, i) => (
+                <li key={i} className="text-sm text-zinc-400 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-zinc-600"></span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-col items-start sm:items-end gap-2 sm:min-w-[200px]">
+            <code className="text-xs bg-zinc-900/50 text-zinc-300 px-3 py-1.5 rounded font-mono">
+              {provider.setup}
+            </code>
+            <a
+              href={provider.link.url}
+              className="text-sm text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1"
+            >
+              {provider.link.text}
+              <span className="text-zinc-600">→</span>
+            </a>
+          </div>
+        </div>
       </div>
     ))}
   </div>
