@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
@@ -1022,6 +1023,7 @@ export const DocsPage: React.FC = () => {
                 {doc.content.split('[PROVIDER_CARDS]').map((part, index, arr) => (
                   <React.Fragment key={index}>
                     <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
                       components={{
                         code: CodeBlock,
                         h1: ({ children }) => <HeadingWithAnchor level={1}>{children}</HeadingWithAnchor>,
