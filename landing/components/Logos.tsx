@@ -49,8 +49,13 @@ export const Logos: React.FC = () => {
                 <img src="https://github.com/daytonaio/daytona/raw/main/assets/images/Daytona-logotype-white.png" alt="Daytona" className="h-5 w-auto" />
              </LogoItem>
 
+             {/* exe.dev */}
+             <LogoItem name="exe.dev">
+                <img src="https://exe.dev/static/exy.png" alt="exe.dev" className="h-8 w-auto" />
+             </LogoItem>
+
         </div>
-        
+
         {/* Duplicate for infinite scroll */}
         <div className="flex items-center gap-12 md:gap-24 pr-12 md:pr-24" aria-hidden="true">
             <LogoItem name="AWS">
@@ -73,6 +78,9 @@ export const Logos: React.FC = () => {
              </LogoItem>
              <LogoItem name="Daytona">
                 <img src="https://github.com/daytonaio/daytona/raw/main/assets/images/Daytona-logotype-white.png" alt="Daytona" className="h-5 w-auto" />
+             </LogoItem>
+             <LogoItem name="exe.dev">
+                <img src="https://exe.dev/static/exy.png" alt="exe.dev" className="h-8 w-auto" />
              </LogoItem>
         </div>
       </div>
