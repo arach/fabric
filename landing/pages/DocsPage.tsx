@@ -206,47 +206,102 @@ const providers = [
   },
 ];
 
-// Provider cards component - vertical list layout
-const ProviderCards: React.FC = () => (
-  <div className="space-y-4 my-8">
-    {providers.map((provider) => (
-      <div
-        key={provider.name}
-        className={`rounded-lg border bg-gradient-to-r ${provider.color} ${provider.border} p-5 transition-colors`}
-      >
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h4 className={`text-lg font-semibold ${provider.accent}`}>{provider.name}</h4>
-              <span className="text-xs text-zinc-600">•</span>
-              <p className="text-sm text-zinc-500">{provider.tagline}</p>
+// Provider card component
+const ProviderCard: React.FC<{ provider: typeof providers[0] }> = ({ provider }) => (
+  <div className={`rounded-lg border bg-gradient-to-r ${provider.color} ${provider.border} p-5 transition-colors`}>
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="flex-1">
+        <div className="flex items-center gap-3 mb-2">
+          <h4 className={`text-lg font-semibold ${provider.accent}`}>{provider.name}</h4>
+          <span className="text-xs text-zinc-600">•</span>
+          <p className="text-sm text-zinc-500">{provider.tagline}</p>
+        </div>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1">
+          {provider.features.map((feature, i) => (
+            <li key={i} className="text-sm text-zinc-400 flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-zinc-600"></span>
+              {feature}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="flex flex-col items-start sm:items-end gap-2 sm:min-w-[200px]">
+        <code className="text-xs bg-zinc-900/50 text-zinc-300 px-3 py-1.5 rounded font-mono">
+          {provider.setup}
+        </code>
+        <a
+          href={provider.link.url}
+          className="text-sm text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1"
+        >
+          {provider.link.text}
+          <span className="text-zinc-600">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+);
+
+// Provider cards component - split into Local and Cloud sections
+const ProviderCards: React.FC = () => {
+  const localProvider = providers[0]; // Local
+  const cloudProviders = providers.slice(1); // Daytona, E2B, exe.dev
+
+  return (
+    <div className="my-8 space-y-6">
+      {/* Local Section */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Local</span>
+          <span className="flex-1 h-px bg-zinc-800"></span>
+        </div>
+        <div className="bg-zinc-900/80 rounded-lg border border-zinc-800 p-5">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <h4 className="text-lg font-semibold text-white">{localProvider.name}</h4>
+                <span className="text-xs text-zinc-600">•</span>
+                <p className="text-sm text-zinc-500">{localProvider.tagline}</p>
+              </div>
+              <ul className="flex flex-wrap gap-x-4 gap-y-1">
+                {localProvider.features.map((feature, i) => (
+                  <li key={i} className="text-sm text-zinc-400 flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-zinc-600"></span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="flex flex-wrap gap-x-4 gap-y-1">
-              {provider.features.map((feature, i) => (
-                <li key={i} className="text-sm text-zinc-400 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-zinc-600"></span>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="flex flex-col items-start sm:items-end gap-2 sm:min-w-[200px]">
-            <code className="text-xs bg-zinc-900/50 text-zinc-300 px-3 py-1.5 rounded font-mono">
-              {provider.setup}
-            </code>
-            <a
-              href={provider.link.url}
-              className="text-sm text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1"
-            >
-              {provider.link.text}
-              <span className="text-zinc-600">→</span>
-            </a>
+            <div className="flex flex-col items-start sm:items-end gap-2 sm:min-w-[200px]">
+              <code className="text-xs bg-zinc-800 text-zinc-300 px-3 py-1.5 rounded font-mono">
+                {localProvider.setup}
+              </code>
+              <a
+                href={localProvider.link.url}
+                className="text-sm text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1"
+              >
+                {localProvider.link.text}
+                <span className="text-zinc-600">→</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
-    ))}
-  </div>
-);
+
+      {/* Cloud Section */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Cloud Providers</span>
+          <span className="flex-1 h-px bg-zinc-800"></span>
+        </div>
+        <div className="space-y-3">
+          {cloudProviders.map((provider) => (
+            <ProviderCard key={provider.name} provider={provider} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Extract headings for TOC
 const extractHeadings = (content: string): { level: number; text: string; slug: string }[] => {
