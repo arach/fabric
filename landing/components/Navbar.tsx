@@ -21,7 +21,7 @@ export const Navbar: React.FC = () => {
              <Box size={14} strokeWidth={3} />
           </div>
           <span className="text-lg font-bold tracking-tight text-white">fabric</span>
-          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-dark-800 border border-dark-border text-[10px] font-mono text-gray-400">v0.9.2</span>
+          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-dark-800 border border-dark-border text-[10px] font-mono text-gray-400">v0.1.1</span>
         </div>
 
         <div className="hidden md:flex items-center gap-6">

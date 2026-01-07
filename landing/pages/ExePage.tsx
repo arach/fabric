@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { CodeBlock } from '../components/CodeBlock';
 import { ArrowRight, Terminal, Cloud, Shield, Zap, Code, Box, Server } from 'lucide-react';
 
 export const ExePage: React.FC = () => {
@@ -61,9 +62,7 @@ export const ExePage: React.FC = () => {
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">1</span>
                 <h3 className="font-semibold">Install Fabric</h3>
               </div>
-              <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>npm install fabric-ai-core fabric-ai-exe</code>
-              </pre>
+              <CodeBlock code="npm install fabric-ai-core fabric-ai-exe" language="bash" />
             </div>
 
             <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
@@ -71,13 +70,14 @@ export const ExePage: React.FC = () => {
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">2</span>
                 <h3 className="font-semibold">Set Up SSH Access</h3>
               </div>
-              <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>{`# First, authenticate with exe.dev
+              <CodeBlock
+                code={`# First, authenticate with exe.dev
 ssh exe.dev
 
 # Your SSH key (~/.ssh/id_ed25519 or ~/.ssh/id_rsa)
-# will be used automatically by Fabric`}</code>
-              </pre>
+# will be used automatically by Fabric`}
+                language="bash"
+              />
               <p className="text-zinc-500 text-sm mt-3">
                 Sign up at{' '}
                 <a href="https://exe.dev" className="text-brand-400 hover:underline" target="_blank" rel="noopener noreferrer">
@@ -92,8 +92,8 @@ ssh exe.dev
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">3</span>
                 <h3 className="font-semibold">Create an exe.dev VM</h3>
               </div>
-              <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>{`import { ExeSandboxFactory } from "fabric-ai-exe"
+              <CodeBlock
+                code={`import { ExeSandboxFactory } from "fabric-ai-exe"
 
 const factory = new ExeSandboxFactory()
 
@@ -117,8 +117,9 @@ const vms = await factory.list()
 console.log("Your VMs:", vms)
 
 // Cleanup
-await sandbox.stop()`}</code>
-              </pre>
+await sandbox.stop()`}
+                language="typescript"
+              />
             </div>
           </div>
         </div>
@@ -133,8 +134,8 @@ await sandbox.stop()`}</code>
           </p>
 
           <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
-            <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-              <code>{`// Shelley is accessible at https://vmname.exe.xyz:9999/
+            <CodeBlock
+              code={`// Shelley is accessible at https://vmname.exe.xyz:9999/
 // Claude and Codex are also pre-installed
 
 const sandbox = await factory.create({ name: "coding-agent" })
@@ -151,8 +152,9 @@ await sandbox.exec(\`
 \`)
 
 // Or use Shelley via web UI at:
-// https://coding-agent.exe.xyz:9999/`}</code>
-            </pre>
+// https://coding-agent.exe.xyz:9999/`}
+              language="typescript"
+            />
           </div>
         </div>
       </section>

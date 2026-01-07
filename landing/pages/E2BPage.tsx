@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { CodeBlock } from '../components/CodeBlock';
 import { ArrowRight, Terminal, Cloud, Cpu, Zap, Code, Box } from 'lucide-react';
 
 export const E2BPage: React.FC = () => {
@@ -56,9 +57,7 @@ export const E2BPage: React.FC = () => {
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">1</span>
                 <h3 className="font-semibold">Install Fabric</h3>
               </div>
-              <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>npm install fabric-ai-core fabric-ai-e2b</code>
-              </pre>
+              <CodeBlock code="npm install fabric-ai-core fabric-ai-e2b" language="bash" />
             </div>
 
             <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
@@ -66,10 +65,11 @@ export const E2BPage: React.FC = () => {
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">2</span>
                 <h3 className="font-semibold">Set Environment Variables</h3>
               </div>
-              <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>{`E2B_API_KEY=your_e2b_api_key
-ANTHROPIC_API_KEY=your_anthropic_api_key`}</code>
-              </pre>
+              <CodeBlock
+                code={`E2B_API_KEY=your_e2b_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key`}
+                language="bash"
+              />
               <p className="text-zinc-500 text-sm mt-3">
                 Get your E2B API key from{' '}
                 <a href="https://e2b.dev/dashboard" className="text-brand-400 hover:underline" target="_blank" rel="noopener noreferrer">
@@ -83,8 +83,8 @@ ANTHROPIC_API_KEY=your_anthropic_api_key`}</code>
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">3</span>
                 <h3 className="font-semibold">Create an E2B Sandbox</h3>
               </div>
-              <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>{`import { E2BSandboxFactory } from "fabric-ai-e2b"
+              <CodeBlock
+                code={`import { E2BSandboxFactory } from "fabric-ai-e2b"
 
 const factory = new E2BSandboxFactory(process.env.E2B_API_KEY)
 
@@ -104,8 +104,9 @@ await sandbox.writeFile("/home/user/hello.py", "x = 42")
 const content = await sandbox.readFile("/home/user/hello.py")
 
 // Cleanup
-await sandbox.stop()`}</code>
-              </pre>
+await sandbox.stop()`}
+                language="typescript"
+              />
             </div>
           </div>
         </div>
@@ -120,8 +121,8 @@ await sandbox.stop()`}</code>
           </p>
 
           <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
-            <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-              <code>{`import { Sandbox } from "@e2b/code-interpreter"
+            <CodeBlock
+              code={`import { Sandbox } from "@e2b/code-interpreter"
 
 // Use E2B's Claude Code template
 const sandbox = await Sandbox.create("anthropic-claude-code", {
@@ -143,8 +144,9 @@ console.log(result.stdout)
 const files = await sandbox.files.list("/home/user")
 console.log("Files:", files.map(f => f.name))
 
-await sandbox.kill()`}</code>
-            </pre>
+await sandbox.kill()`}
+              language="typescript"
+            />
           </div>
         </div>
       </section>

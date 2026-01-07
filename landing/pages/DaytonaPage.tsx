@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { CodeBlock } from '../components/CodeBlock';
 import { ArrowRight, Terminal, Cloud, Shield, Zap, Code, Box } from 'lucide-react';
 
 export const DaytonaPage: React.FC = () => {
@@ -56,9 +57,7 @@ export const DaytonaPage: React.FC = () => {
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">1</span>
                 <h3 className="font-semibold">Install Fabric</h3>
               </div>
-              <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>npm install fabric-ai-core fabric-ai-daytona</code>
-              </pre>
+              <CodeBlock code="npm install fabric-ai-core fabric-ai-daytona" language="bash" />
             </div>
 
             <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
@@ -66,10 +65,11 @@ export const DaytonaPage: React.FC = () => {
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">2</span>
                 <h3 className="font-semibold">Set Environment Variables</h3>
               </div>
-              <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>{`DAYTONA_API_KEY=your_daytona_api_key
-ANTHROPIC_API_KEY=your_anthropic_api_key`}</code>
-              </pre>
+              <CodeBlock
+                code={`DAYTONA_API_KEY=your_daytona_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key`}
+                language="bash"
+              />
               <p className="text-zinc-500 text-sm mt-3">
                 Get your Daytona API key from{' '}
                 <a href="https://app.daytona.io" className="text-brand-400 hover:underline" target="_blank" rel="noopener noreferrer">
@@ -83,8 +83,8 @@ ANTHROPIC_API_KEY=your_anthropic_api_key`}</code>
                 <span className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm font-bold">3</span>
                 <h3 className="font-semibold">Create a Daytona Sandbox</h3>
               </div>
-              <pre className="bg-black/50 rounded-lg p-4 font-mono text-sm text-zinc-300 overflow-x-auto">
-                <code>{`import { DaytonaSandboxFactory } from "fabric-ai-daytona"
+              <CodeBlock
+                code={`import { DaytonaSandboxFactory } from "fabric-ai-daytona"
 
 const factory = new DaytonaSandboxFactory({
   apiKey: process.env.DAYTONA_API_KEY,
@@ -107,8 +107,9 @@ await sandbox.writeFile("/workspace/hello.ts", "export const x = 42")
 const content = await sandbox.readFile("/workspace/hello.ts")
 
 // Cleanup
-await sandbox.stop()`}</code>
-              </pre>
+await sandbox.stop()`}
+                language="typescript"
+              />
             </div>
           </div>
         </div>
@@ -157,37 +158,32 @@ await sandbox.stop()`}</code>
       {/* Network Info */}
       <section className="py-20 border-t border-dark-border bg-zinc-900/30">
         <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-6 text-center">Network Access</h2>
-          <p className="text-zinc-400 text-center mb-10">
-            Daytona sandboxes have secure network policies. Essential developer services are always accessible.
-          </p>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
-              <h3 className="font-semibold text-emerald-400 mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                Allowed Services
-              </h3>
-              <ul className="space-y-2 text-sm text-zinc-400">
-                <li>api.anthropic.com</li>
-                <li>api.openai.com</li>
-                <li>github.com</li>
-                <li>registry.npmjs.org</li>
-                <li>pypi.org</li>
-                <li>docker.io</li>
-              </ul>
-            </div>
-            <div className="bg-zinc-900/50 border border-dark-border rounded-xl p-6">
-              <h3 className="font-semibold text-zinc-400 mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-zinc-500"></span>
-                Tier 3/4 Features
-              </h3>
-              <ul className="space-y-2 text-sm text-zinc-400">
-                <li>Custom networkAllowList</li>
-                <li>Full internet access</li>
-                <li>Custom IP whitelisting</li>
-                <li>Private network access</li>
-              </ul>
+          <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-400 mb-2">About Daytona Network Policies</h3>
+                <p className="text-zinc-400 text-sm mb-4">
+                  Daytona sandboxes use tier-based network restrictions for security. By default, outbound connections are limited to essential developer services:
+                </p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 text-xs font-mono">api.anthropic.com</span>
+                  <span className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 text-xs font-mono">api.openai.com</span>
+                  <span className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 text-xs font-mono">github.com</span>
+                  <span className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 text-xs font-mono">registry.npmjs.org</span>
+                  <span className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 text-xs font-mono">pypi.org</span>
+                </div>
+                <p className="text-zinc-500 text-xs">
+                  Higher-tier Daytona accounts can configure custom allowlists or enable full internet access.{' '}
+                  <a href="https://www.daytona.io/docs" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                    Learn more in Daytona's docs
+                  </a>
+                </p>
+              </div>
             </div>
           </div>
         </div>
