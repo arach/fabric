@@ -40,13 +40,13 @@ const App: React.FC = () => {
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-8 leading-[1.05] text-white">
-                Seamless infra for <br/>
-                <span className="brand-gradient-text">Claude Agents</span>
+                Seamless handoffs for <br/>
+                <span className="brand-gradient-text">Agent Sandboxes</span>
               </h1>
-              
+
               <p className="text-lg text-zinc-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
-                Fabric creates a wormhole between your local file path and a secure container instance. 
-                Focus on the agent logic, we handle the runtime.
+                One interface to run agents across Daytona, E2B, and exe.dev.
+                Switch providers seamlessly while your agent keeps working.
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
