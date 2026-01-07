@@ -162,137 +162,117 @@ const TableCell: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
   <td className="py-3 px-4 text-zinc-300">{children}</td>
 );
 
-// Provider cards data - Local first, then cloud providers
-const providers = [
-  {
-    name: 'Local',
-    tagline: 'Development, offline, no cloud costs',
-    features: ['Apple Virtualization.framework', 'No Docker required', '~1s startup', 'macOS only'],
-    setup: 'fabric create --provider local',
-    link: { text: 'Setup guide', url: '/docs/local-containers' },
-    color: 'from-purple-500/10 to-purple-600/5',
-    border: 'border-purple-500/20 hover:border-purple-500/40',
-    accent: 'text-purple-400',
-  },
+// Provider data
+const cloudProviders = [
   {
     name: 'Daytona',
     tagline: 'Enterprise teams, TypeScript/Node.js',
     features: ['Secure network policies & VPC', 'TypeScript, Python, Go, Rust', '~2-3s startup'],
-    setup: 'export DAYTONA_API_KEY=your_key',
+    commands: ['export DAYTONA_API_KEY=your_key', 'fabric create --provider daytona'],
     link: { text: 'Get your key', url: 'https://app.daytona.io' },
-    color: 'from-blue-500/10 to-blue-600/5',
-    border: 'border-blue-500/20 hover:border-blue-500/40',
-    accent: 'text-blue-400',
+    logo: 'https://github.com/daytonaio/daytona/raw/main/assets/images/Daytona-logotype-white.png',
   },
   {
     name: 'E2B',
     tagline: 'Data science, Python, rapid prototyping',
     features: ['Ultra-fast <200ms cold starts', 'Built-in Jupyter kernel', 'Claude Code template'],
-    setup: 'export E2B_API_KEY=your_key',
+    commands: ['export E2B_API_KEY=your_key', 'fabric create --provider e2b'],
     link: { text: 'Get your key', url: 'https://e2b.dev/dashboard' },
-    color: 'from-orange-500/10 to-orange-600/5',
-    border: 'border-orange-500/20 hover:border-orange-500/40',
-    accent: 'text-orange-400',
+    logo: null, // Will use text
   },
   {
     name: 'exe.dev',
-    tagline: 'Persistent environments, full VM control',
+    tagline: 'Persistent VMs, full root access',
     features: ['SSH-based (no API key)', 'Persistent disk across sessions', 'Pre-installed AI agents'],
-    setup: 'ssh exe.dev',
+    commands: ['ssh exe.dev', 'fabric create --provider exe'],
     link: { text: 'Learn more', url: 'https://exe.dev' },
-    color: 'from-green-500/10 to-green-600/5',
-    border: 'border-green-500/20 hover:border-green-500/40',
-    accent: 'text-green-400',
+    logo: 'https://exe.dev/static/exy.png',
   },
 ];
 
-// Provider cards component - split into Local and Cloud sections
-const ProviderCards: React.FC = () => {
-  const localProvider = providers[0]; // Local
-  const cloudProviders = providers.slice(1); // Daytona, E2B, exe.dev
-
+// Inline code with copy
+const InlineCode: React.FC<{ children: string }> = ({ children }) => {
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(children);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
   return (
-    <div className="my-8 space-y-6">
+    <code
+      onClick={handleCopy}
+      className="text-xs bg-zinc-900/80 text-zinc-300 px-2 py-1 rounded font-mono cursor-pointer hover:bg-zinc-800 transition-colors inline-flex items-center gap-2 group"
+      title="Click to copy"
+    >
+      {children}
+      <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors">
+        {copied ? <Check size={10} /> : <Copy size={10} />}
+      </span>
+    </code>
+  );
+};
+
+// Provider cards component
+const ProviderCards: React.FC = () => {
+  return (
+    <div className="my-8 space-y-4">
       {/* Local Section */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Local</span>
-          <span className="flex-1 h-px bg-zinc-800"></span>
-        </div>
-        <div className="bg-zinc-900/80 rounded-lg border border-zinc-800 p-5">
-          <div className="flex flex-col sm:flex-row sm:items-start gap-6">
-            <div className="flex-1">
-              <h4 className="text-lg font-semibold text-white mb-1">{localProvider.name}</h4>
-              <p className="text-sm text-zinc-500 mb-3">{localProvider.tagline}</p>
-              <ul className="space-y-1">
-                {localProvider.features.map((feature, i) => (
-                  <li key={i} className="text-sm text-zinc-400 flex items-center gap-2">
-                    <span className="w-1 h-1 rounded-full bg-zinc-600"></span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex flex-col gap-2 sm:min-w-[240px]">
-              <code className="text-xs bg-zinc-800 text-zinc-300 px-3 py-2 rounded font-mono">
-                fabric create --provider local
-              </code>
-              <a
-                href={localProvider.link.url}
-                className="text-sm text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1"
-              >
-                {localProvider.link.text}
-                <span className="text-zinc-600">→</span>
-              </a>
-            </div>
+      <div className="rounded-lg border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-blue-600/5 p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-semibold text-blue-400">Local</span>
+            <span className="text-sm text-zinc-500">Development, offline, no cloud costs</span>
           </div>
+          <a href="/docs/local-containers" className="text-sm text-zinc-400 hover:text-white transition-colors">
+            Setup guide →
+          </a>
         </div>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+          <li className="text-sm text-zinc-400">• Apple Virtualization.framework</li>
+          <li className="text-sm text-zinc-400">• No Docker required</li>
+          <li className="text-sm text-zinc-400">• ~1s startup</li>
+          <li className="text-sm text-zinc-400">• macOS only</li>
+        </ul>
+        <InlineCode>fabric create --provider local</InlineCode>
       </div>
 
       {/* Cloud Section */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Cloud Providers</span>
-          <span className="flex-1 h-px bg-zinc-800"></span>
-        </div>
-        <div className="space-y-3">
-          {cloudProviders.map((provider) => (
-            <div
-              key={provider.name}
-              className={`rounded-lg border bg-gradient-to-r ${provider.color} ${provider.border} p-5 transition-colors`}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-start gap-6">
-                <div className="flex-1">
-                  <h4 className={`text-lg font-semibold ${provider.accent} mb-1`}>{provider.name}</h4>
-                  <p className="text-sm text-zinc-500 mb-3">{provider.tagline}</p>
-                  <ul className="space-y-1">
-                    {provider.features.map((feature, i) => (
-                      <li key={i} className="text-sm text-zinc-400 flex items-center gap-2">
-                        <span className="w-1 h-1 rounded-full bg-zinc-600"></span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="flex flex-col gap-2 sm:min-w-[240px]">
-                  <code className="text-xs bg-zinc-900/50 text-zinc-300 px-3 py-2 rounded font-mono">
-                    {provider.setup}
-                  </code>
-                  <code className="text-xs bg-zinc-900/50 text-zinc-300 px-3 py-2 rounded font-mono">
-                    fabric create --provider {provider.name.toLowerCase().replace('.', '')}
-                  </code>
-                  <a
-                    href={provider.link.url}
-                    className="text-sm text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1"
-                  >
-                    {provider.link.text}
-                    <span className="text-zinc-600">→</span>
-                  </a>
-                </div>
+      <div className="rounded-lg border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 overflow-hidden">
+        {cloudProviders.map((provider, index) => (
+          <div
+            key={provider.name}
+            className={`p-5 ${index > 0 ? 'border-t border-emerald-500/10' : ''}`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                {provider.logo ? (
+                  <img src={provider.logo} alt={provider.name} className="h-5 w-auto" />
+                ) : (
+                  <span className="text-lg font-semibold text-emerald-400">{provider.name}</span>
+                )}
+                <span className="text-sm text-zinc-500">{provider.tagline}</span>
               </div>
+              <a
+                href={provider.link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                {provider.link.text} →
+              </a>
             </div>
-          ))}
-        </div>
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+              {provider.features.map((feature, i) => (
+                <li key={i} className="text-sm text-zinc-400">• {feature}</li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-2">
+              {provider.commands.map((cmd, i) => (
+                <InlineCode key={i}>{cmd}</InlineCode>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
