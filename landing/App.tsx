@@ -5,17 +5,10 @@ import { Features } from './components/Features';
 import { Workflow } from './components/Workflow';
 import { Footer } from './components/Footer';
 import { Logos } from './components/Logos';
-import { ArrowRight, ChevronRight, Terminal as TerminalIcon } from 'lucide-react';
-
-const providers = [
-  { name: 'Daytona', href: '/daytona' },
-  { name: 'E2B', href: '/e2b' },
-  { name: 'exe.dev', href: '/exe' },
-];
+import { ArrowRight, Terminal as TerminalIcon } from 'lucide-react';
 
 const App: React.FC = () => {
   const [scrollY, setScrollY] = useState(0);
-  const [currentProvider, setCurrentProvider] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,14 +16,6 @@ const App: React.FC = () => {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Rotate providers every 3 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentProvider((prev) => (prev + 1) % providers.length);
-    }, 3000);
-    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -65,12 +50,10 @@ const App: React.FC = () => {
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <a
-                  href={providers[currentProvider].href}
+                  href="/docs/getting-started"
                   className="h-12 px-6 bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.25)]"
                 >
-                  <span className="w-24 text-center">
-                    {providers[currentProvider].name}
-                  </span>
+                  Get Started
                   <ArrowRight size={16} />
                 </a>
                 <div className="h-12 px-6 bg-zinc-900 border border-dark-border hover:border-zinc-700 hover:bg-zinc-800/80 text-zinc-400 rounded-lg font-mono text-sm flex items-center gap-3 transition-all duration-200 group">
