@@ -15,6 +15,17 @@
       "name": "@fabric/core",
       "version": "0.1.0",
     },
+    "packages/runtime-daytona": {
+      "name": "@fabric/runtime-daytona",
+      "version": "0.1.0",
+      "dependencies": {
+        "@daytonaio/sdk": "^0.128.1",
+        "@fabric/core": "workspace:*",
+      },
+      "devDependencies": {
+        "typescript": "^5.0.0",
+      },
+    },
     "packages/runtime-e2b": {
       "name": "@fabric/runtime-e2b",
       "version": "0.1.0",
@@ -146,6 +157,8 @@
     "@e2b/code-interpreter": ["@e2b/code-interpreter@1.5.1", "", { "dependencies": { "e2b": "^1.4.0" } }, "sha512-mkyKjAW2KN5Yt0R1I+1lbH3lo+W/g/1+C2lnwlitXk5wqi/g94SEO41XKdmDf5WWpKG3mnxWDR5d6S/lyjmMEw=="],
 
     "@fabric/core": ["@fabric/core@workspace:packages/core"],
+
+    "@fabric/runtime-daytona": ["@fabric/runtime-daytona@workspace:packages/runtime-daytona"],
 
     "@fabric/runtime-e2b": ["@fabric/runtime-e2b@workspace:packages/runtime-e2b"],
 

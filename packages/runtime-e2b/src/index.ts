@@ -104,11 +104,32 @@ export class E2BSandbox implements FabricSandbox {
   ): Promise<{ output: string; error?: string }> {
     const sandbox = this.ensureRunning()
     const execution = await sandbox.runCode(code)
+
+    // Handle error serialization - execution.error can be an object
+    let errorStr: string | undefined
+    if (execution.error) {
+      if (typeof execution.error === "string") {
+        errorStr = execution.error
+      } else if (execution.error instanceof Error) {
+        errorStr = execution.error.message
+      } else if (typeof execution.error === "object") {
+        // E2B may return error objects with name/value/traceback
+        const err = execution.error as Record<string, unknown>
+        errorStr = err.value
+          ? String(err.value)
+          : err.message
+            ? String(err.message)
+            : JSON.stringify(execution.error)
+      } else {
+        errorStr = String(execution.error)
+      }
+    } else if (execution.logs.stderr.length > 0) {
+      errorStr = execution.logs.stderr.join("\n")
+    }
+
     return {
       output: execution.logs.stdout.join("\n"),
-      error: execution.error
-        ? String(execution.error)
-        : execution.logs.stderr.join("\n") || undefined,
+      error: errorStr,
     }
   }
 

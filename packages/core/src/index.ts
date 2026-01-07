@@ -226,6 +226,7 @@ export type RuntimeType =
   | "local-subprocess"   // Direct subprocess on host
   | "local-container"    // Apple Containerization framework
   | "e2b"                // E2B cloud sandbox
+  | "daytona"            // Daytona cloud sandbox
   | "modal"              // Modal serverless
 
 export interface RuntimeStatus {
