@@ -11,7 +11,7 @@ export const Features: React.FC = () => {
                 Designed for <span className="brand-gradient-text">velocity</span>.
             </h2>
             <p className="text-xl text-zinc-400 max-w-2xl leading-relaxed">
-                Fabric strips away the complexity of DevOps, giving you a raw, powerful interface to deploy AI agents anywhere.
+                Fabric strips away the complexity of managing containers, giving you a raw, powerful interface to continue agentic development sessions anywhere.
             </p>
         </div>
 
