@@ -41,7 +41,7 @@ ${c("bold", "COMMANDS")}
   ${c("green", "config")}     Manage configuration
 
 ${c("bold", "OPTIONS")}
-  ${c("yellow", "-p, --provider")}  Provider to use (daytona, e2b)
+  ${c("yellow", "-p, --provider")}  Provider to use (daytona, e2b, exe)
   ${c("yellow", "-l, --language")}  Language for sandbox (typescript, python, go, rust)
   ${c("yellow", "-h, --help")}      Show this help message
   ${c("yellow", "-v, --version")}   Show version number
@@ -141,9 +141,23 @@ async function cmdCreate(options: {
     console.log(c("dim", `  Provider: ${provider}`))
     console.log(c("dim", `  Status: ${sandbox.status}`))
 
+  } else if (provider === "exe") {
+    // exe.dev uses SSH, no API key needed (uses ~/.ssh/id_ed25519)
+    const { ExeSandboxFactory } = await import("fabric-ai-exe")
+    const factory = new ExeSandboxFactory()
+
+    const sandbox = await factory.create({})
+    console.log(c("green", `✓ VM created: ${sandbox.id}`))
+    console.log(c("dim", `  Provider: ${provider}`))
+    console.log(c("dim", `  Host: ${sandbox.id}.exe.xyz`))
+    console.log(c("dim", `  Status: ${sandbox.status}`))
+    console.log()
+    console.log(c("cyan", "Next: Run commands with"))
+    console.log(c("yellow", `  fabric exec --provider exe --id ${sandbox.id} "your command"`))
+
   } else {
     console.error(c("red", `Unknown provider: ${provider}`))
-    console.log(c("dim", "Available providers: daytona, e2b"))
+    console.log(c("dim", "Available providers: daytona, e2b, exe"))
     process.exit(1)
   }
 }
@@ -184,6 +198,20 @@ async function cmdExec(command: string, options: { id?: string; provider?: strin
 
     const { E2BSandboxFactory } = await import("fabric-ai-e2b")
     const factory = new E2BSandboxFactory(apiKey)
+    const sandbox = await factory.create({})
+
+    try {
+      const result = await sandbox.exec(command)
+      if (result.stdout) console.log(result.stdout)
+      if (result.stderr) console.error(c("red", result.stderr))
+      process.exit(result.exitCode)
+    } finally {
+      await sandbox.stop()
+    }
+
+  } else if (provider === "exe") {
+    const { ExeSandboxFactory } = await import("fabric-ai-exe")
+    const factory = new ExeSandboxFactory()
     const sandbox = await factory.create({})
 
     try {
@@ -244,6 +272,19 @@ async function cmdRun(code: string, options: { language?: string; provider?: str
     } finally {
       await sandbox.stop()
     }
+
+  } else if (provider === "exe") {
+    const { ExeSandboxFactory } = await import("fabric-ai-exe")
+    const factory = new ExeSandboxFactory()
+    const sandbox = await factory.create({})
+
+    try {
+      const result = await sandbox.runCode!(code, language)
+      if (result.output) console.log(result.output)
+      if (result.error) console.error(c("red", result.error))
+    } finally {
+      await sandbox.stop()
+    }
   }
 }
 
@@ -251,6 +292,7 @@ async function cmdConfig() {
   console.log(c("bold", "Fabric Configuration"))
   console.log()
 
+  // API Keys
   const configs = [
     { name: "DAYTONA_API_KEY", value: process.env.DAYTONA_API_KEY },
     { name: "E2B_API_KEY", value: process.env.E2B_API_KEY },
@@ -267,8 +309,37 @@ async function cmdConfig() {
     console.log(`  ${config.name}: ${status}${preview}`)
   }
 
+  // SSH Keys for exe.dev
   console.log()
-  console.log(c("dim", "Set these in your shell profile or .env file"))
+  console.log(c("bold", "SSH Keys (for exe.dev)"))
+  console.log()
+
+  const { existsSync } = await import("fs")
+  const { homedir } = await import("os")
+  const { join } = await import("path")
+
+  const sshKeys = [
+    join(homedir(), ".ssh", "id_ed25519"),
+    join(homedir(), ".ssh", "id_rsa"),
+  ]
+
+  let foundKey = false
+  for (const keyPath of sshKeys) {
+    if (existsSync(keyPath)) {
+      console.log(`  ${c("green", "✓")} ${keyPath}`)
+      foundKey = true
+      break
+    }
+  }
+
+  if (!foundKey) {
+    console.log(`  ${c("red", "✗")} No SSH key found`)
+    console.log(c("dim", "    Generate one with: ssh-keygen -t ed25519"))
+  }
+
+  console.log()
+  console.log(c("dim", "API keys: Set in your shell profile or .env file"))
+  console.log(c("dim", "exe.dev: Uses your SSH key (~/.ssh/id_ed25519)"))
 }
 
 // Main

@@ -1,7 +1,7 @@
 {
-  "name": "fabric-ai-core",
-  "version": "0.1.1",
-  "description": "Core interfaces and types for Fabric ambient compute framework",
+  "name": "fabric-ai-exe",
+  "version": "0.1.0",
+  "description": "exe.dev VM sandbox adapter for Fabric - SSH-based cloud VMs",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,22 +18,33 @@
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "ssh2": "^1.16.0"
+  },
   "devDependencies": {
+    "@types/ssh2": "^1.15.1",
     "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "fabric-ai-core": "^0.1.0"
   },
   "keywords": [
     "fabric",
     "ai",
     "claude",
     "sandbox",
-    "compute"
+    "compute",
+    "exe",
+    "exe.dev",
+    "ssh",
+    "vm"
   ],
   "author": "Arach Tchoupani",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/arach/fabric.git",
-    "directory": "packages/core"
+    "directory": "packages/runtime-exe"
   },
   "homepage": "https://fabric.arach.dev"
 }

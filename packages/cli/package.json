@@ -1,6 +1,6 @@
 {
   "name": "fabric-ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI for Fabric - Ambient compute for Claude Code agents",
   "type": "module",
   "bin": {
@@ -10,14 +10,15 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun build src/cli.ts --outdir dist --target node --external '@arach/*' --external '@daytonaio/*' --external '@e2b/*'",
+    "build": "bun build src/cli.ts --outdir dist --target node --external '@arach/*' --external '@daytonaio/*' --external '@e2b/*' --external 'ssh2'",
     "dev": "bun run src/cli.ts",
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "fabric-ai-core": "^0.1.0",
     "fabric-ai-daytona": "^0.1.0",
-    "fabric-ai-e2b": "^0.1.0"
+    "fabric-ai-e2b": "^0.1.0",
+    "fabric-ai-exe": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -31,6 +32,7 @@
     "sandbox",
     "daytona",
     "e2b",
+    "exe",
     "agents"
   ],
   "author": "Arach Tchoupani",

@@ -8,6 +8,7 @@ Fabric is an ambient compute framework for running Claude Code agents across loc
 - [Providers](#providers)
   - [Daytona](#daytona)
   - [E2B](#e2b)
+  - [exe.dev](#exedev)
   - [Local Container](#local-container)
 - [Core Concepts](#core-concepts)
 - [API Reference](#api-reference)
@@ -168,6 +169,69 @@ await sandbox.kill()
 
 ---
 
+### exe.dev
+
+[exe.dev](https://exe.dev) provides persistent VMs with SSH access and pre-installed coding agents.
+
+**Features:**
+- Persistent VMs with persistent disks
+- Full root access (sudo)
+- Pre-installed Claude, Codex, and Shelley agents
+- Full internet access (no restrictions)
+- SSH/SFTP-based access
+
+**Installation:**
+```bash
+npm install fabric-ai-exe
+```
+
+**Configuration:**
+
+exe.dev uses SSH authentication - no API key needed:
+
+```bash
+# Authenticate with exe.dev
+ssh exe.dev
+
+# Your SSH key is used automatically
+```
+
+**Usage:**
+```typescript
+import { ExeSandboxFactory } from "fabric-ai-exe"
+
+const factory = new ExeSandboxFactory()
+
+const sandbox = await factory.create({ name: "my-agent" })
+
+// Run commands via SSH
+const result = await sandbox.exec("echo 'Hello from exe.dev!'")
+console.log(result.stdout)
+
+// Run Python code
+const pyResult = await sandbox.runCode(`
+print("Hello from exe.dev!")
+`, "python")
+
+await sandbox.stop()
+```
+
+**Pre-installed Agents:**
+
+exe.dev VMs come with Claude Code and Codex pre-installed:
+
+```typescript
+await sandbox.exec(`
+  export ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY}
+  echo 'Build a REST API' | claude -p --dangerously-skip-permissions
+`)
+
+// Shelley agent available at:
+// https://my-agent.exe.xyz:9999/
+```
+
+---
+
 ### Local Container
 
 For local development, Fabric supports Apple's Containerization framework.
@@ -278,6 +342,7 @@ type RuntimeType =
   | "local-container"
   | "e2b"
   | "daytona"
+  | "exe"
   | "modal"
 ```
 
@@ -295,6 +360,17 @@ new DaytonaSandboxFactory(options: {
 
 ```typescript
 new E2BSandboxFactory(apiKey?: string)
+```
+
+### ExeSandboxFactory
+
+```typescript
+new ExeSandboxFactory(options?: {
+  privateKeyPath?: string    // Path to SSH key (default: ~/.ssh/id_ed25519)
+  privateKey?: Buffer        // SSH key content (alternative to path)
+  username?: string          // SSH username
+  defaultImage?: string      // Default container image
+})
 ```
 
 ### SandboxSnapshot
@@ -317,15 +393,18 @@ interface SandboxSnapshot {
 
 ## Provider Comparison
 
-| Feature | Daytona | E2B |
-|---------|---------|-----|
-| Default Language | TypeScript | Python |
-| Startup Time | ~2-3s | <200ms |
-| Network | Allowlist (enterprise) | Full access |
-| Languages | TS, Python, Go, Rust, JS | Python, JS |
-| Claude Template | npm install | Pre-built |
-| Jupyter Kernel | No | Yes |
-| Best For | Enterprise, TypeScript | Data science, Python |
+| Feature | Daytona | E2B | exe.dev |
+|---------|---------|-----|---------|
+| Architecture | Ephemeral Sandbox | Ephemeral Sandbox | Persistent VM |
+| Default Language | TypeScript | Python | Any (full Ubuntu) |
+| Startup Time | ~2-3s | <200ms | ~2s |
+| Network | Allowlist (enterprise) | Full access | Full access |
+| Languages | TS, Python, Go, Rust, JS | Python, JS | Any |
+| Claude Template | npm install | Pre-built | Pre-installed |
+| Root Access | No | Limited | Yes (sudo) |
+| Persistent Disk | No | No | Yes |
+| Auth Method | API Key | API Key | SSH Key |
+| Best For | Enterprise, TypeScript | Data science, Python | Full control, agents |
 
 ---
 

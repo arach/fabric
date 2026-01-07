@@ -227,6 +227,7 @@ export type RuntimeType =
   | "local-container"    // Apple Containerization framework
   | "e2b"                // E2B cloud sandbox
   | "daytona"            // Daytona cloud sandbox
+  | "exe"                // exe.dev SSH-based VMs
   | "modal"              // Modal serverless
 
 export interface RuntimeStatus {
