@@ -162,6 +162,79 @@ const TableCell: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
   <td className="py-3 px-4 text-zinc-300">{children}</td>
 );
 
+// Provider cards data
+const providers = [
+  {
+    name: 'Daytona',
+    tagline: 'Enterprise teams, TypeScript/Node.js',
+    features: ['Secure network policies & VPC', 'TypeScript, Python, Go, Rust', '~2-3s startup'],
+    setup: 'export DAYTONA_API_KEY=your_key',
+    link: { text: 'Get your key', url: 'https://app.daytona.io' },
+    color: 'from-blue-500/10 to-blue-600/5',
+    border: 'border-blue-500/20 hover:border-blue-500/40',
+  },
+  {
+    name: 'E2B',
+    tagline: 'Data science, Python, rapid prototyping',
+    features: ['Ultra-fast <200ms cold starts', 'Built-in Jupyter kernel', 'Claude Code template'],
+    setup: 'export E2B_API_KEY=your_key',
+    link: { text: 'Get your key', url: 'https://e2b.dev/dashboard' },
+    color: 'from-orange-500/10 to-orange-600/5',
+    border: 'border-orange-500/20 hover:border-orange-500/40',
+  },
+  {
+    name: 'exe.dev',
+    tagline: 'Persistent environments, full VM control',
+    features: ['SSH-based (no API key)', 'Persistent disk across sessions', 'Pre-installed AI agents'],
+    setup: 'ssh exe.dev',
+    link: { text: 'Learn more', url: 'https://exe.dev' },
+    color: 'from-green-500/10 to-green-600/5',
+    border: 'border-green-500/20 hover:border-green-500/40',
+  },
+  {
+    name: 'Local',
+    tagline: 'Development, offline, no cloud costs',
+    features: ['Apple Virtualization.framework', 'No Docker required', '~1s startup'],
+    setup: 'fabric create --provider local',
+    link: { text: 'Setup guide', url: '/docs/local-containers' },
+    color: 'from-purple-500/10 to-purple-600/5',
+    border: 'border-purple-500/20 hover:border-purple-500/40',
+  },
+];
+
+// Provider cards component
+const ProviderCards: React.FC = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+    {providers.map((provider) => (
+      <div
+        key={provider.name}
+        className={`rounded-lg border bg-gradient-to-br ${provider.color} ${provider.border} p-5 transition-colors`}
+      >
+        <h4 className="text-lg font-semibold text-white mb-1">{provider.name}</h4>
+        <p className="text-sm text-zinc-500 mb-4">{provider.tagline}</p>
+        <ul className="space-y-1.5 mb-4">
+          {provider.features.map((feature, i) => (
+            <li key={i} className="text-sm text-zinc-400 flex items-start gap-2">
+              <span className="text-zinc-600 mt-1">•</span>
+              {feature}
+            </li>
+          ))}
+        </ul>
+        <code className="block text-xs bg-zinc-900/50 text-zinc-300 px-3 py-2 rounded font-mono mb-3">
+          {provider.setup}
+        </code>
+        <a
+          href={provider.link.url}
+          className="text-sm text-zinc-400 hover:text-white transition-colors inline-flex items-center gap-1"
+        >
+          {provider.link.text}
+          <span className="text-zinc-600">→</span>
+        </a>
+      </div>
+    ))}
+  </div>
+);
+
 // Extract headings for TOC
 const extractHeadings = (content: string): { level: number; text: string; slug: string }[] => {
   const headingRegex = /^(#{2,3})\s+(.+)$/gm;
@@ -236,38 +309,9 @@ npm install fabric-ai-exe
 
 ## Provider Setup
 
-Fabric supports multiple sandbox providers. Choose based on your needs:
+Fabric supports multiple sandbox providers. Each has different strengths—choose based on your workflow.
 
-| Provider | Best For | Auth | Startup |
-|----------|----------|------|---------|
-| Daytona | Enterprise, TypeScript | API Key | ~2-3s |
-| E2B | Data science, Python | API Key | <200ms |
-| exe.dev | Persistent VMs | SSH Key | ~2s |
-| Local | Development | None | ~1s |
-
-### Daytona
-
-\`\`\`bash
-export DAYTONA_API_KEY=your_key
-\`\`\`
-
-Get your API key from [app.daytona.io](https://app.daytona.io).
-
-### E2B
-
-\`\`\`bash
-export E2B_API_KEY=your_key
-\`\`\`
-
-Get your API key from [e2b.dev/dashboard](https://e2b.dev/dashboard).
-
-### exe.dev
-
-\`\`\`bash
-ssh exe.dev
-\`\`\`
-
-Uses your SSH key for authentication.
+[PROVIDER_CARDS]
 
 ## Your First Sandbox
 
@@ -708,37 +752,42 @@ export const DocsPage: React.FC = () => {
             {/* Main content */}
             <main className="flex-1 min-w-0 pb-24">
               <article className="max-w-3xl">
-                <ReactMarkdown
-                  components={{
-                    code: CodeBlock,
-                    h1: ({ children }) => <HeadingWithAnchor level={1}>{children}</HeadingWithAnchor>,
-                    h2: ({ children }) => <HeadingWithAnchor level={2}>{children}</HeadingWithAnchor>,
-                    h3: ({ children }) => <HeadingWithAnchor level={3}>{children}</HeadingWithAnchor>,
-                    p: ({ children }) => <p className="text-zinc-400 leading-relaxed mb-4">{children}</p>,
-                    ul: ({ children }) => <ul className="list-disc list-inside text-zinc-400 mb-4 space-y-1">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal list-inside text-zinc-400 mb-4 space-y-1">{children}</ol>,
-                    li: ({ children }) => <li className="text-zinc-400">{children}</li>,
-                    a: ({ href, children }) => (
-                      <a href={href} className="text-white hover:text-zinc-300 underline underline-offset-2 transition-colors">
-                        {children}
-                      </a>
-                    ),
-                    strong: ({ children }) => <strong className="text-white font-medium">{children}</strong>,
-                    hr: () => <hr className="border-zinc-800 my-10" />,
-                    table: Table,
-                    thead: TableHead,
-                    tr: TableRow,
-                    th: TableHeader,
-                    td: TableCell,
-                    blockquote: ({ children }) => (
-                      <blockquote className="border-l-2 border-zinc-700 pl-4 my-4 text-zinc-500 italic">
-                        {children}
-                      </blockquote>
-                    ),
-                  }}
-                >
-                  {doc.content}
-                </ReactMarkdown>
+                {doc.content.split('[PROVIDER_CARDS]').map((part, index, arr) => (
+                  <React.Fragment key={index}>
+                    <ReactMarkdown
+                      components={{
+                        code: CodeBlock,
+                        h1: ({ children }) => <HeadingWithAnchor level={1}>{children}</HeadingWithAnchor>,
+                        h2: ({ children }) => <HeadingWithAnchor level={2}>{children}</HeadingWithAnchor>,
+                        h3: ({ children }) => <HeadingWithAnchor level={3}>{children}</HeadingWithAnchor>,
+                        p: ({ children }) => <p className="text-zinc-400 leading-relaxed mb-4">{children}</p>,
+                        ul: ({ children }) => <ul className="list-disc list-inside text-zinc-400 mb-4 space-y-1">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal list-inside text-zinc-400 mb-4 space-y-1">{children}</ol>,
+                        li: ({ children }) => <li className="text-zinc-400">{children}</li>,
+                        a: ({ href, children }) => (
+                          <a href={href} className="text-white hover:text-zinc-300 underline underline-offset-2 transition-colors">
+                            {children}
+                          </a>
+                        ),
+                        strong: ({ children }) => <strong className="text-white font-medium">{children}</strong>,
+                        hr: () => <hr className="border-zinc-800 my-10" />,
+                        table: Table,
+                        thead: TableHead,
+                        tr: TableRow,
+                        th: TableHeader,
+                        td: TableCell,
+                        blockquote: ({ children }) => (
+                          <blockquote className="border-l-2 border-zinc-700 pl-4 my-4 text-zinc-500 italic">
+                            {children}
+                          </blockquote>
+                        ),
+                      }}
+                    >
+                      {part}
+                    </ReactMarkdown>
+                    {index < arr.length - 1 && <ProviderCards />}
+                  </React.Fragment>
+                ))}
               </article>
             </main>
 
