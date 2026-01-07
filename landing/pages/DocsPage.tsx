@@ -1,14 +1,56 @@
-import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import { ArrowLeft, Book, Box, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Book, Box, Copy, Check, ChevronRight, ExternalLink } from 'lucide-react';
+
+// Custom dark theme matching site
+const codeTheme: { [key: string]: React.CSSProperties } = {
+  'code[class*="language-"]': {
+    color: '#e4e4e7',
+    fontFamily: 'JetBrains Mono, Menlo, Monaco, Consolas, monospace',
+    fontSize: '13px',
+    lineHeight: '1.6',
+  },
+  'pre[class*="language-"]': {
+    color: '#e4e4e7',
+    fontFamily: 'JetBrains Mono, Menlo, Monaco, Consolas, monospace',
+    fontSize: '13px',
+    lineHeight: '1.6',
+  },
+  comment: { color: '#6b7280' },
+  prolog: { color: '#6b7280' },
+  doctype: { color: '#6b7280' },
+  cdata: { color: '#6b7280' },
+  punctuation: { color: '#a1a1aa' },
+  property: { color: '#93c5fd' },
+  tag: { color: '#f472b6' },
+  boolean: { color: '#c084fc' },
+  number: { color: '#c084fc' },
+  constant: { color: '#c084fc' },
+  symbol: { color: '#c084fc' },
+  selector: { color: '#86efac' },
+  'attr-name': { color: '#93c5fd' },
+  string: { color: '#86efac' },
+  char: { color: '#86efac' },
+  builtin: { color: '#93c5fd' },
+  operator: { color: '#f472b6' },
+  entity: { color: '#fbbf24' },
+  url: { color: '#86efac' },
+  variable: { color: '#e4e4e7' },
+  atrule: { color: '#93c5fd' },
+  'attr-value': { color: '#86efac' },
+  keyword: { color: '#f472b6' },
+  function: { color: '#93c5fd' },
+  'class-name': { color: '#fbbf24' },
+  regex: { color: '#fbbf24' },
+  important: { color: '#f472b6', fontWeight: 'bold' },
+};
 
 // Code block component with syntax highlighting
-const CodeBlock: React.FC<{ className?: string; children?: React.ReactNode }> = ({ className, children }) => {
+const CodeBlock: React.FC<{ className?: string; children?: React.ReactNode; inline?: boolean }> = ({ className, children, inline }) => {
   const [copied, setCopied] = React.useState(false);
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : '';
@@ -20,40 +62,36 @@ const CodeBlock: React.FC<{ className?: string; children?: React.ReactNode }> = 
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!match) {
-    // Inline code
+  if (inline || !match) {
     return (
-      <code className="text-brand-300 bg-zinc-800 px-1.5 py-0.5 rounded text-sm">
+      <code className="text-zinc-200 bg-zinc-800/50 px-1.5 py-0.5 rounded text-[13px] font-mono">
         {children}
       </code>
     );
   }
 
-  // Code block with syntax highlighting
   return (
-    <div className="relative group">
-      <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+    <div className="relative group my-6">
+      <div className="absolute right-3 top-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">{language}</span>
         <button
           onClick={handleCopy}
-          className="p-2 rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 transition-colors"
+          className="p-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors"
           title="Copy code"
         >
-          {copied ? <Check size={14} /> : <Copy size={14} />}
+          {copied ? <Check size={12} /> : <Copy size={12} />}
         </button>
       </div>
-      <div className="absolute left-3 top-2 text-xs text-zinc-500 font-mono">
-        {language}
-      </div>
       <SyntaxHighlighter
-        style={oneDark}
+        style={codeTheme}
         language={language}
         PreTag="div"
         customStyle={{
           margin: 0,
-          borderRadius: '0.5rem',
-          padding: '2.5rem 1rem 1rem 1rem',
-          backgroundColor: '#18181b',
-          border: '1px solid #27272a',
+          borderRadius: '8px',
+          padding: '16px 20px',
+          backgroundColor: 'transparent',
+          border: '1px solid rgba(63, 63, 70, 0.5)',
         }}
       >
         {code}
@@ -62,31 +100,104 @@ const CodeBlock: React.FC<{ className?: string; children?: React.ReactNode }> = 
   );
 };
 
-// Docs content - embedded for static site generation
+// Generate slug from heading text
+const slugify = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+};
+
+// Heading component with anchor links
+const HeadingWithAnchor: React.FC<{
+  level: 1 | 2 | 3;
+  children?: React.ReactNode;
+}> = ({ level, children }) => {
+  const text = String(children);
+  const slug = slugify(text);
+  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+
+  const styles: Record<number, string> = {
+    1: 'text-3xl font-semibold text-white mt-0 mb-6 pb-4 border-b border-zinc-800',
+    2: 'text-xl font-semibold text-white mt-12 mb-4 scroll-mt-24 group',
+    3: 'text-lg font-medium text-zinc-200 mt-8 mb-3 scroll-mt-24 group',
+  };
+
+  return (
+    <Tag id={slug} className={styles[level]}>
+      {children}
+      {level > 1 && (
+        <a
+          href={`#${slug}`}
+          className="ml-2 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-label={`Link to ${text}`}
+        >
+          #
+        </a>
+      )}
+    </Tag>
+  );
+};
+
+// Table component
+const Table: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
+  <div className="my-6 overflow-x-auto">
+    <table className="w-full text-sm">{children}</table>
+  </div>
+);
+
+const TableHead: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
+  <thead className="border-b border-zinc-800">{children}</thead>
+);
+
+const TableRow: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
+  <tr className="border-b border-zinc-800/50">{children}</tr>
+);
+
+const TableHeader: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
+  <th className="text-left py-3 px-4 text-zinc-400 font-medium text-xs uppercase tracking-wider">{children}</th>
+);
+
+const TableCell: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
+  <td className="py-3 px-4 text-zinc-300">{children}</td>
+);
+
+// Extract headings for TOC
+const extractHeadings = (content: string): { level: number; text: string; slug: string }[] => {
+  const headingRegex = /^(#{2,3})\s+(.+)$/gm;
+  const headings: { level: number; text: string; slug: string }[] = [];
+  let match;
+
+  while ((match = headingRegex.exec(content)) !== null) {
+    headings.push({
+      level: match[1].length,
+      text: match[2],
+      slug: slugify(match[2]),
+    });
+  }
+
+  return headings;
+};
+
+// Docs content
 const docsContent: Record<string, { title: string; content: string }> = {
   'getting-started': {
     title: 'Getting Started',
     content: `# Getting Started with Fabric
 
-Fabric is an ambient compute framework for running code and AI agents across local and cloud sandboxes. This guide will help you get up and running quickly.
+Fabric is an ambient compute framework for running code and AI agents across local and cloud sandboxes. Start local, scale to cloud, preserve context everywhere.
 
 ## Quick Start
 
 Get a sandbox running in under 2 minutes:
 
 \`\`\`bash
-# Install the CLI
 npm install -g fabric-ai
 
-# Set up your provider (pick one)
-export DAYTONA_API_KEY=your_key      # Daytona
-export E2B_API_KEY=your_key          # E2B
-# or just \`ssh exe.dev\` for exe.dev
+export DAYTONA_API_KEY=your_key
 
-# Create and use a sandbox
 fabric create --provider daytona
 fabric exec "echo 'Hello from Fabric!'"
-fabric stop
 \`\`\`
 
 Or use the SDK directly:
@@ -95,93 +206,68 @@ Or use the SDK directly:
 import { DaytonaSandboxFactory } from "fabric-ai-daytona"
 
 const factory = new DaytonaSandboxFactory({
-  apiKey: process.env.DAYTONA_API_KEY!,
+  apiKey: process.env.DAYTONA_API_KEY,
   defaultLanguage: "typescript"
 })
 
 const sandbox = await factory.create({})
-const result = await sandbox.exec("echo 'Hello from Fabric!'")
-console.log(result.stdout) // "Hello from Fabric!"
+const result = await sandbox.exec("echo 'Hello!'")
+console.log(result.stdout)
 await sandbox.stop()
 \`\`\`
 
----
-
 ## Installation
 
-### Option 1: CLI (Recommended)
+### CLI (Recommended)
 
 \`\`\`bash
-# Install globally with npm
 npm install -g fabric-ai
-
-# Or with pnpm
-pnpm add -g fabric-ai
-
-# Verify installation
 fabric --help
 \`\`\`
 
-### Option 2: SDK Packages
+### SDK Packages
 
 \`\`\`bash
-# Core (always required)
 npm install fabric-ai-core
-
-# Pick your provider(s)
-npm install fabric-ai-daytona  # Daytona cloud sandboxes
-npm install fabric-ai-e2b      # E2B cloud sandboxes
-npm install fabric-ai-exe      # exe.dev persistent VMs
+npm install fabric-ai-daytona
+npm install fabric-ai-e2b
+npm install fabric-ai-exe
 \`\`\`
-
----
 
 ## Provider Setup
 
-Fabric supports multiple cloud sandbox providers:
+Fabric supports multiple sandbox providers. Choose based on your needs:
 
-| Provider | Best For | Auth Method | Startup Time |
-|----------|----------|-------------|--------------|
-| **Daytona** | Enterprise, TypeScript | API Key | ~2-3s |
-| **E2B** | Data science, Python | API Key | <200ms |
-| **exe.dev** | Full control, persistent VMs | SSH Key | ~2s |
-| **Local** | Development, no cloud needed | None | ~1s |
+| Provider | Best For | Auth | Startup |
+|----------|----------|------|---------|
+| Daytona | Enterprise, TypeScript | API Key | ~2-3s |
+| E2B | Data science, Python | API Key | <200ms |
+| exe.dev | Persistent VMs | SSH Key | ~2s |
+| Local | Development | None | ~1s |
 
 ### Daytona
 
-1. Sign up at [app.daytona.io](https://app.daytona.io)
-2. Navigate to Settings > API Keys
-3. Set environment variable:
-
 \`\`\`bash
-export DAYTONA_API_KEY=your_daytona_api_key
+export DAYTONA_API_KEY=your_key
 \`\`\`
+
+Get your API key from [app.daytona.io](https://app.daytona.io).
 
 ### E2B
 
-1. Sign up at [e2b.dev](https://e2b.dev)
-2. Go to [e2b.dev/dashboard](https://e2b.dev/dashboard)
-3. Set environment variable:
-
 \`\`\`bash
-export E2B_API_KEY=your_e2b_api_key
+export E2B_API_KEY=your_key
 \`\`\`
+
+Get your API key from [e2b.dev/dashboard](https://e2b.dev/dashboard).
 
 ### exe.dev
-
-1. Ensure you have an SSH key:
-
-\`\`\`bash
-ls ~/.ssh/id_ed25519 || ssh-keygen -t ed25519
-\`\`\`
-
-2. Authenticate with exe.dev:
 
 \`\`\`bash
 ssh exe.dev
 \`\`\`
 
----
+Uses your SSH key for authentication.
 
 ## Your First Sandbox
 
@@ -189,28 +275,22 @@ ssh exe.dev
 import { DaytonaSandboxFactory } from "fabric-ai-daytona"
 
 async function main() {
-  // 1. Create a factory
   const factory = new DaytonaSandboxFactory({
-    apiKey: process.env.DAYTONA_API_KEY!,
+    apiKey: process.env.DAYTONA_API_KEY,
     defaultLanguage: "typescript"
   })
 
-  // 2. Create a sandbox
   const sandbox = await factory.create({})
   console.log(\`Sandbox ID: \${sandbox.id}\`)
 
-  // 3. Run a command
   const result = await sandbox.exec("echo 'Hello, Fabric!'")
-  console.log(\`Output: \${result.stdout}\`)
+  console.log(result.stdout)
 
-  // 4. Clean up
   await sandbox.stop()
 }
 
-main().catch(console.error)
+main()
 \`\`\`
-
----
 
 ## Running Code
 
@@ -220,10 +300,8 @@ main().catch(console.error)
 const result = await sandbox.exec("ls -la")
 console.log(result.stdout)
 
-// Check exit code
-const npmResult = await sandbox.exec("npm install express")
-if (npmResult.exitCode !== 0) {
-  console.error("Install failed:", npmResult.stderr)
+if (result.exitCode !== 0) {
+  console.error(result.stderr)
 }
 \`\`\`
 
@@ -236,8 +314,6 @@ const result = await sandbox.runCode(\`
 \`)
 console.log(result.output)
 \`\`\`
-
----
 
 ## File Operations
 
@@ -258,11 +334,9 @@ const content = await sandbox.readFile("/workspace/hello.ts")
 console.log(content)
 \`\`\`
 
----
-
 ## Handoffs
 
-Transfer execution context between providers seamlessly:
+Transfer context between providers seamlessly:
 
 \`\`\`typescript
 import { Fabric } from "fabric-ai-core"
@@ -278,36 +352,25 @@ const session = await fabric.createSession({
   runtime: "local"
 })
 
-// Work locally
 await session.exec("npm install")
-
-// Delegate to cloud
 await session.delegateToCloud()
-await session.exec("npm run build:production")
-
-// Reclaim back
+await session.exec("npm run build")
 await session.reclaimToLocal()
 await session.stop()
 \`\`\`
 
----
-
 ## Running Claude Code
-
-Run Claude Code inside sandboxes:
 
 \`\`\`typescript
 import { Sandbox } from "@e2b/code-interpreter"
 
 const sandbox = await Sandbox.create("anthropic-claude-code", {
   apiKey: process.env.E2B_API_KEY,
-  envs: {
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!
-  }
+  envs: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY }
 })
 
 const result = await sandbox.commands.run(
-  \`echo 'Create a fibonacci function' | claude -p --dangerously-skip-permissions\`,
+  \`echo 'Create a fibonacci function' | claude -p\`,
   { timeoutMs: 120_000 }
 )
 
@@ -315,59 +378,266 @@ console.log(result.stdout)
 await sandbox.kill()
 \`\`\`
 
----
-
-## Troubleshooting
-
-### "API key not configured"
-
-Check your environment variables:
-
-\`\`\`bash
-echo $DAYTONA_API_KEY
-echo $E2B_API_KEY
-\`\`\`
-
-### "SSH connection failed" (exe.dev)
-
-1. Verify SSH key: \`ls ~/.ssh/id_ed25519\`
-2. Re-authenticate: \`ssh exe.dev\`
-3. Check SSH agent: \`ssh-add -l\`
-
-### Sandbox timeout
-
-Increase timeout for long operations:
-
-\`\`\`typescript
-await sandbox.commands.run(cmd, { timeoutMs: 300_000 })
-\`\`\`
-
----
-
 ## Next Steps
 
-- [Daytona Deep Dive](/daytona) - Enterprise features
-- [E2B Deep Dive](/e2b) - Jupyter & Claude Code template
-- [exe.dev Deep Dive](/exe) - Persistent VMs
+- [Daytona Guide](/daytona) - Enterprise features and network policies
+- [E2B Guide](/e2b) - Jupyter integration and Claude Code template
+- [exe.dev Guide](/exe) - Persistent VMs and pre-installed agents
+`
+  },
+  'philosophy': {
+    title: 'Philosophy',
+    content: `# Philosophy
+
+Fabric is built on a simple premise: **compute should follow you**.
+
+## The Problem
+
+Today's AI agents are constrained by where they run. Start a Claude Code session locally, and you're limited to your machine's resources. Move to the cloud, and you lose context. Switch providers, and you start over.
+
+This fragmentation wastes time and breaks flow.
+
+## Our Approach
+
+Fabric creates an abstraction layer that makes compute ambient:
+
+\`\`\`
+┌─────────────────────────────────────────────────┐
+│              Context Layer                       │
+│    (conversation, agent state, checkpoints)      │
+└─────────────────────────────────────────────────┘
+                        │
+        ┌───────────────┼───────────────┐
+        ▼               ▼               ▼
+   ┌─────────┐    ┌─────────┐    ┌─────────┐
+   │  Local  │ ─▶ │ Container│ ─▶ │  Cloud  │
+   │  (Mac)  │    │ (Apple) │    │(E2B/etc)│
+   └─────────┘    └─────────┘    └─────────┘
+\`\`\`
+
+Work starts anywhere. Context persists always.
+
+## Design Principles
+
+### Provider Agnostic
+
+Fabric doesn't lock you into a single cloud provider. The same code works across Daytona, E2B, exe.dev, or local containers:
+
+\`\`\`typescript
+const sandbox = await factory.create({})
+await sandbox.exec("your command")
+await sandbox.stop()
+\`\`\`
+
+Switch providers by changing one line.
+
+### Context Preservation
+
+Snapshots capture filesystem state, environment variables, and execution history. Restore anywhere:
+
+\`\`\`typescript
+const snapshot = await localSandbox.snapshot()
+await cloudSandbox.restore(snapshot)
+\`\`\`
+
+### Local First
+
+Development happens locally. Fabric provides lightweight containers using Apple's Virtualization framework—no Docker overhead, native performance.
+
+### Progressive Enhancement
+
+Start simple. Add cloud scaling when you need it. The abstraction grows with your requirements.
+
+## Why Apple Containers?
+
+For local development, Fabric uses Apple's Virtualization.framework to run Linux containers in lightweight VMs. This gives you:
+
+- **Native performance** - Hardware-accelerated virtualization on Apple Silicon
+- **No Docker** - Skip the daemon overhead
+- **Full Linux** - Real kernel, real filesystem, real networking
+- **Fast startup** - Containers boot in ~1 second
+
+Learn more in our [Local Containers](/docs/local-containers) guide.
+
+## The Handoff Pattern
+
+The core innovation in Fabric is seamless handoffs:
+
+1. **Local → Container**: Move from host execution to isolated container
+2. **Container → Cloud**: Scale to cloud providers when local resources are insufficient
+3. **Cloud → Cloud**: Migrate between providers without losing state
+4. **Cloud → Local**: Reclaim work back to your machine
+
+Each transition preserves context through snapshots.
+`
+  },
+  'local-containers': {
+    title: 'Local Containers',
+    content: `# Local Containers
+
+Fabric provides native container support on macOS using Apple's Virtualization.framework.
+
+## Overview
+
+Instead of relying on Docker, Fabric uses Apple's built-in virtualization to run Linux containers. This approach offers several advantages:
+
+- No Docker daemon required
+- Native Apple Silicon performance
+- Lightweight VM overhead
+- Fast container startup (~1s)
+
+## Requirements
+
+- macOS 13.0+ (Ventura or later)
+- Apple Silicon (M1/M2/M3/M4)
+- Xcode Command Line Tools
+
+## How It Works
+
+Fabric's local container runtime uses [Containerization](https://github.com/apple/containerization), Apple's framework for running Linux containers in lightweight VMs:
+
+\`\`\`
+┌──────────────────────────────────────┐
+│           Your Mac (Host)            │
+├──────────────────────────────────────┤
+│  ┌────────────────────────────────┐  │
+│  │     Virtualization.framework   │  │
+│  │  ┌──────────────────────────┐  │  │
+│  │  │    Lightweight Linux VM  │  │  │
+│  │  │  ┌────────────────────┐  │  │  │
+│  │  │  │  Your Container    │  │  │  │
+│  │  │  │  (alpine, debian)  │  │  │  │
+│  │  │  └────────────────────┘  │  │  │
+│  │  └──────────────────────────┘  │  │
+│  └────────────────────────────────┘  │
+└──────────────────────────────────────┘
+\`\`\`
+
+## Setup
+
+Build the container runtime:
+
+\`\`\`bash
+cd packages/runtime-local/FabricContainer
+swift build -c release
+\`\`\`
+
+## Usage
+
+### Via CLI
+
+\`\`\`bash
+fabric create --provider local
+fabric exec "echo 'Hello from container!'"
+\`\`\`
+
+### Via SDK
+
+\`\`\`typescript
+import { LocalContainerFactory } from "@arach/runtime-local"
+
+const factory = new LocalContainerFactory()
+const sandbox = await factory.create({
+  image: "alpine:latest"
+})
+
+const result = await sandbox.exec("uname -a")
+console.log(result.stdout) // Linux ...
+
+await sandbox.stop()
+\`\`\`
+
+## Supported Images
+
+Any OCI-compatible image works. Common choices:
+
+| Image | Use Case |
+|-------|----------|
+| alpine:latest | Minimal, fast startup |
+| ubuntu:22.04 | Full development environment |
+| debian:bookworm | Stable, well-tested |
+| oven/bun:latest | JavaScript/TypeScript runtime |
+| python:3.12 | Python development |
+
+## Performance
+
+Compared to Docker Desktop on Apple Silicon:
+
+| Metric | Docker | Fabric Local |
+|--------|--------|--------------|
+| Cold start | ~3-5s | ~1s |
+| Memory overhead | ~2GB | ~256MB |
+| CPU overhead | Moderate | Minimal |
+
+## Transitioning to Cloud
+
+When local resources aren't enough, hand off to cloud:
+
+\`\`\`typescript
+const snapshot = await localSandbox.snapshot()
+await localSandbox.stop()
+
+const cloudSandbox = await e2bFactory.create({})
+await cloudSandbox.restore(snapshot)
+\`\`\`
+
+Your files, environment, and state transfer seamlessly.
 `
   }
 };
 
 // Sidebar navigation
 const docsNav = [
-  { slug: 'getting-started', title: 'Getting Started', icon: Book },
+  { slug: 'getting-started', title: 'Getting Started' },
+  { slug: 'philosophy', title: 'Philosophy' },
+  { slug: 'local-containers', title: 'Local Containers' },
 ];
 
 export const DocsPage: React.FC = () => {
   const { slug = 'getting-started' } = useParams<{ slug: string }>();
+  const location = useLocation();
   const doc = docsContent[slug];
+  const [activeHeading, setActiveHeading] = useState<string>('');
+
+  const headings = doc ? extractHeadings(doc.content) : [];
+
+  // Scroll spy for TOC
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveHeading(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-80px 0px -80% 0px' }
+    );
+
+    headings.forEach(({ slug }) => {
+      const element = document.getElementById(slug);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [slug, headings]);
+
+  // Scroll to hash on load
+  useEffect(() => {
+    if (location.hash) {
+      const element = document.getElementById(location.hash.slice(1));
+      if (element) {
+        setTimeout(() => element.scrollIntoView({ behavior: 'smooth' }), 100);
+      }
+    }
+  }, [location.hash]);
 
   if (!doc) {
     return (
-      <div className="min-h-screen bg-dark-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Doc not found</h1>
-          <Link to="/docs/getting-started" className="text-brand-400 hover:underline">
+          <h1 className="text-2xl font-semibold mb-4">Page not found</h1>
+          <Link to="/docs/getting-started" className="text-zinc-400 hover:text-white transition-colors">
             Go to Getting Started
           </Link>
         </div>
@@ -376,99 +646,125 @@ export const DocsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-dark-950 text-white">
+    <div className="min-h-screen bg-zinc-950 text-white">
       <Navbar />
 
-      <div className="pt-20 pb-16">
+      <div className="pt-20">
         <div className="max-w-7xl mx-auto px-6">
-          {/* Breadcrumb */}
-          <div className="mb-8">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
-            >
-              <ArrowLeft size={16} />
-              Back to Home
-            </Link>
-          </div>
+          <div className="flex gap-16">
+            {/* Left Sidebar - Navigation */}
+            <aside className="hidden lg:block w-56 flex-shrink-0">
+              <div className="sticky top-24 pb-12">
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors mb-8"
+                >
+                  <ArrowLeft size={14} />
+                  Home
+                </Link>
 
-          <div className="flex gap-12">
-            {/* Sidebar */}
-            <aside className="hidden lg:block w-64 flex-shrink-0">
-              <div className="sticky top-24">
-                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">
-                  Documentation
-                </h3>
                 <nav className="space-y-1">
                   {docsNav.map((item) => {
-                    const Icon = item.icon;
                     const isActive = item.slug === slug;
                     return (
                       <Link
                         key={item.slug}
                         to={`/docs/${item.slug}`}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
                           isActive
-                            ? 'bg-zinc-800 text-white'
-                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                            ? 'bg-zinc-900 text-white'
+                            : 'text-zinc-500 hover:text-white'
                         }`}
                       >
-                        <Icon size={16} />
+                        <ChevronRight size={14} className={isActive ? 'text-zinc-400' : 'text-zinc-700'} />
                         {item.title}
                       </Link>
                     );
                   })}
                 </nav>
 
-                <div className="mt-8 pt-8 border-t border-dark-border">
-                  <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">
-                    Providers
-                  </h3>
+                <div className="mt-10 pt-6 border-t border-zinc-800">
+                  <h4 className="text-xs font-medium text-zinc-600 uppercase tracking-wider mb-3">Providers</h4>
                   <nav className="space-y-1">
-                    <Link to="/daytona" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors">
-                      <Box size={16} />
-                      Daytona
-                    </Link>
-                    <Link to="/e2b" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors">
-                      <Box size={16} />
-                      E2B
-                    </Link>
-                    <Link to="/exe" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors">
-                      <Box size={16} />
-                      exe.dev
-                    </Link>
+                    {[
+                      { href: '/daytona', label: 'Daytona' },
+                      { href: '/e2b', label: 'E2B' },
+                      { href: '/exe', label: 'exe.dev' },
+                    ].map((item) => (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-500 hover:text-white transition-colors"
+                      >
+                        <ExternalLink size={12} />
+                        {item.label}
+                      </Link>
+                    ))}
                   </nav>
                 </div>
               </div>
             </aside>
 
             {/* Main content */}
-            <main className="flex-1 min-w-0">
-              <article className="prose prose-invert prose-zinc max-w-none
-                prose-headings:font-semibold
-                prose-h1:text-3xl prose-h1:mb-8 prose-h1:pb-4 prose-h1:border-b prose-h1:border-dark-border
-                prose-h2:text-xl prose-h2:mt-12 prose-h2:mb-4
-                prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-3
-                prose-p:text-zinc-300 prose-p:leading-relaxed
-                prose-a:text-brand-400 prose-a:no-underline hover:prose-a:underline
-                prose-code:text-brand-300 prose-code:bg-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
-                prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-dark-border prose-pre:rounded-lg
-                prose-table:border-collapse
-                prose-th:border prose-th:border-dark-border prose-th:bg-zinc-800/50 prose-th:px-4 prose-th:py-2 prose-th:text-left
-                prose-td:border prose-td:border-dark-border prose-td:px-4 prose-td:py-2
-                prose-hr:border-dark-border prose-hr:my-12
-                prose-strong:text-white
-                prose-li:text-zinc-300
-              ">
+            <main className="flex-1 min-w-0 pb-24">
+              <article className="max-w-3xl">
                 <ReactMarkdown
                   components={{
                     code: CodeBlock,
+                    h1: ({ children }) => <HeadingWithAnchor level={1}>{children}</HeadingWithAnchor>,
+                    h2: ({ children }) => <HeadingWithAnchor level={2}>{children}</HeadingWithAnchor>,
+                    h3: ({ children }) => <HeadingWithAnchor level={3}>{children}</HeadingWithAnchor>,
+                    p: ({ children }) => <p className="text-zinc-400 leading-relaxed mb-4">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc list-inside text-zinc-400 mb-4 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside text-zinc-400 mb-4 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li className="text-zinc-400">{children}</li>,
+                    a: ({ href, children }) => (
+                      <a href={href} className="text-white hover:text-zinc-300 underline underline-offset-2 transition-colors">
+                        {children}
+                      </a>
+                    ),
+                    strong: ({ children }) => <strong className="text-white font-medium">{children}</strong>,
+                    hr: () => <hr className="border-zinc-800 my-10" />,
+                    table: Table,
+                    thead: TableHead,
+                    tr: TableRow,
+                    th: TableHeader,
+                    td: TableCell,
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-2 border-zinc-700 pl-4 my-4 text-zinc-500 italic">
+                        {children}
+                      </blockquote>
+                    ),
                   }}
                 >
                   {doc.content}
                 </ReactMarkdown>
               </article>
             </main>
+
+            {/* Right Sidebar - Table of Contents */}
+            <aside className="hidden xl:block w-56 flex-shrink-0">
+              <div className="sticky top-24">
+                <h4 className="text-xs font-medium text-zinc-600 uppercase tracking-wider mb-4">On this page</h4>
+                <nav className="space-y-1">
+                  {headings.map(({ level, text, slug: headingSlug }) => (
+                    <a
+                      key={headingSlug}
+                      href={`#${headingSlug}`}
+                      className={`block text-sm transition-colors ${
+                        level === 3 ? 'pl-3' : ''
+                      } ${
+                        activeHeading === headingSlug
+                          ? 'text-white'
+                          : 'text-zinc-600 hover:text-zinc-400'
+                      }`}
+                    >
+                      {text}
+                    </a>
+                  ))}
+                </nav>
+              </div>
+            </aside>
           </div>
         </div>
       </div>
