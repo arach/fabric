@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Box, Github } from 'lucide-react';
+import { Menu, X, Github } from 'lucide-react';
+
+const FabricLogo = () => (
+  <svg width="14" height="14" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="100,30 160,65 160,135 100,170 40,135 40,65" stroke="currentColor" strokeWidth="12" fill="none"/>
+    <line x1="100" y1="30" x2="100" y2="170" stroke="currentColor" strokeWidth="12"/>
+    <line x1="40" y1="65" x2="160" y2="135" stroke="currentColor" strokeWidth="12"/>
+    <line x1="160" y1="65" x2="40" y2="135" stroke="currentColor" strokeWidth="12"/>
+  </svg>
+);
 
 export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -46,7 +55,7 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
         <a href="/" className="flex items-center gap-2 group cursor-pointer">
           <div className="w-6 h-6 rounded bg-white flex items-center justify-center text-black">
-             <Box size={14} strokeWidth={3} />
+             <FabricLogo />
           </div>
           <span className="text-lg font-bold tracking-tight text-white">fabric</span>
           <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-dark-800 border border-dark-border text-[10px] font-mono text-gray-400">v0.1.1</span>
