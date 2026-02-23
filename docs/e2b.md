@@ -1,3 +1,9 @@
+---
+title: E2B Runtime
+description: Fast-starting code interpreter sandboxes with sub-200ms startup, Jupyter support, and a pre-built Claude Code template.
+order: 5
+---
+
 # E2B Runtime
 
 E2B provides fast-starting code interpreter sandboxes with full internet access and a pre-built Claude Code template.

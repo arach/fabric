@@ -1,0 +1,36 @@
+# fabric
+
+> Ambient compute fabric — run agentic workloads across local and cloud runtimes
+
+## Documentation
+
+- Overview: /docs/overview
+- Getting Started: /docs/getting-started
+- Local Container Runtime: /docs/local-container
+- Daytona Runtime: /docs/daytona
+- E2B Runtime: /docs/e2b
+- exe.dev Runtime: /docs/exe
+
+## Overview
+
+Fabric is an ambient compute framework that lets you run agentic workloads across local and cloud runtimes through a unified interface. Work starts anywhere, runs wherever it can, and context persists always.
+
+## Getting Started
+
+Fabric is an ambient compute framework for running code and AI agents across local and cloud sandboxes. This guide will help you get up and running quickly.
+
+## Local Container Runtime
+
+The local container runtime runs isolated Linux containers on your Mac using Apple's [Containerization framework](https://github.com/apple/containerization) (Virtualization.framework). No cloud dependency, no API keys — just native Apple Silicon performance.
+
+## Daytona Runtime
+
+Daytona provides enterprise-grade cloud sandboxes for running Claude Code agents with secure network policies and multi-language support.
+
+## E2B Runtime
+
+E2B provides fast-starting code interpreter sandboxes with full internet access and a pre-built Claude Code template.
+
+## exe.dev Runtime
+
+exe.dev provides persistent VMs with SSH access for running Claude Code agents. Unlike ephemeral sandboxes, exe.dev VMs persist between sessions with full root access.

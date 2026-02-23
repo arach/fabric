@@ -1,3 +1,9 @@
+---
+title: Getting Started
+description: Set up Fabric and create your first sandbox across local containers, Daytona, E2B, or exe.dev.
+order: 2
+---
+
 # Getting Started with Fabric
 
 Fabric is an ambient compute framework for running code and AI agents across local and cloud sandboxes. This guide will help you get up and running quickly.

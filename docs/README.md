@@ -234,18 +234,19 @@ await sandbox.exec(`
 
 ### Local Container
 
-For local development, Fabric supports Apple's Containerization framework.
+Apple's [Containerization framework](https://github.com/apple/containerization) (Virtualization.framework) for local development. No cloud dependency, no API keys.
 
 **Features:**
-- No cloud dependency
-- Fast local iteration
-- Apple Silicon optimized
+- No cloud dependency or API keys
+- VM-level isolation via Virtualization.framework
+- Apple Silicon optimized (macOS 26+)
+- Snapshot/restore for handoff to cloud providers
 
 **Usage:**
 ```typescript
-import { LocalContainerFactory } from "@fabric/runtime-local"
+import { LocalContainerSandboxFactory } from "@fabric/runtime-local"
 
-const factory = new LocalContainerFactory()
+const factory = new LocalContainerSandboxFactory()
 const sandbox = await factory.create({
   image: "alpine:latest"
 })
@@ -253,6 +254,8 @@ const sandbox = await factory.create({
 await sandbox.exec("echo 'Hello from local container!'")
 await sandbox.stop()
 ```
+
+See [Local Container Runtime](./local-container.md) for full documentation including the Swift architecture, HTTP API, CLI usage, and container configuration.
 
 ---
 
@@ -393,18 +396,20 @@ interface SandboxSnapshot {
 
 ## Provider Comparison
 
-| Feature | Daytona | E2B | exe.dev |
-|---------|---------|-----|---------|
-| Architecture | Ephemeral Sandbox | Ephemeral Sandbox | Persistent VM |
-| Default Language | TypeScript | Python | Any (full Ubuntu) |
-| Startup Time | ~2-3s | <200ms | ~2s |
-| Network | Allowlist (enterprise) | Full access | Full access |
-| Languages | TS, Python, Go, Rust, JS | Python, JS | Any |
-| Claude Template | npm install | Pre-built | Pre-installed |
-| Root Access | No | Limited | Yes (sudo) |
-| Persistent Disk | No | No | Yes |
-| Auth Method | API Key | API Key | SSH Key |
-| Best For | Enterprise, TypeScript | Data science, Python | Full control, agents |
+| Feature | Local Container | Daytona | E2B | exe.dev |
+|---------|----------------|---------|-----|---------|
+| Architecture | Local VM (Virtualization.framework) | Ephemeral Sandbox | Ephemeral Sandbox | Persistent VM |
+| Default Language | Any (Alpine/Bun) | TypeScript | Python | Any (full Ubuntu) |
+| Startup Time | ~2-5s (first), <1s (cached) | ~2-3s | <200ms | ~2s |
+| Network | Host network | Allowlist (enterprise) | Full access | Full access |
+| Languages | Any | TS, Python, Go, Rust, JS | Python, JS | Any |
+| Claude Template | Manual install | npm install | Pre-built | Pre-installed |
+| Root Access | Yes | No | Limited | Yes (sudo) |
+| Persistent Disk | Workspace dir | No | No | Yes |
+| Auth Method | None | API Key | API Key | SSH Key |
+| Cost | Free | Pay per use | Pay per use | Pay per use |
+| Platform | macOS + Apple Silicon | Any | Any | Any |
+| Best For | Local dev, offline, free | Enterprise, TypeScript | Data science, Python | Full control, agents |
 
 ---
 

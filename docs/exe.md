@@ -1,3 +1,9 @@
+---
+title: exe.dev Runtime
+description: Persistent VMs with SSH access, full root, and pre-installed Claude Code, Codex, and Shelley agents.
+order: 6
+---
+
 # exe.dev Runtime
 
 exe.dev provides persistent VMs with SSH access for running Claude Code agents. Unlike ephemeral sandboxes, exe.dev VMs persist between sessions with full root access.
