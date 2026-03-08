@@ -40,12 +40,12 @@ const App: React.FC = () => {
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-8 leading-[1.05] text-white">
-                Linux containers<br/>
-                <span className="brand-gradient-text">on your Mac</span>
+                Lightweight sandboxes for<br/>
+                <span className="brand-gradient-text">agentic workloads</span>
               </h1>
 
               <p className="text-lg text-zinc-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
-                Drop into Ubuntu, Arch, or any Linux distro in one command. Scale to cloud sandboxes with Daytona, E2B, and exe.dev when you need more.
+                Run agents locally in lightweight containers or scale to the cloud with Daytona, E2B, and exe.dev. One interface, any runtime.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
@@ -93,7 +93,7 @@ const App: React.FC = () => {
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-4xl font-bold mb-6 tracking-tight text-white">Start local. Scale anywhere.</h2>
           <p className="text-zinc-400 mb-10 text-lg font-light">
-            Open source. No Docker required. Native Apple Silicon performance.
+            Open source. Lightweight containers. One interface across local and cloud.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
              <button className="px-8 py-3 bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] rounded-full font-medium transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">

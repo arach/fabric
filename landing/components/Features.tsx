@@ -7,10 +7,10 @@ export const Features: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-20">
             <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">
-                Native containers, <span className="brand-gradient-text">zero friction</span>.
+                Built for <span className="brand-gradient-text">agentic workflows</span>.
             </h2>
             <p className="text-xl text-zinc-400 max-w-2xl leading-relaxed">
-                Powered by Apple's Virtualization.framework and the <code className="text-zinc-300">container</code> CLI. No Docker, no entitlements, no code signing.
+                Lightweight containers that boot in a second. Same interface locally and in the cloud. No Docker, no friction.
             </p>
         </div>
 
@@ -23,9 +23,9 @@ export const Features: React.FC = () => {
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg">
                         <Terminal className="text-white group-hover:text-brand-400 transition-colors" size={24} />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Instant Linux Shells</h3>
+                    <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Local-First Sandboxes</h3>
                     <p className="text-zinc-400 leading-relaxed max-w-md text-base">
-                        Drop into Ubuntu, Arch, Alpine, or any OCI image in one command. Install packages, run code, explore distros — containers boot in about a second.
+                        Lightweight Linux containers on Apple Silicon via Virtualization.framework. Exec commands, mount files, run code — all isolated, all fast.
                     </p>
                 </div>
                 <div className="absolute right-0 bottom-0 w-1/2 h-full opacity-10 group-hover:opacity-25 transition-opacity duration-500">
@@ -72,7 +72,7 @@ export const Features: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2 tracking-tight">No Docker Required</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                    Uses Apple's <code className="text-zinc-300">container</code> CLI and Virtualization.framework directly. Native arm64 performance, minimal memory overhead.
+                    Uses Apple's <code className="text-zinc-300">container</code> CLI directly. Native arm64 performance, minimal memory overhead, ~1s boot time.
                 </p>
             </div>
 
@@ -81,9 +81,9 @@ export const Features: React.FC = () => {
                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3 shadow-lg">
                     <Zap className="text-white group-hover:text-yellow-400 transition-colors" size={24} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">One Command Setup</h3>
+                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Seamless Handoffs</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                    <code className="text-zinc-300">fabric setup</code> installs everything — container CLI, Linux kernel, base images. Then <code className="text-zinc-300">fabric shell</code> and you're in.
+                    Snapshot sandbox state locally, restore in the cloud. Move between providers without losing context. One interface everywhere.
                 </p>
             </div>
 

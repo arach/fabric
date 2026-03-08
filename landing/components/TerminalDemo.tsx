@@ -4,15 +4,15 @@ import { Copy, Check } from 'lucide-react';
 const STEPS = [
   { text: 'fabric setup', delay: 1000 },
   { text: '=> Installing dependencies...', output: true, delay: 400 },
-  { text: '✔ Dependencies installed', output: true, delay: 400 },
-  { text: '✔ Apple container CLI ready', output: true, delay: 300 },
+  { text: '✔ Container CLI ready', output: true, delay: 300 },
   { text: '✔ Linux kernel downloaded', output: true, delay: 300 },
-  { text: '✔ Base images pulled (ubuntu, alpine)', output: true, color: 'text-emerald-400', delay: 800 },
-  { text: 'fabric shell --image omarchy', delay: 1200 },
-  { text: '[root@container /]# neofetch', output: true, delay: 600 },
-  { text: '  Arch Linux | aarch64 | kernel 6.18.5', output: true, color: 'text-cyan-400', delay: 400 },
-  { text: '[root@container /]# pacman -S neovim', output: true, delay: 600 },
-  { text: '✔ Installed neovim 0.11.6', output: true, color: 'text-emerald-400', delay: 1500 },
+  { text: '✔ Base images pulled', output: true, color: 'text-emerald-400', delay: 800 },
+  { text: 'fabric create --provider local', delay: 1200 },
+  { text: '✔ Sandbox created: sandbox-1741392000', output: true, color: 'text-emerald-400', delay: 500 },
+  { text: 'fabric exec "echo Hello from Fabric!"', delay: 1000 },
+  { text: 'Hello from Fabric!', output: true, color: 'text-cyan-400', delay: 400 },
+  { text: 'fabric exec "uname -a"', delay: 800 },
+  { text: 'Linux aarch64 6.18.5 #1 SMP', output: true, color: 'text-zinc-300', delay: 1500 },
 ];
 
 export const TerminalDemo: React.FC = () => {
@@ -33,7 +33,7 @@ export const TerminalDemo: React.FC = () => {
   }, [currentStepIndex]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText('fabric shell --image omarchy');
+    navigator.clipboard.writeText('fabric setup');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
