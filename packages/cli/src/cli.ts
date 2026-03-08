@@ -39,6 +39,7 @@ ${c("bold", "USAGE")}
 
 ${c("bold", "COMMANDS")}
   ${c("green", "setup")}      Set up local container runtime
+  ${c("green", "shell")}     Drop into an interactive Linux shell
   ${c("green", "create")}     Create a new sandbox
   ${c("green", "exec")}       Execute a command in a sandbox
   ${c("green", "run")}        Run code in a sandbox
@@ -49,6 +50,7 @@ ${c("bold", "COMMANDS")}
 ${c("bold", "OPTIONS")}
   ${c("yellow", "-p, --provider")}  Provider to use (daytona, e2b, exe)
   ${c("yellow", "-l, --language")}  Language for sandbox (typescript, python, go, rust)
+  ${c("yellow", "--image")}         Container image (for shell command)
   ${c("yellow", "-i, --interactive")}  Interactive mode (for setup)
   ${c("yellow", "-h, --help")}      Show this help message
   ${c("yellow", "-v, --version")}   Show version number
@@ -62,6 +64,12 @@ ${c("bold", "EXAMPLES")}
 
   ${c("dim", "# Run TypeScript code")}
   fabric run --language typescript "console.log('Hello')"
+
+  ${c("dim", "# Drop into an Ubuntu shell")}
+  fabric shell
+
+  ${c("dim", "# Try Omarchy (Arch Linux)")}
+  fabric shell --image omarchy
 
   ${c("dim", "# Set up local container runtime")}
   fabric setup
@@ -147,6 +155,7 @@ function parseCliArgs() {
       options: {
         provider: { type: "string", short: "p" },
         language: { type: "string", short: "l" },
+        image: { type: "string" },
         help: { type: "boolean", short: "h" },
         version: { type: "boolean", short: "v" },
         interactive: { type: "boolean", short: "i" },
@@ -263,6 +272,71 @@ async function cmdStop(options: { id?: string; provider?: string }) {
 
   await sandbox.stop()
   console.log(c("green", `✓ Sandbox stopped: ${options.id}`))
+}
+
+// ── Shell command ─────────────────────────────────────────────────────
+
+const SHELL_IMAGES: Record<string, { image: string; description: string }> = {
+  ubuntu: { image: "ubuntu:latest", description: "Ubuntu Linux" },
+  omarchy: { image: "lopsided/archlinux:latest", description: "Arch Linux (Omarchy base)" },
+  arch: { image: "lopsided/archlinux:latest", description: "Arch Linux" },
+  alpine: { image: "alpine:latest", description: "Alpine Linux (minimal)" },
+  debian: { image: "debian:latest", description: "Debian Linux" },
+  fedora: { image: "fedora:latest", description: "Fedora Linux" },
+  bun: { image: "oven/bun:latest", description: "Bun runtime" },
+  node: { image: "node:22", description: "Node.js 22" },
+  python: { image: "python:3.12", description: "Python 3.12" },
+}
+
+async function cmdShell(options: { image?: string } = {}) {
+  const { spawnSync } = await import("child_process")
+
+  // Check container CLI is available
+  const check = spawnSync("container", ["--version"], { stdio: "pipe" })
+  if (check.status !== 0) {
+    console.error(c("red", "Error: Apple container CLI not found"))
+    console.log(c("dim", "Run 'fabric setup' to install it"))
+    process.exit(1)
+  }
+
+  // Resolve image name
+  let image: string
+  let label: string
+
+  if (!options.image || options.image === "ubuntu") {
+    image = SHELL_IMAGES.ubuntu.image
+    label = SHELL_IMAGES.ubuntu.description
+  } else if (SHELL_IMAGES[options.image]) {
+    image = SHELL_IMAGES[options.image].image
+    label = SHELL_IMAGES[options.image].description
+  } else {
+    // Treat as a raw image reference
+    image = options.image
+    label = options.image
+  }
+
+  console.log(c("cyan", `Launching ${label}...`))
+  console.log(c("dim", `Image: ${image}`))
+  console.log(c("dim", "Exit with: exit or Ctrl+D"))
+  console.log()
+
+  // Run interactively — inherits stdio so user gets a live shell
+  const result = spawnSync("container", ["run", "--rm", "-it", image, "sh", "-c",
+    // Try bash first, fall back to sh
+    "if command -v bash >/dev/null 2>&1; then exec bash; else exec sh; fi"
+  ], {
+    stdio: "inherit",
+  })
+
+  if (result.status !== 0 && result.status !== null) {
+    console.error(c("red", `Shell exited with code ${result.status}`))
+    if (result.stderr) {
+      console.error(c("dim", result.stderr.toString()))
+    }
+    process.exit(result.status)
+  }
+
+  console.log(c("dim", "Container stopped."))
 }
 
 // ── Setup command ──────────────────────────────────────────────────────
@@ -674,6 +748,10 @@ async function main() {
         language: values.language,
         provider: values.provider,
       })
+      break
+
+    case "shell":
+      await cmdShell({ image: values.image })
       break
 
     case "setup":
