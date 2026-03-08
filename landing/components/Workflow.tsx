@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileCode, ArrowRight, Container, Server, Check } from 'lucide-react';
+import { Terminal, ArrowRight, Cloud, Server, Check } from 'lucide-react';
 
 export const Workflow: React.FC = () => {
   return (
@@ -8,9 +8,9 @@ export const Workflow: React.FC = () => {
         <div className="flex flex-col lg:flex-row items-start justify-between gap-16">
 
           <div className="lg:w-1/2">
-            <h2 className="text-3xl font-bold mb-6">From <span className="text-brand-400">Localhost</span> to <span className="text-orange-400">Cloud</span> in one command.</h2>
+            <h2 className="text-3xl font-bold mb-6">From <span className="text-brand-400">setup</span> to <span className="text-orange-400">running</span> in two commands.</h2>
             <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-              Fabric mounts your project into a local container for seamless development, then pushes to cloud sandboxes when you're ready to scale.
+              Install once, run any Linux distro locally, then scale to cloud sandboxes when you need more compute.
             </p>
 
             <div className="space-y-8">
@@ -18,73 +18,73 @@ export const Workflow: React.FC = () => {
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 font-bold border border-brand-500/30">1</div>
                 <div>
-                  <h4 className="text-white font-medium mb-1">Point to your project</h4>
-                  <p className="text-gray-500 text-sm mb-2">Fabric takes your existing directory—Python, Node.js, or any codebase.</p>
-                  <code className="text-xs bg-dark-800 text-gray-400 px-2 py-1 rounded font-mono">fabric create ./my-agent</code>
+                  <h4 className="text-white font-medium mb-1">Set up once</h4>
+                  <p className="text-gray-500 text-sm mb-2">Installs the container CLI, downloads the Linux kernel, and pulls base images.</p>
+                  <code className="text-xs bg-dark-800 text-gray-400 px-2 py-1 rounded font-mono">fabric setup</code>
                 </div>
               </div>
 
-              {/* Step 2 - Local Container */}
+              {/* Step 2 */}
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold border border-purple-500/30">2</div>
                 <div>
-                  <h4 className="text-white font-medium mb-2">Develop locally in a container</h4>
-                  <p className="text-gray-500 text-sm mb-3">Your directory is mounted into a lightweight Apple container. Edit files locally, run them in isolation.</p>
+                  <h4 className="text-white font-medium mb-2">Drop into any Linux distro</h4>
+                  <p className="text-gray-500 text-sm mb-3">Interactive shell in Ubuntu, Arch, Alpine, or any OCI image. Boots in about a second.</p>
 
                   <div className="bg-dark-800/50 rounded-lg p-4 border border-purple-500/10">
-                    <p className="text-xs text-purple-400 font-medium mb-2">What Fabric handles for you:</p>
+                    <p className="text-xs text-purple-400 font-medium mb-2">Available out of the box:</p>
                     <ul className="space-y-1.5 text-xs text-gray-500">
                       <li className="flex items-start gap-2">
                         <Check size={12} className="text-purple-400 mt-0.5 flex-shrink-0" />
-                        <span>Pulls and caches OCI images (Alpine, Ubuntu, custom)</span>
+                        <span>Ubuntu, Arch (Omarchy), Alpine, Debian, Fedora</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <Check size={12} className="text-purple-400 mt-0.5 flex-shrink-0" />
-                        <span>Spins up lightweight VMs via Apple Virtualization.framework</span>
+                        <span>Bun, Node.js, Python runtimes</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <Check size={12} className="text-purple-400 mt-0.5 flex-shrink-0" />
-                        <span>Mounts your directory with live sync—no Docker daemon</span>
+                        <span>Any OCI image — pass a custom image reference</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <Check size={12} className="text-purple-400 mt-0.5 flex-shrink-0" />
-                        <span>Configures networking, environment, and runtime automatically</span>
+                        <span>Volume mounts, env vars, working directories</span>
                       </li>
                     </ul>
                   </div>
                 </div>
               </div>
 
-              {/* Step 3 - Cloud */}
+              {/* Step 3 */}
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold border border-orange-500/30">3</div>
                 <div>
-                  <h4 className="text-white font-medium mb-2">Push to cloud</h4>
-                  <p className="text-gray-500 text-sm mb-3">One command to deploy to Daytona, E2B, or exe.dev. Add your API keys and scale instantly.</p>
+                  <h4 className="text-white font-medium mb-2">Scale to cloud</h4>
+                  <p className="text-gray-500 text-sm mb-3">Same Sandbox interface across Daytona, E2B, and exe.dev. Snapshot state and restore anywhere.</p>
 
                   <div className="bg-dark-800/50 rounded-lg p-4 border border-orange-500/10">
-                    <p className="text-xs text-orange-400 font-medium mb-2">What Fabric handles for you:</p>
+                    <p className="text-xs text-orange-400 font-medium mb-2">Cloud providers:</p>
                     <ul className="space-y-1.5 text-xs text-gray-500">
                       <li className="flex items-start gap-2">
                         <Check size={12} className="text-orange-400 mt-0.5 flex-shrink-0" />
-                        <span>Provisions cloud sandbox via provider API (Daytona, E2B, exe.dev)</span>
+                        <span>Daytona — enterprise, TypeScript, network policies</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <Check size={12} className="text-orange-400 mt-0.5 flex-shrink-0" />
-                        <span>Syncs files, environment variables, and execution state</span>
+                        <span>E2B — ultra-fast cold starts, Jupyter, Python</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <Check size={12} className="text-orange-400 mt-0.5 flex-shrink-0" />
-                        <span>Snapshots context for seamless handoffs between providers</span>
+                        <span>exe.dev — persistent VMs, SSH, full root access</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <Check size={12} className="text-orange-400 mt-0.5 flex-shrink-0" />
-                        <span>Reclaim back to local anytime—context preserved</span>
+                        <span>Seamless handoffs — snapshot local, restore in cloud</span>
                       </li>
                     </ul>
                   </div>
 
-                  <code className="text-xs bg-dark-800 text-gray-400 px-2 py-1 rounded font-mono mt-3 inline-block">fabric push --provider daytona</code>
+                  <code className="text-xs bg-dark-800 text-gray-400 px-2 py-1 rounded font-mono mt-3 inline-block">fabric create --provider daytona</code>
                 </div>
               </div>
             </div>
@@ -99,20 +99,23 @@ export const Workflow: React.FC = () => {
                 {/* Step 1 */}
                 <div className="flex flex-col items-center">
                    <div className="w-24 h-24 rounded-2xl bg-dark-800 border border-white/10 flex items-center justify-center shadow-lg mb-4 relative z-10 hover:-translate-y-2 transition-transform duration-300">
-                      <FileCode className="w-10 h-10 text-brand-400" />
+                      <Terminal className="w-10 h-10 text-brand-400" />
                    </div>
-                   <span className="text-sm font-medium text-gray-300">Your Code</span>
-                   <span className="text-xs text-gray-500 mt-1">./my-agent</span>
+                   <span className="text-sm font-medium text-gray-300">Setup</span>
+                   <span className="text-xs text-gray-500 mt-1">fabric setup</span>
                    <div className="md:hidden mt-4 text-gray-600"><ArrowRight className="rotate-90" /></div>
                 </div>
 
                 {/* Step 2 */}
                 <div className="flex flex-col items-center">
                    <div className="w-24 h-24 rounded-2xl bg-dark-800 border border-purple-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.1)] mb-4 relative z-10 hover:-translate-y-2 transition-transform duration-300">
-                      <Container className="w-10 h-10 text-purple-400" />
+                      <svg className="w-10 h-10 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M7 8h10M7 12h6M7 16h8" />
+                      </svg>
                    </div>
-                   <span className="text-sm font-medium text-gray-300">Local Container</span>
-                   <span className="text-xs text-gray-500 mt-1">Apple VM</span>
+                   <span className="text-sm font-medium text-gray-300">Local Shell</span>
+                   <span className="text-xs text-gray-500 mt-1">fabric shell</span>
                    <div className="md:hidden mt-4 text-gray-600"><ArrowRight className="rotate-90" /></div>
                 </div>
 

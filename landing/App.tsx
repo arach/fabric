@@ -40,12 +40,12 @@ const App: React.FC = () => {
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-8 leading-[1.05] text-white">
-                Seamless handoffs for <br/>
-                <span className="brand-gradient-text">Agent Sandboxes</span>
+                Linux containers<br/>
+                <span className="brand-gradient-text">on your Mac</span>
               </h1>
 
               <p className="text-lg text-zinc-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
-                One interface to run agents locally in Apple containers or in the cloud with Daytona, E2B, and exe.dev.
+                Drop into Ubuntu, Arch, or any Linux distro in one command. Scale to cloud sandboxes with Daytona, E2B, and exe.dev when you need more.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
@@ -58,7 +58,7 @@ const App: React.FC = () => {
                 </a>
                 <div className="h-12 px-6 bg-zinc-900 border border-dark-border hover:border-zinc-700 hover:bg-zinc-800/80 text-zinc-400 rounded-lg font-mono text-sm flex items-center gap-3 transition-all duration-200 group">
                   <span className="select-none text-zinc-600 group-hover:text-zinc-500 transition-colors">$</span>
-                  <span className="group-hover:text-zinc-300 transition-colors">npm install -g fabric-ai</span>
+                  <span className="group-hover:text-zinc-300 transition-colors">fabric shell --image ubuntu</span>
                   <CopyButton />
                 </div>
               </div>
@@ -91,9 +91,9 @@ const App: React.FC = () => {
       {/* Minimal CTA */}
       <section className="py-32 relative z-10 bg-dark-950 border-t border-dark-border">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6 tracking-tight text-white">Ready to weave?</h2>
+          <h2 className="text-4xl font-bold mb-6 tracking-tight text-white">Start local. Scale anywhere.</h2>
           <p className="text-zinc-400 mb-10 text-lg font-light">
-            Open source, community driven, and built for the future of autonomous software.
+            Open source. No Docker required. Native Apple Silicon performance.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
              <button className="px-8 py-3 bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] rounded-full font-medium transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">
@@ -115,7 +115,7 @@ const CopyButton = () => {
     const [copied, setCopied] = React.useState(false);
 
     const handleCopy = () => {
-        navigator.clipboard.writeText('npm install -g fabric-ai');
+        navigator.clipboard.writeText('fabric shell --image ubuntu');
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     }

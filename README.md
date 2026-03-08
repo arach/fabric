@@ -1,27 +1,23 @@
 # Fabric
 
-Containers for agentic development. One interface, any runtime.
+Run Linux containers and cloud sandboxes from your Mac. One interface, any runtime.
 
 ## Quick Start
 
 ```bash
-npm install -g fabric-ai
+git clone https://github.com/arach/fabric.git && cd fabric
+bun run packages/cli/src/cli.ts setup
 ```
 
-Pick a provider and set your key:
+Drop into a Linux shell:
 
 ```bash
-# Daytona (enterprise, multi-language)
-export DAYTONA_API_KEY=your_key
-
-# E2B (fast startup, Python-first)
-export E2B_API_KEY=your_key
-
-# exe.dev (persistent VMs, SSH-based — no key needed)
-ssh exe.dev
+fabric shell                      # Ubuntu (default)
+fabric shell --image omarchy      # Arch Linux
+fabric shell --image alpine       # Alpine
 ```
 
-Run something:
+Run sandboxes across providers:
 
 ```bash
 fabric create --provider daytona
@@ -56,10 +52,29 @@ Every provider implements the same `Sandbox` interface — `exec()`, `runCode()`
 
 | Provider | Startup | Auth | Best for |
 |----------|---------|------|----------|
+| Local | ~1s | None | Development, offline, exploring Linux |
 | [Daytona](./docs/daytona.md) | ~2-3s | API Key | Enterprise, TypeScript |
 | [E2B](./docs/e2b.md) | <200ms | API Key | Data science, Python |
 | [exe.dev](./docs/exe.md) | ~2s | SSH Key | Full control, persistent VMs |
-| Local | ~1s | None | Development, offline |
+
+## Local Containers
+
+Powered by the Apple `container` CLI and Virtualization.framework. No Docker, no entitlements, no code signing — just `brew install container`.
+
+```bash
+# Interactive shells
+fabric shell --image ubuntu
+fabric shell --image omarchy
+
+# Available images
+fabric shell --image alpine      # Alpine Linux
+fabric shell --image debian      # Debian
+fabric shell --image fedora      # Fedora
+fabric shell --image bun         # Bun runtime
+fabric shell --image node        # Node.js 22
+fabric shell --image python      # Python 3.12
+fabric shell --image nginx:latest  # Any OCI image
+```
 
 ## Handoff
 
@@ -73,12 +88,6 @@ const cloudSandbox = await e2bFactory.create({})
 await cloudSandbox.restore(snapshot)
 ```
 
-## Documentation
-
-- [Getting Started](./docs/getting-started.md)
-- [Provider Guides](./docs/README.md)
-- [Local Container Runtime](./docs/local-container.md)
-
 ## Development
 
 ```bash
@@ -87,7 +96,7 @@ cd fabric
 bun run packages/cli/src/cli.ts setup
 ```
 
-This installs deps, the Apple `container` CLI, downloads the Linux kernel, builds the Swift container runtime, pre-pulls base images (alpine, bun), and verifies everything. Requires macOS + Apple Silicon for local containers.
+`fabric setup` handles everything: installs Bun, project deps, the Apple `container` CLI, downloads the Linux kernel, and pre-pulls base images. Requires macOS + Apple Silicon.
 
 ```bash
 bun test              # run tests

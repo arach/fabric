@@ -10,24 +10,24 @@ export const Footer: React.FC = () => {
             <span className="text-lg font-bold text-white tracking-tight">fabric</span>
           </div>
           <p className="text-sm text-zinc-500 max-w-sm">
-            Open source infrastructure for the next generation of AI agents. <br />
-            Built with <span className="text-zinc-400">♥</span> for the community.
+            Linux containers on your Mac. Cloud sandboxes everywhere else. <br />
+            Open source, MIT licensed.
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-8 sm:gap-12">
             <div className="flex flex-col gap-3">
                 <span className="text-xs font-medium text-white uppercase tracking-wider">Project</span>
-                <a href="#" className="text-sm text-zinc-500 hover:text-white transition-colors">Documentation</a>
-                <a href="#" className="text-sm text-zinc-500 hover:text-white transition-colors">Changelog</a>
-                <a href="#" className="text-sm text-zinc-500 hover:text-white transition-colors">Contributing</a>
+                <a href="/docs/getting-started" className="text-sm text-zinc-500 hover:text-white transition-colors">Documentation</a>
+                <a href="/docs/local-containers" className="text-sm text-zinc-500 hover:text-white transition-colors">Local Containers</a>
+                <a href="/docs/api-reference" className="text-sm text-zinc-500 hover:text-white transition-colors">API Reference</a>
             </div>
             <div className="flex flex-col gap-3">
                 <span className="text-xs font-medium text-white uppercase tracking-wider">Social</span>
-                <a href="#" className="text-sm text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
+                <a href="https://github.com/arach/fabric" target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
                     <Github size={14} /> GitHub
                 </a>
-                <a href="#" className="text-sm text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
+                <a href="https://x.com/ArachAhmadi" target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
                     <Twitter size={14} /> Twitter
                 </a>
             </div>

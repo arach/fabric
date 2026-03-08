@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Copy, Check } from 'lucide-react';
 
 const STEPS = [
-  { text: 'fabric init --agent claude-v1', delay: 1000 },
-  { text: '✔ Initialized local environment', output: true, delay: 500 },
-  { text: '✔ Configured sandbox filesystem', output: true, delay: 500 },
-  { text: 'fabric deploy --target e2b', delay: 1500 },
-  { text: '→ Building container...', output: true, delay: 800 },
-  { text: '→ Syncing context to E2B...', output: true, delay: 800 },
-  { text: '✔ Deployed successfully to https://e2b.dev/x/89a2s', output: true, color: 'text-emerald-400', delay: 2000 }
+  { text: 'fabric setup', delay: 1000 },
+  { text: '=> Installing dependencies...', output: true, delay: 400 },
+  { text: '✔ Dependencies installed', output: true, delay: 400 },
+  { text: '✔ Apple container CLI ready', output: true, delay: 300 },
+  { text: '✔ Linux kernel downloaded', output: true, delay: 300 },
+  { text: '✔ Base images pulled (ubuntu, alpine)', output: true, color: 'text-emerald-400', delay: 800 },
+  { text: 'fabric shell --image omarchy', delay: 1200 },
+  { text: '[root@container /]# neofetch', output: true, delay: 600 },
+  { text: '  Arch Linux | aarch64 | kernel 6.18.5', output: true, color: 'text-cyan-400', delay: 400 },
+  { text: '[root@container /]# pacman -S neovim', output: true, delay: 600 },
+  { text: '✔ Installed neovim 0.11.6', output: true, color: 'text-emerald-400', delay: 1500 },
 ];
 
 export const TerminalDemo: React.FC = () => {
@@ -29,7 +33,7 @@ export const TerminalDemo: React.FC = () => {
   }, [currentStepIndex]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText('npm install -g @fabric/cli');
+    navigator.clipboard.writeText('fabric shell --image omarchy');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -42,10 +46,10 @@ export const TerminalDemo: React.FC = () => {
           <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
           <div className="w-3 h-3 rounded-full bg-zinc-700"></div>
         </div>
-        <button 
+        <button
           onClick={handleCopy}
           className="text-zinc-500 hover:text-white transition-colors"
-          title="Copy install command"
+          title="Copy command"
         >
           {copied ? <Check size={14} /> : <Copy size={14} />}
         </button>
