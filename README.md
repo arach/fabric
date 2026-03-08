@@ -1,166 +1,91 @@
 # Fabric
 
-Ambient compute fabric for Claude Code agents. Run agentic workloads across local and cloud runtimes with seamless handoff.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
-## Overview
-
-Fabric provides a unified interface for running Claude Code agents in isolated sandboxes. Work starts anywhere, runs wherever it can, context persists always.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Context Layer                            │
-│         (conversation, agent state, checkpoints)             │
-└─────────────────────────────────────────────────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        ▼                     ▼                     ▼
-┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-│   Daytona    │      │     E2B      │      │    Local     │
-│   (cloud)    │ ◀──▶ │   (cloud)    │ ◀──▶ │ (container)  │
-└──────────────┘      └──────────────┘      └──────────────┘
-```
+Containers for agentic development. One interface, any runtime.
 
 ## Quick Start
 
-### With Daytona
+```bash
+npm install -g fabric-ai
+```
+
+Pick a provider and set your key:
 
 ```bash
-npm install @fabric/core @fabric/runtime-daytona
+# Daytona (enterprise, multi-language)
+export DAYTONA_API_KEY=your_key
+
+# E2B (fast startup, Python-first)
+export E2B_API_KEY=your_key
+
+# exe.dev (persistent VMs, SSH-based — no key needed)
+ssh exe.dev
+```
+
+Run something:
+
+```bash
+fabric create --provider daytona
+fabric exec "echo Hello from Fabric!"
+fabric run --language typescript "console.log(2 + 2)"
+fabric list
+fabric stop --id <sandbox-id>
+```
+
+## SDK
+
+```bash
+npm install fabric-ai-core fabric-ai-daytona
 ```
 
 ```typescript
-import { DaytonaSandboxFactory } from "@fabric/runtime-daytona"
+import { DaytonaSandboxFactory } from "fabric-ai-daytona"
 
 const factory = new DaytonaSandboxFactory({
   apiKey: process.env.DAYTONA_API_KEY!,
-  defaultLanguage: "typescript"
 })
 
 const sandbox = await factory.create({})
-
-// Run TypeScript code
-const result = await sandbox.runCode(`
-  console.log("Hello from Daytona!")
-`)
-console.log(result.output)
-
+const result = await sandbox.exec("echo hello")
+console.log(result.stdout)
 await sandbox.stop()
 ```
 
-### With E2B
-
-```bash
-npm install @fabric/core @fabric/runtime-e2b
-```
-
-```typescript
-import { E2BSandboxFactory } from "@fabric/runtime-e2b"
-
-const factory = new E2BSandboxFactory(process.env.E2B_API_KEY)
-
-const sandbox = await factory.create({})
-
-// Run Python code
-const result = await sandbox.runCode(`
-print("Hello from E2B!")
-`)
-console.log(result.output)
-
-await sandbox.stop()
-```
+Every provider implements the same `Sandbox` interface — `exec()`, `runCode()`, `writeFile()`, `readFile()`, `snapshot()`, `restore()`, and `delegate()`.
 
 ## Providers
 
-| Provider | Languages | Network | Claude Code | Best For |
-|----------|-----------|---------|-------------|----------|
-| **[Daytona](./docs/daytona.md)** | TS, Python, Go, Rust, JS | Secure allowlist | npm install | Enterprise, TypeScript |
-| **[E2B](./docs/e2b.md)** | Python, JS | Full access | Pre-built template | Data science, Python |
-| Local | Any | Full access | Manual | Development |
+| Provider | Startup | Auth | Best for |
+|----------|---------|------|----------|
+| [Daytona](./docs/daytona.md) | ~2-3s | API Key | Enterprise, TypeScript |
+| [E2B](./docs/e2b.md) | <200ms | API Key | Data science, Python |
+| [exe.dev](./docs/exe.md) | ~2s | SSH Key | Full control, persistent VMs |
+| Local | ~1s | None | Development, offline |
 
-## Features
+## Handoff
 
-- **Unified Interface** - Same API across all providers
-- **Multi-Language** - TypeScript, Python, Go, Rust, JavaScript
-- **Snapshots** - Capture and restore sandbox state
-- **Handoff** - Delegate execution between runtimes
-- **Claude Code Ready** - Run AI agents in isolated environments
+Move work between runtimes without losing state:
+
+```typescript
+const snapshot = await localSandbox.snapshot()
+await localSandbox.stop()
+
+const cloudSandbox = await e2bFactory.create({})
+await cloudSandbox.restore(snapshot)
+```
 
 ## Documentation
 
-- [Getting Started](./docs/README.md)
-- [Daytona Guide](./docs/daytona.md)
-- [E2B Guide](./docs/e2b.md)
-
-## Environment Variables
-
-```bash
-# Daytona
-DAYTONA_API_KEY=your_daytona_api_key
-
-# E2B
-E2B_API_KEY=your_e2b_api_key
-
-# Claude (required for Claude Code)
-ANTHROPIC_API_KEY=your_anthropic_api_key
-```
-
-## Running Claude Code
-
-### In Daytona
-
-```typescript
-const sandbox = await daytona.create({ language: "typescript" })
-
-await sandbox.process.executeCommand("npm install -g @anthropic-ai/claude-code")
-
-const result = await sandbox.process.executeCommand(
-  `export ANTHROPIC_API_KEY=${apiKey} && echo 'Build a REST API' | claude -p --dangerously-skip-permissions`
-)
-```
-
-### In E2B
-
-```typescript
-import { Sandbox } from "@e2b/code-interpreter"
-
-const sandbox = await Sandbox.create("anthropic-claude-code", {
-  envs: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY }
-})
-
-const result = await sandbox.commands.run(
-  `echo 'Build a REST API' | claude -p --dangerously-skip-permissions`
-)
-```
-
-## Architecture
-
-```
-packages/
-├── core/              # Task, Context, Sandbox interfaces
-├── runtime-daytona/   # Daytona cloud sandbox adapter
-├── runtime-e2b/       # E2B code interpreter adapter
-├── runtime-local/     # Local container runtime
-└── server/            # HTTP API server
-
-docs/                  # Documentation
-examples/              # Example scripts
-landing/               # Marketing website
-```
+- [Getting Started](./docs/getting-started.md)
+- [Provider Guides](./docs/README.md)
+- [Local Container Runtime](./docs/local-container.md)
 
 ## Development
 
 ```bash
-# Install dependencies
+git clone https://github.com/arach/fabric.git
+cd fabric
 bun install
-
-# Run examples
-bun run examples/daytona-sandbox.ts
-bun run examples/unified-sandbox.ts
-
-# Run tests
-bun test
+bun run dev
 ```
 
 ## License
