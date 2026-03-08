@@ -84,8 +84,14 @@ await cloudSandbox.restore(snapshot)
 ```bash
 git clone https://github.com/arach/fabric.git
 cd fabric
-bun install
-bun run dev
+bun run packages/cli/src/cli.ts setup
+```
+
+This installs deps, the Apple `container` CLI, downloads the Linux kernel, builds the Swift container runtime, pre-pulls base images (alpine, bun), and verifies everything. Requires macOS + Apple Silicon for local containers.
+
+```bash
+bun test              # run tests
+bun run dev           # start dev server
 ```
 
 ## License

@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "fabric",
@@ -13,7 +14,7 @@
     },
     "packages/cli": {
       "name": "fabric-ai",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "fabric": "./dist/cli.js",
       },
@@ -30,7 +31,7 @@
     },
     "packages/core": {
       "name": "fabric-ai-core",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "devDependencies": {
         "typescript": "^5.0.0",
       },

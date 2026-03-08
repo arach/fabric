@@ -38,6 +38,7 @@ ${c("bold", "USAGE")}
   ${c("green", "fabric")} <command> [options]
 
 ${c("bold", "COMMANDS")}
+  ${c("green", "setup")}      Set up local container runtime
   ${c("green", "create")}     Create a new sandbox
   ${c("green", "exec")}       Execute a command in a sandbox
   ${c("green", "run")}        Run code in a sandbox
@@ -48,6 +49,7 @@ ${c("bold", "COMMANDS")}
 ${c("bold", "OPTIONS")}
   ${c("yellow", "-p, --provider")}  Provider to use (daytona, e2b, exe)
   ${c("yellow", "-l, --language")}  Language for sandbox (typescript, python, go, rust)
+  ${c("yellow", "-i, --interactive")}  Interactive mode (for setup)
   ${c("yellow", "-h, --help")}      Show this help message
   ${c("yellow", "-v, --version")}   Show version number
 
@@ -60,6 +62,12 @@ ${c("bold", "EXAMPLES")}
 
   ${c("dim", "# Run TypeScript code")}
   fabric run --language typescript "console.log('Hello')"
+
+  ${c("dim", "# Set up local container runtime")}
+  fabric setup
+
+  ${c("dim", "# Set up with interactive image selection")}
+  fabric setup --interactive
 
   ${c("dim", "# List sandboxes")}
   fabric list
@@ -141,6 +149,7 @@ function parseCliArgs() {
         language: { type: "string", short: "l" },
         help: { type: "boolean", short: "h" },
         version: { type: "boolean", short: "v" },
+        interactive: { type: "boolean", short: "i" },
         id: { type: "string" },
       },
     })
@@ -256,6 +265,313 @@ async function cmdStop(options: { id?: string; provider?: string }) {
   console.log(c("green", `✓ Sandbox stopped: ${options.id}`))
 }
 
+// ── Setup command ──────────────────────────────────────────────────────
+
+async function cmdSetup(options: { interactive?: boolean } = {}) {
+  const { execSync, spawnSync } = await import("child_process")
+  const { existsSync, mkdirSync, symlinkSync, readlinkSync, realpathSync } =
+    await import("fs")
+  const { homedir, platform, arch } = await import("os")
+  const { join, dirname } = await import("path")
+
+  const has = (cmd: string) => {
+    try {
+      execSync(`command -v ${cmd}`, { stdio: "ignore" })
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  const run = (cmd: string, opts?: { silent?: boolean }) => {
+    try {
+      return execSync(cmd, {
+        stdio: opts?.silent ? "pipe" : "inherit",
+        encoding: "utf8",
+      })
+    } catch (e: any) {
+      return e.stdout || ""
+    }
+  }
+
+  const info = (msg: string) => console.log(`${c("blue", "=>")} ${msg}`)
+  const ok = (msg: string) => console.log(`${c("green", "✓")}  ${msg}`)
+  const skip = (msg: string) =>
+    console.log(`${c("dim", `–  ${msg} (already done)`)}`)
+  const fail = (msg: string) => {
+    console.error(`${c("red", "✗")}  ${msg}`)
+    process.exit(1)
+  }
+
+  console.log()
+  console.log(`${c("bold", "Fabric")} setup`)
+  console.log()
+
+  // ── Prerequisites ──────────────────────────────────────────────────
+
+  if (platform() !== "darwin") {
+    fail(
+      "Local container runtime requires macOS. Cloud runtimes (Daytona, E2B, exe.dev) work on any platform."
+    )
+  }
+
+  if (arch() !== "arm64") {
+    fail("Apple Containerization framework requires Apple Silicon (arm64).")
+  }
+
+  if (!has("brew")) {
+    fail("Homebrew is required. Install from https://brew.sh")
+  }
+
+  // ── Step 1: Bun ────────────────────────────────────────────────────
+
+  if (!has("bun")) {
+    info("Installing Bun...")
+    run("brew install oven-sh/bun/bun")
+    ok("Bun installed")
+  }
+
+  // ── Step 2: Dependencies ───────────────────────────────────────────
+
+  // Find the project root by walking up from the CLI package
+  // When running from source: we're in packages/cli/src/
+  // When running as global: look for nearest package.json with workspaces
+  let projectRoot = ""
+  try {
+    const result = run("git rev-parse --show-toplevel 2>/dev/null", {
+      silent: true,
+    })
+    projectRoot = (result || "").trim()
+  } catch {}
+
+  if (projectRoot && existsSync(join(projectRoot, "package.json"))) {
+    info("Installing dependencies...")
+    run(`cd "${projectRoot}" && bun install`)
+    ok("Dependencies installed")
+  } else {
+    info("Not in Fabric repo — skipping dependency install")
+    projectRoot = ""
+  }
+
+  // ── Step 3: Apple container CLI ────────────────────────────────────
+
+  if (has("container")) {
+    skip("Apple container CLI")
+  } else {
+    info("Installing Apple container CLI...")
+    run("brew install container")
+    ok("Apple container CLI installed")
+  }
+
+  // ── Step 4: Linux kernel ───────────────────────────────────────────
+
+  const kernelDir = join(
+    homedir(),
+    "Library",
+    "Application Support",
+    "com.apple.container",
+    "kernels"
+  )
+
+  const findKernel = (): string | null => {
+    try {
+      const { readdirSync } = require("fs")
+      const files = readdirSync(kernelDir) as string[]
+      const kernel = files.find((f: string) => f.startsWith("vmlinux-"))
+      return kernel ? join(kernelDir, kernel) : null
+    } catch {
+      return null
+    }
+  }
+
+  let kernelPath = findKernel()
+
+  if (kernelPath) {
+    skip("Linux kernel")
+  } else {
+    info("Downloading Linux kernel...")
+    run("container system kernel set --recommended")
+    kernelPath = findKernel()
+    if (!kernelPath) {
+      fail("Kernel download succeeded but file not found")
+    }
+    ok("Linux kernel downloaded")
+  }
+
+  // ── Step 5: Build Swift binary ─────────────────────────────────────
+
+  if (projectRoot) {
+    const containerDir = join(
+      projectRoot,
+      "packages",
+      "runtime-local",
+      "FabricContainer"
+    )
+    const binaryPath = join(containerDir, ".build", "release", "fabric-container")
+
+    if (existsSync(binaryPath)) {
+      skip("FabricContainer Swift binary")
+    } else if (existsSync(join(containerDir, "Package.swift"))) {
+      info("Building FabricContainer (this takes a few minutes on first build)...")
+      run(`cd "${containerDir}" && swift build -c release 2>&1 | tail -1`)
+      ok("FabricContainer built")
+    }
+
+    // ── Step 6: Symlink kernel ─────────────────────────────────────
+
+    if (kernelPath) {
+      const binaryDir = join(
+        containerDir,
+        ".build",
+        "arm64-apple-macosx",
+        "release"
+      )
+      const binDir = join(projectRoot, "packages", "runtime-local", "bin")
+
+      for (const dir of [binaryDir, binDir]) {
+        const dest = join(dir, "vmlinux")
+        if (!existsSync(dest)) {
+          mkdirSync(dir, { recursive: true })
+          symlinkSync(kernelPath, dest)
+        }
+      }
+
+      ok("Kernel linked")
+    }
+
+    // ── Step 7: Verify ─────────────────────────────────────────────
+
+    console.log()
+    info("Verifying setup...")
+
+    const binaryPath2 = join(
+      containerDir,
+      ".build",
+      "release",
+      "fabric-container"
+    )
+    if (existsSync(binaryPath2)) {
+      const status = run(`"${binaryPath2}" status 2>&1`, { silent: true }) || ""
+      if (status.includes('"kernelExists" : true')) {
+        ok("fabric-container binary OK (kernel found)")
+      } else {
+        console.log(
+          `${c("yellow", "!")}  fabric-container can't find kernel`
+        )
+      }
+    }
+  }
+
+  // ── Step 8: Pre-pull images ──────────────────────────────────────
+
+  const images = [
+    { name: "alpine:latest", desc: "Minimal Linux (5 MB)", default: true },
+    { name: "oven/bun:latest", desc: "Bun JS runtime", default: true },
+    { name: "ubuntu:latest", desc: "Full Ubuntu", default: false },
+    { name: "python:3-slim", desc: "Python runtime", default: false },
+    { name: "node:22-slim", desc: "Node.js runtime", default: false },
+  ]
+
+  let selectedImages = images.filter((i) => i.default)
+
+  if (options.interactive) {
+    // Interactive mode: let user pick which images to pull
+    const { createInterface } = await import("readline")
+    const rl = createInterface({ input: process.stdin, output: process.stdout })
+    const ask = (q: string): Promise<string> =>
+      new Promise((resolve) => rl.question(q, resolve))
+
+    console.log()
+    info("Which container images would you like to pre-pull?")
+    console.log(c("dim", "  These will be downloaded now so your first sandbox starts fast."))
+    console.log()
+
+    const picked: typeof images = []
+    for (const img of images) {
+      const def = img.default ? " [Y/n]" : " [y/N]"
+      const answer = await ask(
+        `  ${img.name.padEnd(22)} ${c("dim", img.desc)}${def} `
+      )
+      const yes = img.default
+        ? answer.trim().toLowerCase() !== "n"
+        : answer.trim().toLowerCase() === "y"
+      if (yes) picked.push(img)
+    }
+
+    rl.close()
+    selectedImages = picked
+    console.log()
+  } else {
+    console.log()
+    info("Pre-pulling default container images...")
+    console.log(c("dim", "  Run with --interactive to choose which images to pull."))
+    console.log()
+
+    for (const img of images) {
+      const tag = img.default ? c("green", " (pulling)") : ""
+      console.log(`  ${img.name.padEnd(22)} ${c("dim", img.desc)}${tag}`)
+    }
+    console.log()
+  }
+
+  for (const img of selectedImages) {
+    info(`Pulling ${img.name}...`)
+    const pullResult = spawnSync("container", ["image", "pull", img.name], {
+      stdio: "pipe",
+    })
+    if (pullResult.status === 0) {
+      ok(`${img.name} ready`)
+    } else {
+      console.log(`${c("yellow", "!")}  Failed to pull ${img.name}`)
+    }
+  }
+
+  // ── Step 9: Verify ─────────────────────────────────────────────
+
+  console.log()
+  info("Running test container...")
+  const testResult = spawnSync("container", [
+    "run",
+    "--rm",
+    "alpine:latest",
+    "echo",
+    "hello from fabric",
+  ])
+  const testOutput = testResult.stdout?.toString() || ""
+
+  if (testOutput.includes("hello from fabric")) {
+    ok("Container test passed")
+  } else {
+    const stderr = testResult.stderr?.toString() || ""
+    console.log(`${c("yellow", "!")}  Container test failed`)
+    if (stderr) console.log(c("dim", `   ${stderr.trim()}`))
+    console.log()
+    console.log(c("dim", "  Try: container system start"))
+    console.log(c("dim", "  Then re-run: fabric setup"))
+  }
+
+  // ── Done ─────────────────────────────────────────────────────────
+
+  console.log()
+  console.log(c("green", "Setup complete!"))
+  console.log()
+  console.log("  Run tests:          bun test")
+  console.log("  Run dev server:     bun run dev")
+  console.log(
+    "  Test a container:   container run --rm alpine:latest echo hello"
+  )
+  console.log()
+  console.log("  Cloud providers need API keys:")
+  console.log(`    ${c("yellow", "export DAYTONA_API_KEY=...")}     # from app.daytona.io`)
+  console.log(`    ${c("yellow", "export E2B_API_KEY=...")}         # from e2b.dev/dashboard`)
+  console.log(`    ${c("yellow", "ssh exe.dev")}                    # registers SSH key`)
+  console.log()
+  console.log(
+    `  Pull more images:   ${c("dim", "container image pull ubuntu:latest")}`
+  )
+  console.log()
+}
+
 async function cmdConfig() {
   console.log(c("bold", "Fabric Configuration"))
   console.log()
@@ -358,6 +674,10 @@ async function main() {
         language: values.language,
         provider: values.provider,
       })
+      break
+
+    case "setup":
+      await cmdSetup({ interactive: values.interactive })
       break
 
     case "config":

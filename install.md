@@ -12,22 +12,18 @@ Clone Fabric and run a container on local Apple Silicon.
 
 ## DONE WHEN
 
-`./scripts/run-container.sh "echo hello from fabric"` returns Exit code: 0
+`container run --rm alpine:latest echo "hello from fabric"` returns exit code 0
+and `bun test` passes.
 
 ## TODO
 
 - [ ] Clone the repository
-- [ ] Install dependencies
-- [ ] Build the Swift container runtime
-- [ ] Verify the kernel binary exists
-- [ ] Run a test container
+- [ ] Run the setup script
 
 ## Prerequisites
 
 - macOS 26+ (Tahoe) with Apple Silicon
-- Bun (https://bun.sh)
-- Swift 6.2+ (Xcode Command Line Tools)
-- Linux kernel binary (vmlinux) for Virtualization.framework
+- Homebrew (https://brew.sh)
 
 ## Step 1: Clone the repository
 
@@ -35,28 +31,25 @@ Clone Fabric and run a container on local Apple Silicon.
 git clone https://github.com/arach/fabric.git && cd fabric
 ```
 
-## Step 2: Install dependencies
+## Step 2: Run setup
 
 ```bash
-bun install
+./scripts/setup.sh
 ```
 
-## Step 3: Build the Swift container runtime
+This handles everything:
+- Installs Bun (if needed) and project dependencies
+- Installs the Apple `container` CLI (via Homebrew)
+- Downloads the recommended Linux kernel
+- Builds the FabricContainer Swift binary
+- Symlinks the kernel so fabric-container can find it
+- Runs a test container to verify
+
+## Verify
 
 ```bash
-cd packages/runtime-local/FabricContainer && swift build -c release
-```
-
-## Step 4: Verify the kernel binary exists
-
-```bash
-ls packages/runtime-local/bin/vmlinux
-```
-
-## Step 5: Run a test container
-
-```bash
-./scripts/run-container.sh "echo hello from fabric"
+bun test
+container run --rm alpine:latest echo "hello from fabric"
 ```
 
 ## EXECUTE NOW
