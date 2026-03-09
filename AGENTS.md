@@ -115,85 +115,333 @@ await cloudSandbox.restore(snapshot)
 
 ## Getting Started
 
-> Get Fabric running in under a minute.
+> Get a sandbox running in under 2 minutes. Local containers, cloud providers, one interface.
 
 # Getting Started
 
+Fabric is a lightweight sandbox toolkit for running code and AI agents across local and cloud environments. Start local, scale to cloud, preserve context everywhere.
+
 ## Quick Start
+
+Get a sandbox running in under 2 minutes:
+
+```bash
+npm install -g fabric-ai
+
+export DAYTONA_API_KEY=your_key
+
+fabric create --provider daytona
+fabric exec "echo 'Hello from Fabric!'"
+```
+
+Or use the SDK directly:
+
+```typescript
+import { DaytonaSandboxFactory } from "fabric-ai-daytona"
+
+const factory = new DaytonaSandboxFactory({
+  apiKey: process.env.DAYTONA_API_KEY,
+  defaultLanguage: "typescript",
+})
+
+const sandbox = await factory.create({})
+const result = await sandbox.exec("echo 'Hello!'")
+console.log(result.stdout)
+await sandbox.stop()
+```
+
+## Installation
+
+### CLI (Recommended)
 
 ```bash
 git clone https://github.com/arach/fabric.git && cd fabric
 bun run packages/cli/src/cli.ts setup
 ```
 
-This installs the Apple `container` CLI, downloads the Linux kernel, and pulls base images.
+`fabric setup` handles everything: installs the Apple `container` CLI, downloads the Linux kernel, and pulls base images. Requires macOS 26+ on Apple Silicon.
 
-## Use It
-
-### CLI
+### SDK Packages
 
 ```bash
-fabric shell                      # interactive Linux shell
-fabric exec "echo Hello World"    # run a command
-fabric run --language typescript "console.log(2 + 2)"
-fabric list                       # list active sandboxes
-fabric stop --id <sandbox-id>
+npm install fabric-ai-core
+npm install fabric-ai-daytona
+npm install fabric-ai-e2b
+npm install fabric-ai-exe
 ```
 
-### Project Config
+## Provider Setup
 
-Add a `.fabric` file to your project:
+Fabric supports multiple sandbox providers. Each has different strengths — choose based on your workflow.
+
+| Provider | Startup | Auth | Best for |
+|----------|---------|------|----------|
+| **Local** | ~1s | None | Development, offline, free |
+| **Daytona** | ~2-3s | API Key | Enterprise, TypeScript, network policies |
+| **E2B** | <200ms | API Key | Data science, Python, Jupyter |
+| **exe.dev** | ~2s | SSH Key | Persistent VMs, full root access |
+
+### Local (default — no API key needed)
 
 ```bash
-fabric init node     # create config with node profile
+fabric create --provider local
+fabric exec "echo Hello from a local container!"
 ```
 
-```ini
-# .fabric
-profile: node
-mount: ./data:/workspace/data
-env: NODE_ENV=development
-```
-
-Available profiles: `minimal` (alpine), `node` (node:22), `python` (python:3.12), `bun` (oven/bun).
-
-### SDK
+### Cloud providers
 
 ```bash
-npm install fabric-ai-core fabric-ai-daytona
+# Daytona
+export DAYTONA_API_KEY=your_key    # from app.daytona.io
+fabric create --provider daytona
+
+# E2B
+export E2B_API_KEY=your_key        # from e2b.dev/dashboard
+fabric create --provider e2b
+
+# exe.dev
+ssh exe.dev                        # registers your SSH key
+fabric create --provider exe
 ```
+
+## Your First Sandbox
 
 ```typescript
 import { DaytonaSandboxFactory } from "fabric-ai-daytona"
 
-const factory = new DaytonaSandboxFactory({
-  apiKey: process.env.DAYTONA_API_KEY!,
-})
+async function main() {
+  const factory = new DaytonaSandboxFactory({
+    apiKey: process.env.DAYTONA_API_KEY,
+    defaultLanguage: "typescript",
+  })
 
-const sandbox = await factory.create({})
-const result = await sandbox.exec("echo hello")
-console.log(result.stdout)
+  const sandbox = await factory.create({})
+  console.log(`Sandbox ID: ${sandbox.id}`)
+
+  const result = await sandbox.exec("echo 'Hello, Fabric!'")
+  console.log(result.stdout)
+
+  await sandbox.stop()
+}
+
+main()
+```
+
+Or locally, no API key needed:
+
+```typescript
+import { LocalContainerSandboxFactory } from "@fabric/runtime-local"
+
+const factory = new LocalContainerSandboxFactory()
+const sandbox = await factory.create({ image: "alpine:latest" })
+
+const result = await sandbox.exec("uname -a")
+console.log(result.stdout) // Linux ... aarch64
+
 await sandbox.stop()
 ```
 
-Swap `fabric-ai-daytona` for `fabric-ai-e2b` or `fabric-ai-exe` — the `Sandbox` interface is identical.
+## Running Code
 
-## Cloud Providers
+### Shell Commands
 
-Set your API key and use the same interface:
+```typescript
+const result = await sandbox.exec("ls -la /workspace")
+console.log(result.stdout)
 
-```bash
-export DAYTONA_API_KEY=your_key
-fabric create --provider daytona
-fabric exec "echo Hello from the cloud!"
+if (result.exitCode !== 0) {
+  console.error(result.stderr)
+}
 ```
 
-| Provider | Startup | Auth | Best for |
-|----------|---------|------|----------|
-| Local | ~1s | None | Development, offline |
-| Daytona | ~2-3s | API Key | Enterprise, TypeScript |
-| E2B | <200ms | API Key | Data science, Python |
-| exe.dev | ~2s | SSH Key | Persistent VMs |
+Or from the CLI:
+
+```bash
+fabric exec "ls -la /workspace"
+fabric exec "node --version"
+fabric exec "python3 -c 'print(2 + 2)'"
+```
+
+### Code Execution
+
+```typescript
+const result = await sandbox.runCode(`
+  const greeting = "Hello from TypeScript!"
+  console.log(greeting)
+`, "typescript")
+console.log(result.output)
+```
+
+From the CLI:
+
+```bash
+fabric run --language typescript "console.log('Hello!')"
+fabric run --language python "print(2 + 2)"
+```
+
+### Interactive Shell
+
+Drop into a live Linux environment:
+
+```bash
+fabric shell                      # Ubuntu (default)
+fabric shell --image alpine       # Alpine
+fabric shell --image omarchy      # Arch Linux
+fabric shell --image python       # Python 3.12
+fabric shell --image nginx:latest # Any OCI image
+```
+
+Exit with `exit` or Ctrl+D — the container is cleaned up automatically.
+
+## File Operations
+
+### Writing Files
+
+```typescript
+await sandbox.writeFile("/workspace/hello.ts", `
+export function greet(name: string): string {
+  return \`Hello, \${name}!\`
+}
+`)
+```
+
+### Reading Files
+
+```typescript
+const content = await sandbox.readFile("/workspace/hello.ts")
+console.log(content)
+
+const files = await sandbox.listFiles("/workspace")
+console.log(files) // ["hello.ts", ...]
+```
+
+## Handoffs
+
+Move work between runtimes without losing state. Snapshot locally, restore in the cloud:
+
+```typescript
+import { LocalContainerSandboxFactory } from "@fabric/runtime-local"
+import { E2BSandboxFactory } from "fabric-ai-e2b"
+
+// Start local
+const localFactory = new LocalContainerSandboxFactory()
+const local = await localFactory.create({ image: "node:22" })
+await local.exec("npm install")
+await local.writeFile("/workspace/data.json", '{"key": "value"}')
+
+// Snapshot and move to cloud
+const snapshot = await local.snapshot()
+await local.stop()
+
+const cloudFactory = new E2BSandboxFactory(process.env.E2B_API_KEY)
+const cloud = await cloudFactory.create({})
+await cloud.restore(snapshot)
+
+// Files and state are preserved
+const result = await cloud.exec("cat /workspace/data.json")
+console.log(result.stdout) // {"key": "value"}
+
+await cloud.stop()
+```
+
+## Project Configuration
+
+Add a `.fabric` file to your project root to configure sandbox defaults:
+
+```bash
+fabric init          # Create default .fabric config
+fabric init node     # Create config with node profile
+```
+
+Example `.fabric` file:
+
+```bash
+# Fabric sandbox config
+profile: node
+
+# Mount host directories into the container
+mount: ./src:/workspace/src:ro
+mount: ./data:/workspace/data
+
+# Environment variables
+env: NODE_ENV=development
+
+# Override defaults
+# image: node:22
+# provider: local
+# network: true
+```
+
+### Profiles
+
+Presets that configure image and default mounts for common workflows:
+
+| Profile | Image | Default Mounts |
+|---------|-------|----------------|
+| `minimal` | alpine:latest | `.:/workspace:ro` |
+| `node` | node:22 | `./src`, `./package.json` |
+| `python` | python:3.12 | `./src`, `./requirements.txt` |
+| `bun` | oven/bun:latest | `./src`, `./package.json` |
+
+Profiles are composable — your `.fabric` config extends the profile. Additional mounts and env vars are merged on top of profile defaults. The `.fabric` file is discovered by walking up from the current directory, so it works from any subdirectory.
+
+## Running Claude Code
+
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code) is Anthropic's CLI for AI-assisted coding. Run it inside Fabric sandboxes for autonomous development tasks:
+
+```typescript
+import { Sandbox } from "@e2b/code-interpreter"
+
+const sandbox = await Sandbox.create("anthropic-claude-code", {
+  apiKey: process.env.E2B_API_KEY,
+  envs: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY },
+})
+
+const result = await sandbox.commands.run(
+  `echo 'Create a fibonacci function' | claude -p`,
+  { timeoutMs: 120_000 }
+)
+
+console.log(result.stdout)
+await sandbox.kill()
+```
+
+Or locally:
+
+```bash
+fabric create --provider local
+fabric exec "npm install -g @anthropic-ai/claude-code"
+fabric exec "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY echo 'Build a REST API' | claude -p"
+```
+
+## Error Handling
+
+Always clean up sandboxes, even when errors occur:
+
+```typescript
+const sandbox = await factory.create({})
+try {
+  await sandbox.exec("some-command")
+  await sandbox.exec("another-command")
+} finally {
+  await sandbox.stop() // Always runs
+}
+```
+
+For transient failures, retry with backoff:
+
+```typescript
+async function execWithRetry(sandbox, cmd, maxAttempts = 3) {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      return await sandbox.exec(cmd)
+    } catch (e) {
+      if (i === maxAttempts - 1) throw e
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)))
+    }
+  }
+}
+```
 
 ## Available Images
 
@@ -202,18 +450,50 @@ fabric exec "echo Hello from the cloud!"
 | ubuntu | ubuntu:latest | Ubuntu Linux (default) |
 | alpine | alpine:latest | Alpine Linux (minimal) |
 | omarchy / arch | lopsided/archlinux | Arch Linux (arm64) |
+| debian | debian:latest | Debian |
+| fedora | fedora:latest | Fedora |
 | bun | oven/bun:latest | Bun runtime |
 | node | node:22 | Node.js 22 |
 | python | python:3.12 | Python 3.12 |
 
-Any OCI-compatible arm64 image works: `fabric shell --image nginx:latest`
+Any OCI-compatible arm64 image works: `fabric shell --image myregistry/myimage:tag`
 
-## Next steps
+## CLI Reference
 
-- [Local containers](./local-container.md) — How the container runtime works
-- [Daytona guide](./daytona.md) — Network policies, multi-language support
-- [E2B guide](./e2b.md) — Pre-built Claude Code template, Jupyter
-- [exe.dev guide](./exe.md) — Persistent VMs, pre-installed agents
+| Command | Description |
+|---------|-------------|
+| `fabric setup` | Install everything (container CLI, kernel, images) |
+| `fabric init` | Create a `.fabric` config for this project |
+| `fabric shell` | Interactive Linux shell |
+| `fabric create` | Create a sandbox |
+| `fabric exec` | Run a command in a sandbox |
+| `fabric run` | Execute code in a sandbox |
+| `fabric list` | List active sandboxes |
+| `fabric stop` | Stop a sandbox |
+
+## Pricing
+
+**Fabric is free.** You bring your own API keys for cloud providers.
+
+| Component | Cost |
+|-----------|------|
+| Fabric CLI & SDK | Free |
+| Local containers | Free (runs on your Mac) |
+| Daytona sandboxes | [Daytona pricing](https://daytona.io/pricing) |
+| E2B sandboxes | [E2B pricing](https://e2b.dev/pricing) |
+| exe.dev VMs | [exe.dev pricing](https://exe.dev) |
+
+The core framework will always be free and open source.
+
+## Next Steps
+
+- [Local Containers](./local-container.md) — How the container runtime works
+- [Architecture](./architecture.md) — Project structure and runtime adapter pattern
+- [API Reference](./api.md) — TypeScript interfaces
+- [Project Config](./skill.md) — `.fabric` file reference and profiles
+- [Daytona](./daytona.md) — Enterprise features and network policies
+- [E2B](./e2b.md) — Jupyter integration and Claude Code template
+- [exe.dev](./exe.md) — Persistent VMs and pre-installed agents
 
 ## Local Container Runtime
 
@@ -1341,4 +1621,4 @@ try {
 - [Shelley Agent Docs](https://exe.dev/docs/shelley)
 
 ---
-Generated by [Dewey](https://github.com/arach/dewey) | Last updated: 2026-03-09
+Generated by [Dewey 0.3.1](https://github.com/arach/dewey) | Last updated: 2026-03-09

@@ -1,6 +1,6 @@
 {
-  "name": "fabric-ai",
-  "version": "0.1.1",
+  "name": "@fabric-ai/cli",
+  "version": "0.2.0",
   "description": "CLI for Fabric - Ambient compute for Claude Code agents",
   "type": "module",
   "bin": {
@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun build src/cli.ts --outdir dist --target node --external '@arach/*' --external '@daytonaio/*' --external '@e2b/*' --external 'ssh2'",
+    "build": "bun build src/cli.ts --outdir dist --target node --external '@arach/*' --external '@daytonaio/*' --external '@e2b/*' --external 'ssh2' --external 'fabric-ai-*'",
     "dev": "bun run src/cli.ts",
     "prepublishOnly": "bun run build"
   },
@@ -43,6 +43,9 @@
     "directory": "packages/cli"
   },
   "homepage": "https://fabric.arach.dev",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=18"
   }
