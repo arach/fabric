@@ -14,7 +14,7 @@
     },
     "packages/cli": {
       "name": "@fabric-ai/cli",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "bin": {
         "fabric": "./dist/cli.js",
       },
@@ -31,7 +31,7 @@
     },
     "packages/core": {
       "name": "fabric-ai-core",
-      "version": "0.1.1",
+      "version": "0.2.1",
       "devDependencies": {
         "typescript": "^5.0.0",
       },
@@ -507,6 +507,8 @@
     "@aws-crypto/sha256-browser/@smithy/util-utf8": ["@smithy/util-utf8@2.3.0", "", { "dependencies": { "@smithy/util-buffer-from": "^2.2.0", "tslib": "^2.6.2" } }, "sha512-R8Rdn8Hy72KKcebgLiv8jQcQkXoLMOGGv5uI1/k0l+snqkOzQ1R0ChUBCxWMlBsFMekWjq0wRudIweFs7sKT5A=="],
 
     "@aws-crypto/util/@smithy/util-utf8": ["@smithy/util-utf8@2.3.0", "", { "dependencies": { "@smithy/util-buffer-from": "^2.2.0", "tslib": "^2.6.2" } }, "sha512-R8Rdn8Hy72KKcebgLiv8jQcQkXoLMOGGv5uI1/k0l+snqkOzQ1R0ChUBCxWMlBsFMekWjq0wRudIweFs7sKT5A=="],
+
+    "@fabric-ai/cli/fabric-ai-core": ["fabric-ai-core@0.1.1", "", {}, "sha512-dHdIubgI3M67aFZbgFB7xBqBgHKv6r14fXwh9oNr3VxHNvxVx817WetX1iiLfAumsgJaVzfURQGiVDRneCrNJg=="],
 
     "@types/ssh2/@types/node": ["@types/node@18.19.130", "", { "dependencies": { "undici-types": "~5.26.4" } }, "sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg=="],
 
