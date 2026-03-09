@@ -68,11 +68,14 @@ ${c("bold", "EXAMPLES")}
   ${c("dim", "# Run TypeScript code")}
   fabric run --language typescript "console.log('Hello')"
 
-  ${c("dim", "# Drop into an Ubuntu shell")}
+  ${c("dim", "# Drop into a shell (Alpine + essentials)")}
   fabric shell
 
-  ${c("dim", "# Try Omarchy (Arch Linux)")}
-  fabric shell --image omarchy
+  ${c("dim", "# Ubuntu with dev tools")}
+  fabric shell --image ubuntu
+
+  ${c("dim", "# Bare Alpine (minimal)")}
+  fabric shell --image bare
 
   ${c("dim", "# Set up local container runtime")}
   fabric setup
@@ -519,10 +522,16 @@ image: alpine:latest
 // ── Shell command ─────────────────────────────────────────────────────
 
 const SHELL_IMAGES: Record<string, { image: string; description: string }> = {
-  ubuntu: { image: "ubuntu:latest", description: "Ubuntu Linux" },
+  // Default: Alpine + bash, git, curl, ssh, jq (32 MB)
+  default: { image: "fabric-base:latest", description: "Fabric base (Alpine + essentials)" },
+  // Bare: stock Alpine, nothing extra (5 MB)
+  bare: { image: "alpine:latest", description: "Alpine Linux (bare)" },
+  // Ubuntu: full dev environment with build-essential (200+ MB)
+  ubuntu: { image: "fabric-ubuntu:latest", description: "Ubuntu 24.04 (dev tools)" },
+  // Aliases for common images
+  alpine: { image: "alpine:latest", description: "Alpine Linux (bare)" },
   omarchy: { image: "lopsided/archlinux:latest", description: "Arch Linux (Omarchy base)" },
   arch: { image: "lopsided/archlinux:latest", description: "Arch Linux" },
-  alpine: { image: "alpine:latest", description: "Alpine Linux (minimal)" },
   debian: { image: "debian:latest", description: "Debian Linux" },
   fedora: { image: "fedora:latest", description: "Fedora Linux" },
   bun: { image: "oven/bun:latest", description: "Bun runtime" },
@@ -547,9 +556,9 @@ async function cmdShell(options: { image?: string } = {}) {
   let image: string
   let label: string
 
-  if (!imageName || imageName === "ubuntu") {
-    image = SHELL_IMAGES.ubuntu.image
-    label = SHELL_IMAGES.ubuntu.description
+  if (!imageName) {
+    image = SHELL_IMAGES.default.image
+    label = SHELL_IMAGES.default.description
   } else if (SHELL_IMAGES[imageName]) {
     image = SHELL_IMAGES[imageName].image
     label = SHELL_IMAGES[imageName].description
@@ -805,11 +814,12 @@ async function cmdSetup(options: { interactive?: boolean } = {}) {
   // ── Step 8: Pre-pull images ──────────────────────────────────────
 
   const images = [
-    { name: "alpine:latest", desc: "Minimal Linux (5 MB)", default: true },
-    { name: "oven/bun:latest", desc: "Bun JS runtime", default: true },
-    { name: "ubuntu:latest", desc: "Full Ubuntu", default: false },
-    { name: "python:3-slim", desc: "Python runtime", default: false },
+    { name: "fabric-base:latest", desc: "Alpine + bash, git, curl, ssh, jq (32 MB)", default: true, buildDir: "images/base" },
+    { name: "fabric-ubuntu:latest", desc: "Ubuntu 24.04 + dev tools (200 MB)", default: false, buildDir: "images/ubuntu" },
+    { name: "alpine:latest", desc: "Bare Alpine (5 MB)", default: false },
+    { name: "oven/bun:latest", desc: "Bun JS runtime", default: false },
     { name: "node:22-slim", desc: "Node.js runtime", default: false },
+    { name: "python:3-slim", desc: "Python runtime", default: false },
   ]
 
   let selectedImages = images.filter((i) => i.default)
@@ -848,13 +858,31 @@ async function cmdSetup(options: { interactive?: boolean } = {}) {
     console.log()
 
     for (const img of images) {
-      const tag = img.default ? c("green", " (pulling)") : ""
-      console.log(`  ${img.name.padEnd(22)} ${c("dim", img.desc)}${tag}`)
+      const action = img.default ? (img.buildDir ? c("green", " (building)") : c("green", " (pulling)")) : ""
+      console.log(`  ${img.name.padEnd(26)} ${c("dim", img.desc)}${action}`)
     }
     console.log()
   }
 
   for (const img of selectedImages) {
+    if ((img as any).buildDir && projectRoot) {
+      const buildPath = join(projectRoot, (img as any).buildDir)
+      if (existsSync(buildPath)) {
+        info(`Building ${img.name}...`)
+        const buildResult = spawnSync("container", ["build", "-t", img.name, buildPath], {
+          stdio: "pipe",
+        })
+        if (buildResult.status === 0) {
+          ok(`${img.name} built`)
+        } else {
+          // Fallback: try pulling a pre-built base image
+          console.log(`${c("yellow", "!")}  Build failed, pulling base image instead...`)
+          spawnSync("container", ["image", "pull", "alpine:latest"], { stdio: "pipe" })
+          ok("alpine:latest ready (fallback)")
+        }
+        continue
+      }
+    }
     info(`Pulling ${img.name}...`)
     const pullResult = spawnSync("container", ["image", "pull", img.name], {
       stdio: "pipe",
@@ -873,7 +901,7 @@ async function cmdSetup(options: { interactive?: boolean } = {}) {
   const testResult = spawnSync("container", [
     "run",
     "--rm",
-    "alpine:latest",
+    "fabric-base:latest",
     "echo",
     "hello from fabric",
   ])
@@ -895,20 +923,14 @@ async function cmdSetup(options: { interactive?: boolean } = {}) {
   console.log()
   console.log(c("green", "Setup complete!"))
   console.log()
-  console.log("  Run tests:          bun test")
-  console.log("  Run dev server:     bun run dev")
-  console.log(
-    "  Test a container:   container run --rm alpine:latest echo hello"
-  )
+  console.log(`  ${c("cyan", "fabric shell")}              # default (Alpine + essentials)`)
+  console.log(`  ${c("cyan", "fabric shell --image ubuntu")}  # Ubuntu with dev tools`)
+  console.log(`  ${c("cyan", "fabric shell --image bare")}    # bare Alpine`)
   console.log()
   console.log("  Cloud providers need API keys:")
   console.log(`    ${c("yellow", "export DAYTONA_API_KEY=...")}     # from app.daytona.io`)
   console.log(`    ${c("yellow", "export E2B_API_KEY=...")}         # from e2b.dev/dashboard`)
   console.log(`    ${c("yellow", "ssh exe.dev")}                    # registers SSH key`)
-  console.log()
-  console.log(
-    `  Pull more images:   ${c("dim", "container image pull ubuntu:latest")}`
-  )
   console.log()
 }
 
