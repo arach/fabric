@@ -25,9 +25,9 @@ const colors = {
 const c = (color: keyof typeof colors, text: string) =>
   `${colors[color]}${text}${colors.reset}`
 
-type Provider = "daytona" | "e2b" | "exe"
+type Provider = "local" | "daytona" | "e2b" | "exe"
 
-const PROVIDERS: Provider[] = ["daytona", "e2b", "exe"]
+const PROVIDERS: Provider[] = ["local", "daytona", "e2b", "exe"]
 
 // Help text
 const helpText = `
@@ -101,6 +101,11 @@ async function resolveFactory(
   options?: { language?: string }
 ): Promise<SandboxFactory> {
   switch (provider) {
+    case "local": {
+      const { LocalContainerSandboxFactory } = await import("@arach/runtime-local")
+      return new LocalContainerSandboxFactory()
+    }
+
     case "daytona": {
       const apiKey = process.env.DAYTONA_API_KEY
       if (!apiKey) {
@@ -175,7 +180,7 @@ async function cmdCreate(options: {
   provider?: string
   language?: string
 }) {
-  const provider = validateProvider(options.provider || "daytona")
+  const provider = validateProvider(options.provider || "local")
   const language = options.language || "typescript"
 
   console.log(c("cyan", `Creating ${provider} sandbox...`))
@@ -193,7 +198,7 @@ async function cmdCreate(options: {
 }
 
 async function cmdExec(command: string, options: { id?: string; provider?: string }) {
-  const provider = validateProvider(options.provider || "daytona")
+  const provider = validateProvider(options.provider || "local")
 
   console.log(c("cyan", `Executing in ${provider} sandbox...`))
   console.log(c("dim", `$ ${command}`))
@@ -213,7 +218,7 @@ async function cmdExec(command: string, options: { id?: string; provider?: strin
 }
 
 async function cmdRun(code: string, options: { language?: string; provider?: string }) {
-  const provider = validateProvider(options.provider || "daytona")
+  const provider = validateProvider(options.provider || "local")
   const language = options.language || "typescript"
 
   console.log(c("cyan", `Running ${language} code in ${provider}...`))
@@ -232,7 +237,7 @@ async function cmdRun(code: string, options: { language?: string; provider?: str
 }
 
 async function cmdList(options: { provider?: string }) {
-  const provider = validateProvider(options.provider || "daytona")
+  const provider = validateProvider(options.provider || "local")
 
   console.log(c("cyan", `Listing ${provider} sandboxes...`))
   console.log()
@@ -252,7 +257,7 @@ async function cmdList(options: { provider?: string }) {
 }
 
 async function cmdStop(options: { id?: string; provider?: string }) {
-  const provider = validateProvider(options.provider || "daytona")
+  const provider = validateProvider(options.provider || "local")
 
   if (!options.id) {
     console.error(c("red", "Error: --id is required"))

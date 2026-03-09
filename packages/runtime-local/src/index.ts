@@ -277,7 +277,7 @@ export class LocalContainerSandbox implements Sandbox {
     this.id = id
     this.containerCli = options.containerCli || "container"
     this.workspacePath = options.workspacePath || `/tmp/fabric-sandbox-${id}`
-    this.image = options.image || "oven/bun:latest"
+    this.image = options.image || "alpine:latest"
   }
 
   get status() {
