@@ -565,7 +565,8 @@ async function cmdShell(options: { image?: string } = {}) {
   console.log()
 
   // Build container args
-  const containerArgs = ["run", "--rm", "-it"]
+  // Note: Apple's container CLI doesn't support -it combined; use -i only
+  const containerArgs = ["run", "--rm", "-i"]
 
   // Add mounts from config
   if (config?.mounts) {
