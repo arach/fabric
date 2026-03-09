@@ -207,14 +207,16 @@ async function cmdExec(command: string, options: { id?: string; provider?: strin
   const factory = await resolveFactory(provider)
   const sandbox = await factory.create({})
 
+  let exitCode = 1
   try {
     const result = await sandbox.exec(command)
     if (result.stdout) console.log(result.stdout)
     if (result.stderr) console.error(c("red", result.stderr))
-    process.exit(result.exitCode)
+    exitCode = result.exitCode
   } finally {
     await sandbox.stop()
   }
+  process.exit(exitCode)
 }
 
 async function cmdRun(code: string, options: { language?: string; provider?: string }) {
