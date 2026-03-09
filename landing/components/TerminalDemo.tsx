@@ -43,7 +43,7 @@ export const TerminalDemo: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto md:mx-0 font-mono text-sm rounded-xl overflow-hidden border border-white/10 bg-black/50 backdrop-blur-xl shadow-2xl relative">
+    <div className="w-full max-w-lg mx-auto md:mx-0 font-mono text-[13px] tracking-[0.02em] rounded-xl overflow-hidden border border-white/10 bg-black/50 backdrop-blur-xl shadow-2xl relative">
       {/* Simple Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/[0.02]">
         <div className="flex gap-2">
@@ -61,7 +61,7 @@ export const TerminalDemo: React.FC = () => {
 
       {/* Body */}
       <div className="p-6 h-[300px] overflow-y-auto custom-scrollbar">
-        <div className="space-y-3 font-medium">
+        <div className="space-y-3 font-normal">
           {lines.map((line, i) => (
             <div key={i} className={`${line.output ? 'opacity-70' : 'flex items-center'}`}>
               {!line.output && <span className="text-zinc-500 mr-3">$</span>}

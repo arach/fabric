@@ -11,13 +11,13 @@ import { ArrowLeft, Book, Box, Copy, Check, ChevronRight, ExternalLink } from 'l
 const codeTheme: { [key: string]: React.CSSProperties } = {
   'code[class*="language-"]': {
     color: '#e4e4e7',
-    fontFamily: 'JetBrains Mono, Menlo, Monaco, Consolas, monospace',
+    fontFamily: 'Geist Mono, ui-monospace, monospace',
     fontSize: '13px',
     lineHeight: '1.6',
   },
   'pre[class*="language-"]': {
     color: '#e4e4e7',
-    fontFamily: 'JetBrains Mono, Menlo, Monaco, Consolas, monospace',
+    fontFamily: 'Geist Mono, ui-monospace, monospace',
     fontSize: '13px',
     lineHeight: '1.6',
   },

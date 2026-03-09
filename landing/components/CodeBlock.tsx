@@ -44,7 +44,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
         }}
         codeTagProps={{
           style: {
-            fontFamily: 'Fira Code, monospace',
+            fontFamily: 'Geist Mono, ui-monospace, monospace',
           },
         }}
       >
