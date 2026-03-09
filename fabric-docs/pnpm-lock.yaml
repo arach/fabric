@@ -29,6 +29,9 @@ importers:
       tailwindcss:
         specifier: ^4.1.0
         version: 4.2.1
+      unist-util-visit:
+        specifier: ^5.1.0
+        version: 5.1.0
     devDependencies:
       satori:
         specifier: ^0.25.0
