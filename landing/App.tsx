@@ -115,7 +115,7 @@ const CopyButton = () => {
     const [copied, setCopied] = React.useState(false);
 
     const handleCopy = () => {
-        navigator.clipboard.writeText('fabric shell --image ubuntu');
+        navigator.clipboard.writeText('npm i -g @fabric-ai/cli');
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     }
