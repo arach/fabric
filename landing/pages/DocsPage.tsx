@@ -401,11 +401,68 @@ const cloudSandbox = await e2bFactory.create({})
 await cloudSandbox.restore(snapshot)
 \`\`\`
 
+## Project Configuration
+
+Create a \`.fabric\` file in your project root to configure sandbox defaults:
+
+\`\`\`bash
+fabric init          # Create default .fabric config
+fabric init node     # Create config with node profile
+\`\`\`
+
+Example \`.fabric\` file:
+
+\`\`\`bash
+# Fabric sandbox config
+profile: node
+
+# Mount host directories into the container
+mount: ./src:/workspace/src:ro
+mount: ./data:/workspace/data
+
+# Environment variables
+env: NODE_ENV=development
+
+# Override defaults
+# image: node:22
+# provider: local
+# network: true
+\`\`\`
+
+### Profiles
+
+Profiles are presets that configure image and default mounts for common workflows:
+
+| Profile | Image | Default Mounts |
+|---------|-------|----------------|
+| \`minimal\` | alpine:latest | \`.:/workspace:ro\` |
+| \`node\` | node:22 | \`./src\`, \`./package.json\` |
+| \`python\` | python:3.12 | \`./src\`, \`./requirements.txt\` |
+| \`bun\` | oven/bun:latest | \`./src\`, \`./package.json\` |
+
+Profiles are composable — your \`.fabric\` config extends the profile. Additional mounts and env vars are merged on top of profile defaults.
+
+### Config Reference
+
+| Key | Description | Example |
+|-----|-------------|---------|
+| \`provider\` | Runtime provider | \`local\`, \`daytona\`, \`e2b\`, \`exe\` |
+| \`image\` | Container image | \`node:22\`, \`alpine:latest\` |
+| \`profile\` | Preset profile | \`minimal\`, \`node\`, \`python\`, \`bun\` |
+| \`mount\` | Volume mount (repeatable) | \`./src:/workspace/src:ro\` |
+| \`env\` | Environment variable (repeatable) | \`NODE_ENV=development\` |
+| \`network\` | Network access | \`true\` / \`false\` |
+| \`cpus\` | CPU count | \`2\` |
+| \`memory\` | Memory limit | \`512m\` |
+
+The \`.fabric\` file is discovered by walking up from the current directory, so it works from any subdirectory of your project.
+
 ## CLI Commands
 
 | Command | Description |
 |---------|-------------|
 | \`fabric setup\` | Install everything (container CLI, kernel, images) |
+| \`fabric init\` | Create a \`.fabric\` config for this project |
 | \`fabric shell\` | Interactive Linux shell |
 | \`fabric create\` | Create a cloud sandbox |
 | \`fabric exec\` | Run a command in a sandbox |
@@ -427,6 +484,7 @@ await cloudSandbox.restore(snapshot)
 
 ## Next Steps
 
+- [Project Config](/docs/project-config) - Per-project \`.fabric\` configuration
 - [Local Containers](/docs/local-containers) - How the container runtime works
 - [Philosophy](/docs/philosophy) - Why Fabric exists
 - [API Reference](/docs/api-reference) - SDK interfaces
@@ -642,6 +700,166 @@ await cloudSandbox.restore(snapshot)
 \`\`\`
 `
   },
+  'project-config': {
+    title: 'Project Configuration',
+    content: `# Project Configuration
+
+Configure sandbox defaults per-project with a \`.fabric\` file.
+
+## Quick Start
+
+\`\`\`bash
+fabric init          # Create default .fabric config
+fabric init node     # Create config with node profile
+fabric init python   # Create config with python profile
+\`\`\`
+
+This creates a \`.fabric\` file in your current directory.
+
+## Config File Format
+
+The \`.fabric\` file uses a simple \`key: value\` format:
+
+\`\`\`bash
+# Fabric sandbox config
+profile: node
+
+# Mount host directories into the container
+mount: ./src:/workspace/src:ro
+mount: ./tests:/workspace/tests:ro
+
+# Environment variables
+env: NODE_ENV=development
+env: DEBUG=true
+
+# Override the profile image
+# image: node:20
+
+# Provider (default: local)
+# provider: local
+\`\`\`
+
+Lines starting with \`#\` are comments. Keys like \`mount\` and \`env\` can be repeated.
+
+## Profiles
+
+Profiles are presets that configure the image and default mounts for common workflows. Use them as a starting point and override as needed.
+
+### minimal
+
+\`\`\`bash
+# Image: alpine:latest
+# Mounts: .:/workspace:ro (entire project, read-only)
+profile: minimal
+\`\`\`
+
+Best for: quick scripts, CI tasks, ephemeral work.
+
+### node
+
+\`\`\`bash
+# Image: node:22
+# Mounts: ./src, ./package.json (read-only)
+profile: node
+\`\`\`
+
+Best for: Node.js / TypeScript projects.
+
+### python
+
+\`\`\`bash
+# Image: python:3.12
+# Mounts: ./src, ./requirements.txt (read-only)
+profile: python
+\`\`\`
+
+Best for: Python projects, data science, ML.
+
+### bun
+
+\`\`\`bash
+# Image: oven/bun:latest
+# Mounts: ./src, ./package.json (read-only)
+profile: bun
+\`\`\`
+
+Best for: Bun-native TypeScript projects.
+
+## How Profiles Compose
+
+When you specify a profile, your config is merged on top of the profile defaults:
+
+1. Profile provides base \`image\` and \`mounts\`
+2. Your config overrides \`image\`, \`provider\`, etc.
+3. Additional \`mount:\` entries are appended (not replaced)
+4. \`env:\` entries are always additive
+
+\`\`\`bash
+# This uses node:22 image from the profile,
+# gets ./src and ./package.json mounts from the profile,
+# and adds ./data mount on top
+profile: node
+mount: ./data:/workspace/data
+env: NODE_ENV=development
+\`\`\`
+
+## Config Reference
+
+| Key | Type | Description |
+|-----|------|-------------|
+| \`provider\` | string | Runtime: \`local\`, \`daytona\`, \`e2b\`, \`exe\` |
+| \`image\` | string | Container image (e.g. \`node:22\`) |
+| \`profile\` | string | Preset: \`minimal\`, \`node\`, \`python\`, \`bun\` |
+| \`mount\` | string (repeatable) | Volume mount: \`source:dest[:ro]\` |
+| \`env\` | string (repeatable) | Env var: \`KEY=value\` |
+| \`network\` | boolean | Network access (default: \`true\`) |
+| \`cpus\` | number | CPU count |
+| \`memory\` | string | Memory limit (e.g. \`512m\`) |
+
+## Config Discovery
+
+Fabric walks up from the current directory looking for a \`.fabric\` file, up to 10 levels. This means you can \`cd\` into any subdirectory and still pick up the project config.
+
+\`\`\`
+my-project/
+├── .fabric          ← found from anywhere below
+├── src/
+│   └── index.ts
+└── tests/
+    └── test.ts      ← fabric exec from here still uses .fabric
+\`\`\`
+
+## Examples
+
+### Full-stack Node.js project
+
+\`\`\`bash
+profile: node
+mount: ./prisma:/workspace/prisma:ro
+env: DATABASE_URL=postgresql://localhost:5432/dev
+env: NODE_ENV=development
+\`\`\`
+
+### Python ML project
+
+\`\`\`bash
+profile: python
+image: python:3.12
+mount: ./data:/workspace/data
+mount: ./models:/workspace/models
+env: CUDA_VISIBLE_DEVICES=0
+\`\`\`
+
+### Custom image
+
+\`\`\`bash
+image: myregistry/myimage:latest
+mount: .:/workspace
+env: APP_ENV=staging
+provider: daytona
+\`\`\`
+`
+  },
   'api-reference': {
     title: 'API Reference',
     content: `# API Reference
@@ -791,6 +1009,7 @@ const docsNav = [
   { slug: 'getting-started', title: 'Getting Started' },
   { slug: 'philosophy', title: 'Philosophy' },
   { slug: 'local-containers', title: 'Local Containers' },
+  { slug: 'project-config', title: 'Project Config' },
   { slug: 'api-reference', title: 'API Reference' },
 ];
 

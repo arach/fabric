@@ -2,38 +2,43 @@
 export default {
   project: {
     name: 'fabric',
-    tagline: 'Ambient compute fabric — run agentic workloads across local and cloud runtimes',
+    tagline: 'Lightweight sandboxes for agentic workloads — one interface, any runtime',
     type: 'npm-package',
-    version: '0.1.0',
+    version: '0.1.1',
   },
 
   agent: {
     criticalContext: [
       'Fabric uses bun as its package manager and runtime — never use npm or pnpm',
       'All runtimes implement the unified Sandbox interface (exec, runCode, writeFile, readFile, snapshot, restore)',
-      'The local container runtime uses Apple Containerization framework (Virtualization.framework) — macOS 26+, Apple Silicon only',
-      'FabricContainer is a Swift 6.2 executable that provides CLI + HTTP API over Unix domain socket',
-      'Image references are auto-normalized: "alpine" → "docker.io/library/alpine"',
+      'Local containers use Apple `container` CLI (Virtualization.framework) — no Docker, no Swift binary',
+      'The CLI defaults to --provider local — cloud providers (daytona, e2b, exe) require API keys',
+      'Per-project .fabric config files define image, mounts, env, and composable profiles (minimal, node, python, bun)',
       'Snapshots enable handoff between any two runtimes — capture state locally, restore in cloud',
+      'Image references: "alpine" → docker.io/library/alpine, "omarchy" → lopsided/archlinux',
     ],
 
     entryPoints: {
+      'cli': 'packages/cli/src/cli.ts',
       'core': 'packages/core/src/',
       'runtime-local': 'packages/runtime-local/src/',
-      'fabric-container (Swift)': 'packages/runtime-local/FabricContainer/',
-      'runtime-e2b': 'packages/runtime-e2b/src/',
       'runtime-daytona': 'packages/runtime-daytona/src/',
+      'runtime-e2b': 'packages/runtime-e2b/src/',
       'runtime-exe': 'packages/runtime-exe/src/',
       'server': 'packages/server/src/',
+      'landing': 'landing/',
     },
 
     rules: [
+      { pattern: 'cli', instruction: 'Check packages/cli/src/cli.ts — single-file CLI with all commands' },
       { pattern: 'runtime', instruction: 'Check packages/runtime-*/src/ for provider adapters' },
-      { pattern: 'container', instruction: 'Check packages/runtime-local/FabricContainer/ for Swift source and packages/runtime-local/src/index.ts for TS adapter' },
+      { pattern: 'container', instruction: 'Local containers use Apple `container` CLI — see packages/runtime-local/src/index.ts' },
       { pattern: 'sandbox', instruction: 'Core Sandbox interface is in packages/core/src/index.ts' },
+      { pattern: 'config', instruction: '.fabric config parsing is in packages/cli/src/cli.ts — loadFabricConfig(), parseConfigFile(), PROFILES' },
       { pattern: 'api', instruction: 'Check packages/server/src/ for HTTP API' },
-      { pattern: 'snapshot', instruction: 'Snapshot/restore is in each runtime adapter and in the FabricContainer HTTP API (/snapshot, /restore)' },
+      { pattern: 'snapshot', instruction: 'Snapshot/restore is in each runtime adapter — see Sandbox interface' },
       { pattern: 'handoff', instruction: 'Sandbox.delegate() captures state, target.reclaim() restores — see runtime-local/src/index.ts' },
+      { pattern: 'docs', instruction: 'Landing site in landing/, doc content inline in landing/pages/DocsPage.tsx' },
     ],
 
     sections: ['overview', 'getting-started', 'local-container', 'daytona', 'e2b', 'exe'],
@@ -46,26 +51,26 @@ export default {
   },
 
   install: {
-    objective: 'Clone Fabric and run a container on local Apple Silicon.',
+    objective: 'Clone Fabric and run a sandbox on local Apple Silicon.',
 
     doneWhen: {
-      command: './scripts/run-container.sh "echo hello from fabric"',
-      expectedOutput: 'Exit code: 0',
+      command: 'fabric exec "echo hello from fabric"',
+      expectedOutput: 'hello from fabric',
     },
 
     prerequisites: [
       'macOS 26+ (Tahoe) with Apple Silicon',
       'Bun (https://bun.sh)',
-      'Swift 6.2+ (Xcode Command Line Tools)',
-      'Linux kernel binary (vmlinux) for Virtualization.framework',
+      'Apple container CLI (installed by fabric setup)',
     ],
 
     steps: [
       { description: 'Clone the repository', command: 'git clone https://github.com/arach/fabric.git && cd fabric' },
       { description: 'Install dependencies', command: 'bun install' },
-      { description: 'Build the Swift container runtime', command: 'cd packages/runtime-local/FabricContainer && swift build -c release' },
-      { description: 'Verify the kernel binary exists', command: 'ls packages/runtime-local/bin/vmlinux' },
-      { description: 'Run a test container', command: './scripts/run-container.sh "echo hello from fabric"' },
+      { description: 'Set up the local container runtime', command: 'bun run packages/cli/src/cli.ts setup' },
+      { description: 'Create a local sandbox', command: 'fabric create --provider local' },
+      { description: 'Run a command', command: 'fabric exec "echo hello from fabric"' },
+      { description: 'Drop into a shell', command: 'fabric shell' },
     ],
   },
 }

@@ -1,6 +1,6 @@
 # fabric
 
-> Ambient compute fabric — run agentic workloads across local and cloud runtimes
+> Lightweight sandboxes for agentic workloads — one interface, any runtime
 
 You are an expert at installing fabric. Execute these steps autonomously
 and inform the user of any decisions made. Request approval before running
@@ -8,22 +8,26 @@ installation commands.
 
 ## OBJECTIVE
 
-Clone Fabric and run a container on local Apple Silicon.
+Clone Fabric and run a sandbox on local Apple Silicon.
 
 ## DONE WHEN
 
-`container run --rm alpine:latest echo "hello from fabric"` returns exit code 0
-and `bun test` passes.
+`fabric exec "echo hello from fabric"` returns hello from fabric
 
 ## TODO
 
 - [ ] Clone the repository
-- [ ] Run the setup script
+- [ ] Install dependencies
+- [ ] Set up the local container runtime
+- [ ] Create a local sandbox
+- [ ] Run a command
+- [ ] Drop into a shell
 
 ## Prerequisites
 
 - macOS 26+ (Tahoe) with Apple Silicon
-- Homebrew (https://brew.sh)
+- Bun (https://bun.sh)
+- Apple container CLI (installed by fabric setup)
 
 ## Step 1: Clone the repository
 
@@ -31,25 +35,34 @@ and `bun test` passes.
 git clone https://github.com/arach/fabric.git && cd fabric
 ```
 
-## Step 2: Run setup
+## Step 2: Install dependencies
 
 ```bash
-./scripts/setup.sh
+bun install
 ```
 
-This handles everything:
-- Installs Bun (if needed) and project dependencies
-- Installs the Apple `container` CLI (via Homebrew)
-- Downloads the recommended Linux kernel
-- Builds the FabricContainer Swift binary
-- Symlinks the kernel so fabric-container can find it
-- Runs a test container to verify
-
-## Verify
+## Step 3: Set up the local container runtime
 
 ```bash
-bun test
-container run --rm alpine:latest echo "hello from fabric"
+bun run packages/cli/src/cli.ts setup
+```
+
+## Step 4: Create a local sandbox
+
+```bash
+fabric create --provider local
+```
+
+## Step 5: Run a command
+
+```bash
+fabric exec "echo hello from fabric"
+```
+
+## Step 6: Drop into a shell
+
+```bash
+fabric shell
 ```
 
 ## EXECUTE NOW

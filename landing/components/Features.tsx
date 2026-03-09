@@ -1,5 +1,5 @@
 import React from 'react';
-import { Terminal, Cloud, Zap, Cpu } from 'lucide-react';
+import { Terminal, Cloud, Zap, Cpu, FileCode } from 'lucide-react';
 
 export const Features: React.FC = () => {
   return (
@@ -73,6 +73,17 @@ export const Features: React.FC = () => {
                 <h3 className="text-xl font-bold text-white mb-2 tracking-tight">No Docker Required</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
                     Uses Apple's <code className="text-zinc-300">container</code> CLI directly. Native arm64 performance, minimal memory overhead, ~1s boot time.
+                </p>
+            </div>
+
+            {/* Small Item - Project Config */}
+            <div className="rounded-3xl bg-white/[0.03] border border-white/[0.08] p-8 hover:border-brand-500/30 transition-all duration-500 group hover:shadow-[0_0_40px_rgba(99,102,241,0.1)]">
+                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg">
+                    <FileCode className="text-white group-hover:text-emerald-400 transition-colors" size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Per-Project Config</h3>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                    Drop a <code className="text-zinc-300">.fabric</code> file in your project. Composable profiles for Node, Python, Bun, or custom setups.
                 </p>
             </div>
 

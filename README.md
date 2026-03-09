@@ -58,6 +58,23 @@ await sandbox.stop()
 
 Every provider implements the same `Sandbox` interface — `exec()`, `runCode()`, `writeFile()`, `readFile()`, `snapshot()`, `restore()`, and `delegate()`.
 
+## Project Config
+
+Add a `.fabric` file to configure sandbox defaults per-project:
+
+```bash
+fabric init node     # create .fabric with node profile
+```
+
+```ini
+# .fabric
+profile: node
+mount: ./data:/workspace/data
+env: NODE_ENV=development
+```
+
+Profiles: `minimal` (alpine), `node` (node:22), `python` (python:3.12), `bun` (oven/bun). Config is discovered by walking up from the current directory.
+
 ## Handoff
 
 Move work between runtimes without losing state:

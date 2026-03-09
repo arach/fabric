@@ -1,6 +1,6 @@
 # fabric
 
-> Ambient compute fabric — run agentic workloads across local and cloud runtimes
+> Lightweight sandboxes for agentic workloads — one interface, any runtime
 
 ## Critical Context
 
@@ -8,46 +8,51 @@
 
 - Fabric uses bun as its package manager and runtime — never use npm or pnpm
 - All runtimes implement the unified Sandbox interface (exec, runCode, writeFile, readFile, snapshot, restore)
-- The local container runtime uses Apple Containerization framework (Virtualization.framework) — macOS 26+, Apple Silicon only
-- FabricContainer is a Swift 6.2 executable that provides CLI + HTTP API over Unix domain socket
-- Image references are auto-normalized: "alpine" → "docker.io/library/alpine"
+- Local containers use Apple `container` CLI (Virtualization.framework) — no Docker, no Swift binary
+- The CLI defaults to --provider local — cloud providers (daytona, e2b, exe) require API keys
+- Per-project .fabric config files define image, mounts, env, and composable profiles (minimal, node, python, bun)
 - Snapshots enable handoff between any two runtimes — capture state locally, restore in cloud
+- Image references: "alpine" → docker.io/library/alpine, "omarchy" → lopsided/archlinux
 
 ## Project Structure
 
 | Component | Path | Purpose |
 |-----------|------|---------|
+| Cli | `packages/cli/src/cli.ts` | |
 | Core | `packages/core/src/` | |
 | Runtime Local | `packages/runtime-local/src/` | |
-| Fabric Container (Swift) | `packages/runtime-local/FabricContainer/` | |
-| Runtime E2b | `packages/runtime-e2b/src/` | |
 | Runtime Daytona | `packages/runtime-daytona/src/` | |
+| Runtime E2b | `packages/runtime-e2b/src/` | |
 | Runtime Exe | `packages/runtime-exe/src/` | |
 | Server | `packages/server/src/` | |
+| Landing | `landing/` | |
 
 ## Quick Navigation
 
+- Working with **cli**? → Check packages/cli/src/cli.ts — single-file CLI with all commands
 - Working with **runtime**? → Check packages/runtime-*/src/ for provider adapters
-- Working with **container**? → Check packages/runtime-local/FabricContainer/ for Swift source and packages/runtime-local/src/index.ts for TS adapter
+- Working with **container**? → Local containers use Apple `container` CLI — see packages/runtime-local/src/index.ts
 - Working with **sandbox**? → Core Sandbox interface is in packages/core/src/index.ts
+- Working with **config**? → .fabric config parsing is in packages/cli/src/cli.ts — loadFabricConfig(), parseConfigFile(), PROFILES
 - Working with **api**? → Check packages/server/src/ for HTTP API
-- Working with **snapshot**? → Snapshot/restore is in each runtime adapter and in the FabricContainer HTTP API (/snapshot, /restore)
+- Working with **snapshot**? → Snapshot/restore is in each runtime adapter — see Sandbox interface
 - Working with **handoff**? → Sandbox.delegate() captures state, target.reclaim() restores — see runtime-local/src/index.ts
+- Working with **docs**? → Landing site in landing/, doc content inline in landing/pages/DocsPage.tsx
 
 ## Overview
 
-> Ambient compute fabric for running agentic workloads across local and cloud runtimes with a unified Sandbox interface.
+> Lightweight sandboxes for agentic workloads. One interface, any runtime.
 
 # Overview
 
-Fabric is an ambient compute framework that lets you run agentic workloads across local and cloud runtimes through a unified interface. Work starts anywhere, runs wherever it can, and context persists always.
+Fabric is a lightweight sandbox toolkit that lets you run agentic workloads across local containers and cloud runtimes through a unified interface. Start local, scale anywhere.
 
 ## What Fabric Does
 
 Fabric provides a single `Sandbox` interface that works identically across four execution environments:
 
-- **Local Container** — Apple Virtualization.framework on your Mac. No cloud, no API keys, free.
-- **Daytona** — Enterprise cloud sandboxes with tiered network policies.
+- **Local** — Apple `container` CLI on your Mac. No Docker, no API keys, free.
+- **Daytona** — Enterprise cloud sandboxes with network policies.
 - **E2B** — Sub-200ms code interpreter sandboxes.
 - **exe.dev** — Persistent VMs with SSH and pre-installed agents.
 
@@ -57,9 +62,11 @@ Every sandbox supports the same operations: `exec()`, `runCode()`, `writeFile()`
 
 **Sandbox**: An isolated execution environment. Create one, run code in it, tear it down. The interface is identical regardless of where it runs.
 
+**`.fabric` Config**: Per-project configuration file. Defines image, mounts, env vars, and composable profiles (minimal, node, python, bun).
+
 **Snapshot**: Serializable capture of workspace state (files + metadata). Enables checkpointing and cross-runtime handoff.
 
-**Handoff**: Move work between runtimes. Call `sandbox.delegate("e2b")` to capture state and stop locally, then `cloudSandbox.reclaim(token, snapshot)` to resume in the cloud.
+**Handoff**: Move work between runtimes without losing state. Snapshot locally, restore in the cloud.
 
 **Runtime**: The execution backend. Each runtime adapter implements the same interface but talks to a different infrastructure provider.
 
@@ -67,16 +74,17 @@ Every sandbox supports the same operations: `exec()`, `runCode()`, `writeFile()`
 
 ```
 packages/
+├── cli/               # CLI — fabric setup, shell, exec, init
 ├── core/              # Sandbox, Runtime, Task interfaces
-├── runtime-local/     # Apple Containerization + subprocess
-│   └── FabricContainer/  # Swift executable (Virtualization.framework)
-├── runtime-e2b/       # E2B cloud sandbox adapter
+├── runtime-local/     # Apple container CLI + subprocess
 ├── runtime-daytona/   # Daytona cloud sandbox adapter
+├── runtime-e2b/       # E2B cloud sandbox adapter
 ├── runtime-exe/       # exe.dev persistent VM adapter
-└── server/            # HTTP API
+├── server/            # HTTP API
+└── landing/           # Website and docs
 ```
 
-The local container runtime is unique — it includes a Swift executable (`fabric-container`) that wraps Apple's Containerization framework and exposes an HTTP API over a Unix domain socket. The TypeScript adapter communicates with this daemon to manage containers.
+The local container runtime uses Apple's `container` CLI (Virtualization.framework) to run lightweight Linux VMs. No Docker daemon, no Swift binary — just a Homebrew package.
 
 ## Quick Example
 
@@ -89,984 +97,259 @@ const sandbox = await factory.create({ image: "alpine:latest" })
 const result = await sandbox.exec("uname -a")
 console.log(result.stdout) // Linux ... aarch64
 
-// Handoff to cloud
-const { token, snapshot } = await sandbox.delegate("e2b")
+const snapshot = await sandbox.snapshot()
+await sandbox.stop()
+
+// Restore in cloud
+const cloudSandbox = await e2bFactory.create({})
+await cloudSandbox.restore(snapshot)
 ```
 
 ## Next Steps
 
 - [Getting Started](./getting-started.md) — Install Fabric and create your first sandbox
-- [Local Container Runtime](./local-container.md) — Apple Virtualization.framework deep dive
+- [Local Container Runtime](./local-container.md) — Apple container CLI deep dive
 - [Daytona](./daytona.md) — Enterprise cloud sandboxes
 - [E2B](./e2b.md) — Fast code interpreter sandboxes
 - [exe.dev](./exe.md) — Persistent VMs with SSH
 
 ## Getting Started
 
-> Set up Fabric and create your first sandbox across local containers, Daytona, E2B, or exe.dev.
+> Get Fabric running in under a minute.
 
-# Getting Started with Fabric
-
-Fabric is an ambient compute framework for running code and AI agents across local and cloud sandboxes. This guide will help you get up and running quickly.
-
-## Table of Contents
-
-- [Quick Start](#quick-start)
-- [Installation](#installation)
-- [Provider Setup](#provider-setup)
-  - [Daytona](#daytona)
-  - [E2B](#e2b)
-  - [exe.dev](#exedev)
-  - [Local Containers](#local-containers)
-- [Your First Sandbox](#your-first-sandbox)
-- [Running Code](#running-code)
-- [File Operations](#file-operations)
-- [Handoffs](#handoffs)
-- [Running Claude Code in Sandboxes](#running-claude-code-in-sandboxes)
-
----
+# Getting Started
 
 ## Quick Start
 
-Get a sandbox running in under 2 minutes:
+```bash
+git clone https://github.com/arach/fabric.git && cd fabric
+bun run packages/cli/src/cli.ts setup
+```
+
+This installs the Apple `container` CLI, downloads the Linux kernel, and pulls base images.
+
+## Use It
+
+### CLI
 
 ```bash
-# Install the CLI and core packages
-npm install -g fabric-ai
+fabric shell                      # interactive Linux shell
+fabric exec "echo Hello World"    # run a command
+fabric run --language typescript "console.log(2 + 2)"
+fabric list                       # list active sandboxes
+fabric stop --id <sandbox-id>
+```
 
-# Set up your provider (pick one)
-export DAYTONA_API_KEY=your_key      # Daytona
-export E2B_API_KEY=your_key          # E2B
-# or just `ssh exe.dev` for exe.dev
+### Project Config
 
-# Create and use a sandbox
+Add a `.fabric` file to your project:
+
+```bash
+fabric init node     # create config with node profile
+```
+
+```ini
+# .fabric
+profile: node
+mount: ./data:/workspace/data
+env: NODE_ENV=development
+```
+
+Available profiles: `minimal` (alpine), `node` (node:22), `python` (python:3.12), `bun` (oven/bun).
+
+### SDK
+
+```bash
+npm install fabric-ai-core fabric-ai-daytona
+```
+
+```typescript
+import { DaytonaSandboxFactory } from "fabric-ai-daytona"
+
+const factory = new DaytonaSandboxFactory({
+  apiKey: process.env.DAYTONA_API_KEY!,
+})
+
+const sandbox = await factory.create({})
+const result = await sandbox.exec("echo hello")
+console.log(result.stdout)
+await sandbox.stop()
+```
+
+Swap `fabric-ai-daytona` for `fabric-ai-e2b` or `fabric-ai-exe` — the `Sandbox` interface is identical.
+
+## Cloud Providers
+
+Set your API key and use the same interface:
+
+```bash
+export DAYTONA_API_KEY=your_key
 fabric create --provider daytona
-fabric exec "echo 'Hello from Fabric!'"
-fabric stop
+fabric exec "echo Hello from the cloud!"
 ```
 
-Or use the SDK directly:
-
-```typescript
-import { DaytonaSandboxFactory } from "fabric-ai-daytona"
-
-const factory = new DaytonaSandboxFactory({
-  apiKey: process.env.DAYTONA_API_KEY!,
-  defaultLanguage: "typescript"
-})
-
-const sandbox = await factory.create({})
-const result = await sandbox.exec("echo 'Hello from Fabric!'")
-console.log(result.stdout) // "Hello from Fabric!"
-await sandbox.stop()
-```
-
----
-
-## Installation
-
-### Option 1: CLI (Recommended for Getting Started)
-
-```bash
-# Install globally with npm
-npm install -g fabric-ai
-
-# Or with pnpm
-pnpm add -g fabric-ai
-
-# Or with bun
-bun add -g fabric-ai
-
-# Verify installation
-fabric --help
-```
-
-### Option 2: SDK Packages
-
-Install the core package and your preferred provider:
-
-```bash
-# Core (always required)
-npm install fabric-ai-core
-
-# Pick your provider(s)
-npm install fabric-ai-daytona  # Daytona cloud sandboxes
-npm install fabric-ai-e2b      # E2B cloud sandboxes
-npm install fabric-ai-exe      # exe.dev persistent VMs
-```
-
-### Option 3: From Source
-
-```bash
-# Clone the repository
-git clone https://github.com/arach/fabric.git
-cd fabric
-
-# Install dependencies with bun
-bun install
-
-# Build all packages
-bun run build
-
-# Run development server
-bun run dev
-```
-
----
-
-## Provider Setup
-
-Fabric supports multiple cloud sandbox providers. Choose based on your needs:
-
-| Provider | Best For | Auth Method | Startup Time |
-|----------|----------|-------------|--------------|
-| **Daytona** | Enterprise, TypeScript | API Key | ~2-3s |
-| **E2B** | Data science, Python | API Key | <200ms |
-| **exe.dev** | Full control, persistent VMs | SSH Key | ~2s |
-| **Local** | Development, no cloud needed | None | ~1s |
-
-### Daytona
-
-[Daytona](https://daytona.io) provides enterprise-grade cloud sandboxes with secure network policies.
-
-**1. Get your API key:**
-- Sign up at [app.daytona.io](https://app.daytona.io)
-- Navigate to Settings > API Keys
-- Create a new API key
-
-**2. Set environment variable:**
-```bash
-export DAYTONA_API_KEY=your_daytona_api_key
-```
-
-**3. Test the connection:**
-```typescript
-import { DaytonaSandboxFactory } from "fabric-ai-daytona"
-
-const factory = new DaytonaSandboxFactory({
-  apiKey: process.env.DAYTONA_API_KEY!,
-  defaultLanguage: "typescript"
-})
-
-const sandbox = await factory.create({})
-console.log(`Sandbox created: ${sandbox.id}`)
-await sandbox.stop()
-```
-
-**Supported languages:** TypeScript, Python, Go, Rust, JavaScript
-
----
-
-### E2B
-
-[E2B](https://e2b.dev) provides fast-starting code interpreter sandboxes with full internet access.
-
-**1. Get your API key:**
-- Sign up at [e2b.dev](https://e2b.dev)
-- Go to [e2b.dev/dashboard](https://e2b.dev/dashboard)
-- Copy your API key
-
-**2. Set environment variable:**
-```bash
-export E2B_API_KEY=your_e2b_api_key
-```
-
-**3. Test the connection:**
-```typescript
-import { E2BSandboxFactory } from "fabric-ai-e2b"
-
-const factory = new E2BSandboxFactory(process.env.E2B_API_KEY)
-
-const sandbox = await factory.create({})
-console.log(`Sandbox created: ${sandbox.id}`)
-await sandbox.stop()
-```
-
-**Special feature:** E2B offers a pre-built Claude Code template:
-```typescript
-import { Sandbox } from "@e2b/code-interpreter"
-
-const sandbox = await Sandbox.create("anthropic-claude-code", {
-  apiKey: process.env.E2B_API_KEY
-})
-```
-
----
-
-### exe.dev
-
-[exe.dev](https://exe.dev) provides persistent VMs with SSH access and pre-installed coding agents.
-
-**1. Set up SSH key:**
-```bash
-# Check if you have an SSH key
-ls ~/.ssh/id_ed25519 || ls ~/.ssh/id_rsa
-
-# If not, generate one
-ssh-keygen -t ed25519
-```
-
-**2. Authenticate with exe.dev:**
-```bash
-# This registers your SSH key
-ssh exe.dev
-```
-
-**3. Test the connection:**
-```typescript
-import { ExeSandboxFactory } from "fabric-ai-exe"
-
-const factory = new ExeSandboxFactory()
-
-const sandbox = await factory.create({ name: "my-first-sandbox" })
-console.log(`VM created: ${sandbox.id}.exe.xyz`)
-await sandbox.stop()
-```
-
-**Special features:**
-- Persistent disk (files survive restarts)
-- Full root access (sudo)
-- Pre-installed Claude Code, Codex, and Shelley agents
-
----
-
-### Local Containers
-
-For development without cloud dependencies, use local containers (macOS only, requires Apple Silicon).
-
-**Requirements:**
-- macOS 13.0+ (Ventura or later)
-- Apple Silicon (M1/M2/M3)
-- Xcode Command Line Tools
-
-**Setup:**
-```bash
-# Build the container runtime
-cd packages/runtime-local/FabricContainer
-swift build -c release
-```
-
-**Usage:**
-```typescript
-import { LocalContainerFactory } from "@arach/runtime-local"
-
-const factory = new LocalContainerFactory()
-const sandbox = await factory.create({
-  image: "alpine:latest"
-})
-
-await sandbox.exec("echo 'Hello from local container!'")
-await sandbox.stop()
-```
-
----
-
-## Your First Sandbox
-
-Let's create a sandbox, run some code, and clean up:
-
-```typescript
-import { DaytonaSandboxFactory } from "fabric-ai-daytona"
-
-async function main() {
-  // 1. Create a factory
-  const factory = new DaytonaSandboxFactory({
-    apiKey: process.env.DAYTONA_API_KEY!,
-    defaultLanguage: "typescript"
-  })
-
-  // 2. Create a sandbox
-  console.log("Creating sandbox...")
-  const sandbox = await factory.create({})
-  console.log(`Sandbox ID: ${sandbox.id}`)
-  console.log(`Runtime: ${sandbox.runtimeType}`)
-  console.log(`Status: ${sandbox.status}`)
-
-  // 3. Run a command
-  console.log("\nRunning command...")
-  const result = await sandbox.exec("echo 'Hello, Fabric!'")
-  console.log(`Output: ${result.stdout}`)
-  console.log(`Exit code: ${result.exitCode}`)
-
-  // 4. Clean up
-  console.log("\nStopping sandbox...")
-  await sandbox.stop()
-  console.log("Done!")
-}
-
-main().catch(console.error)
-```
-
----
-
-## Running Code
-
-### Shell Commands with `exec()`
-
-Run any shell command:
-
-```typescript
-// Simple command
-const result = await sandbox.exec("ls -la")
-console.log(result.stdout)
-
-// Check exit code
-const npmResult = await sandbox.exec("npm install express")
-if (npmResult.exitCode !== 0) {
-  console.error("Install failed:", npmResult.stderr)
-}
-
-// Chain commands
-await sandbox.exec("cd /workspace && npm init -y && npm install typescript")
-```
-
-### Code Execution with `runCode()`
-
-Execute code in the sandbox's default language:
-
-```typescript
-// TypeScript (Daytona default)
-const tsResult = await sandbox.runCode(`
-  const greeting = "Hello from TypeScript!"
-  console.log(greeting)
-  console.log("2 + 2 =", 2 + 2)
-`)
-console.log(tsResult.output)
-
-// Python (E2B default)
-const pyResult = await sandbox.runCode(`
-import math
-print(f"Pi is {math.pi}")
-print(f"Square root of 2 is {math.sqrt(2)}")
-`)
-console.log(pyResult.output)
-
-// Specify language explicitly
-const jsResult = await sandbox.runCode(`
-console.log("JavaScript works too!")
-`, "javascript")
-```
-
-### Multi-step Execution
-
-```typescript
-// Install dependencies and run
-await sandbox.exec("npm install axios")
-
-const result = await sandbox.runCode(`
-import axios from "axios"
-
-const response = await axios.get("https://api.github.com/users/anthropics")
-console.log("Anthropic GitHub profile:", response.data.name)
-console.log("Public repos:", response.data.public_repos)
-`)
-```
-
----
-
-## File Operations
-
-### Writing Files
-
-```typescript
-// Write a text file
-await sandbox.writeFile("/workspace/hello.ts", `
-export function greet(name: string): string {
-  return \`Hello, \${name}!\`
-}
-
-console.log(greet("World"))
-`)
-
-// Write JSON
-await sandbox.writeFile("/workspace/config.json", JSON.stringify({
-  name: "my-project",
-  version: "1.0.0"
-}, null, 2))
-
-// Write binary data
-const imageBuffer = Buffer.from(base64Image, "base64")
-await sandbox.writeFile("/workspace/image.png", imageBuffer)
-```
-
-### Reading Files
-
-```typescript
-// Read a text file
-const content = await sandbox.readFile("/workspace/hello.ts")
-console.log(content)
-
-// Read JSON
-const configStr = await sandbox.readFile("/workspace/config.json")
-const config = JSON.parse(configStr)
-console.log(config.name)
-```
-
-### Listing Files
-
-```typescript
-// List files in a directory
-const files = await sandbox.listFiles("/workspace")
-console.log("Files:", files)
-// ["hello.ts", "config.json", "node_modules", "package.json"]
-
-// Filter by extension
-const tsFiles = files.filter(f => f.endsWith(".ts"))
-console.log("TypeScript files:", tsFiles)
-```
-
-### Complete Example: Build a Project
-
-```typescript
-// Create a complete TypeScript project
-await sandbox.writeFile("/workspace/src/index.ts", `
-import { add } from "./math"
-
-console.log("2 + 3 =", add(2, 3))
-`)
-
-await sandbox.writeFile("/workspace/src/math.ts", `
-export function add(a: number, b: number): number {
-  return a + b
-}
-`)
-
-await sandbox.writeFile("/workspace/package.json", JSON.stringify({
-  name: "my-project",
-  scripts: {
-    build: "tsc",
-    start: "node dist/index.js"
-  }
-}, null, 2))
-
-await sandbox.writeFile("/workspace/tsconfig.json", JSON.stringify({
-  compilerOptions: {
-    target: "ES2020",
-    module: "commonjs",
-    outDir: "./dist",
-    rootDir: "./src",
-    strict: true
-  }
-}, null, 2))
-
-// Build and run
-await sandbox.exec("cd /workspace && npm install typescript")
-await sandbox.exec("cd /workspace && npm run build")
-const result = await sandbox.exec("cd /workspace && npm run start")
-console.log(result.stdout) // "2 + 3 = 5"
-```
-
----
-
-## Handoffs
-
-Transfer execution context between providers seamlessly.
-
-### Why Handoffs?
-
-- **Start local, scale to cloud**: Begin development locally, delegate heavy tasks to cloud
-- **Provider flexibility**: Switch providers without losing state
-- **Cost optimization**: Use cheaper providers for simple tasks, powerful ones for complex work
-
-### Basic Handoff
-
-```typescript
-import { Fabric } from "fabric-ai-core"
-import { DaytonaSandboxFactory } from "fabric-ai-daytona"
-import { E2BSandboxFactory } from "fabric-ai-e2b"
-
-// Set up Fabric with multiple providers
-const fabric = new Fabric()
-fabric.registerLocalFactory(new DaytonaSandboxFactory({
-  apiKey: process.env.DAYTONA_API_KEY!
-}))
-fabric.registerCloudFactory(new E2BSandboxFactory(process.env.E2B_API_KEY))
-
-// Create a session starting locally
-const session = await fabric.createSession({
-  workspacePath: "/path/to/project",
-  runtime: "local"
-})
-
-// Do some work
-await session.exec("npm install")
-await session.exec("npm test")
-
-// Delegate to cloud for heavy computation
-await session.delegateToCloud()
-await session.exec("npm run build:production") // Runs in E2B
-
-// Reclaim back to local
-await session.reclaimToLocal()
-console.log("Back to local execution!")
-
-// Clean up
-await session.stop()
-```
-
-### Manual Handoff with Snapshots
-
-```typescript
-import { DaytonaSandboxFactory } from "fabric-ai-daytona"
-import { E2BSandboxFactory } from "fabric-ai-e2b"
-
-// Start with Daytona
-const daytonaFactory = new DaytonaSandboxFactory({
-  apiKey: process.env.DAYTONA_API_KEY!
-})
-const daySandbox = await daytonaFactory.create({})
-
-// Do work
-await daySandbox.writeFile("/workspace/data.json", '{"count": 42}')
-await daySandbox.exec("echo 'Processed' >> /workspace/log.txt")
-
-// Capture state
-const snapshot = await daySandbox.snapshot()
-console.log(`Captured ${snapshot.files.length} files`)
-
-// Stop Daytona sandbox
-await daySandbox.stop()
-
-// Restore in E2B
-const e2bFactory = new E2BSandboxFactory(process.env.E2B_API_KEY)
-const e2bSandbox = await e2bFactory.create({})
-await e2bSandbox.restore(snapshot)
-
-// Continue work - files are preserved!
-const data = await e2bSandbox.readFile("/workspace/data.json")
-console.log(data) // {"count": 42}
-
-await e2bSandbox.stop()
-```
-
-### Handoff Events
-
-```typescript
-import { HandoffManager } from "fabric-ai-core"
-
-const handoff = new HandoffManager()
-handoff.registerFactory("daytona", daytonaFactory)
-handoff.registerFactory("e2b", e2bFactory)
-
-// Listen for handoff events
-handoff.on((event) => {
-  console.log(`[${event.type}] ${event.timestamp}`)
-  if (event.details) {
-    console.log("  Details:", event.details)
-  }
-})
-
-// Perform handoff
-const result = await handoff.delegate(daySandbox, "e2b")
-if (result.success) {
-  console.log("Handoff successful!")
-  console.log("New sandbox:", result.newSandbox!.id)
-}
-```
-
----
-
-## Running Claude Code in Sandboxes
-
-Run Claude Code (the AI coding agent) inside sandboxes for autonomous coding tasks.
-
-### With E2B (Pre-built Template)
-
-```typescript
-import { Sandbox } from "@e2b/code-interpreter"
-
-// Create sandbox with Claude Code pre-installed
-const sandbox = await Sandbox.create("anthropic-claude-code", {
-  apiKey: process.env.E2B_API_KEY,
-  envs: {
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!
-  }
-})
-
-// Give Claude a mission
-const mission = "Create a TypeScript function that calculates fibonacci numbers"
-
-const result = await sandbox.commands.run(
-  `echo '${mission}' | claude -p --dangerously-skip-permissions`,
-  { timeoutMs: 120_000 }
-)
-
-console.log("Claude's response:")
-console.log(result.stdout)
-
-// Check what Claude created
-const files = await sandbox.files.list("/home/user")
-console.log("Files created:", files.map(f => f.name))
-
-await sandbox.kill()
-```
-
-### With Daytona
-
-```typescript
-import { DaytonaSandboxFactory } from "fabric-ai-daytona"
-
-const factory = new DaytonaSandboxFactory({
-  apiKey: process.env.DAYTONA_API_KEY!,
-  defaultLanguage: "typescript"
-})
-
-const sandbox = await factory.create({
-  envVars: {
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!
-  }
-})
-
-// Install Claude Code
-await sandbox.exec("npm install -g @anthropic-ai/claude-code")
-
-// Run Claude
-const mission = "Build a REST API with Express"
-const result = await sandbox.exec(
-  `echo '${mission}' | claude -p --dangerously-skip-permissions`
-)
-
-console.log(result.stdout)
-await sandbox.stop()
-```
-
-### Using the Fabric SDK
-
-```typescript
-import { Fabric } from "fabric-ai-core"
-import { E2BSandboxFactory } from "fabric-ai-e2b"
-
-const fabric = new Fabric()
-fabric.registerCloudFactory(new E2BSandboxFactory(process.env.E2B_API_KEY))
-
-const session = await fabric.createSession({
-  workspacePath: "/tmp/project",
-  runtime: "cloud",
-  provider: {
-    provider: "anthropic",
-    apiKey: process.env.ANTHROPIC_API_KEY!
-  }
-})
-
-// Run Claude with automatic provider configuration
-const result = await session.runClaude("Create a hello world script", {
-  dangerouslySkipPermissions: true,
-  timeoutMs: 60_000
-})
-
-console.log(result.output)
-await session.stop()
-```
-
----
-
-## Next Steps
-
-- **[Daytona Deep Dive](./daytona.md)** - Advanced Daytona features and network policies
-- **[E2B Deep Dive](./e2b.md)** - Jupyter integration and Claude Code template
-- **[exe.dev Deep Dive](./exe.md)** - Persistent VMs and pre-installed agents
-- **[Examples](../examples/)** - Complete code samples
-
-## Resources
-
-- [API Reference](./README.md#api-reference)
-- [GitHub Repository](https://github.com/arach/fabric)
-- [Discord Community](https://discord.gg/fabric) (coming soon)
-
----
-
-## Troubleshooting
-
-### "No factory registered for runtime"
-
-Make sure you've registered the factory before creating sessions:
-
-```typescript
-const fabric = new Fabric()
-fabric.registerCloudFactory(e2bFactory) // Don't forget this!
-```
-
-### "API key not configured"
-
-Check your environment variables:
-
-```bash
-echo $DAYTONA_API_KEY
-echo $E2B_API_KEY
-```
-
-### "SSH connection failed" (exe.dev)
-
-1. Verify your SSH key exists: `ls ~/.ssh/id_ed25519`
-2. Re-authenticate: `ssh exe.dev`
-3. Check SSH agent: `ssh-add -l`
-
-### Sandbox timeout
-
-Increase the timeout for long-running operations:
-
-```typescript
-// E2B
-await sandbox.commands.run(cmd, { timeoutMs: 300_000 }) // 5 minutes
-
-// Fabric session
-await session.runClaude(prompt, { timeoutMs: 300_000 })
-```
-
-### Rate limits
-
-Configure fallback providers:
-
-```typescript
-const session = await fabric.createSession({
-  workspacePath: "/tmp/project",
-  provider: { provider: "anthropic", apiKey: process.env.ANTHROPIC_API_KEY! },
-  fallbackProviders: [
-    { provider: "bedrock", region: "us-west-2", profile: "default" },
-    { provider: "vertex", projectId: "my-project" }
-  ]
-})
-```
+| Provider | Startup | Auth | Best for |
+|----------|---------|------|----------|
+| Local | ~1s | None | Development, offline |
+| Daytona | ~2-3s | API Key | Enterprise, TypeScript |
+| E2B | <200ms | API Key | Data science, Python |
+| exe.dev | ~2s | SSH Key | Persistent VMs |
+
+## Available Images
+
+| Name | Image | Description |
+|------|-------|-------------|
+| ubuntu | ubuntu:latest | Ubuntu Linux (default) |
+| alpine | alpine:latest | Alpine Linux (minimal) |
+| omarchy / arch | lopsided/archlinux | Arch Linux (arm64) |
+| bun | oven/bun:latest | Bun runtime |
+| node | node:22 | Node.js 22 |
+| python | python:3.12 | Python 3.12 |
+
+Any OCI-compatible arm64 image works: `fabric shell --image nginx:latest`
+
+## Next steps
+
+- [Local containers](./local-container.md) — How the container runtime works
+- [Daytona guide](./daytona.md) — Network policies, multi-language support
+- [E2B guide](./e2b.md) — Pre-built Claude Code template, Jupyter
+- [exe.dev guide](./exe.md) — Persistent VMs, pre-installed agents
 
 ## Local Container Runtime
 
-> Run isolated Linux containers on macOS using Apple's Containerization framework (Virtualization.framework) — no cloud, no API keys.
+> Run isolated Linux containers on macOS using Apple's container CLI — no Docker, no API keys.
 
 # Local Container Runtime
 
-The local container runtime runs isolated Linux containers on your Mac using Apple's [Containerization framework](https://github.com/apple/containerization) (Virtualization.framework). No cloud dependency, no API keys — just native Apple Silicon performance.
+The local container runtime runs isolated Linux containers on your Mac using Apple's `container` CLI and Virtualization.framework. No Docker required — just native Apple Silicon performance.
 
 ## Requirements
 
 - macOS 26+ (Tahoe)
 - Apple Silicon (M1 or later)
-- Swift 6.2+
-- Xcode Command Line Tools
+- Apple `container` CLI (installed by `fabric setup`)
 
-## Installation
-
-No package to install — the local container runtime is built from source as a Swift executable.
+## Setup
 
 ```bash
-# Build the container runtime
-cd packages/runtime-local/FabricContainer
-swift build -c release
-
-# Verify the kernel binary exists
-ls packages/runtime-local/bin/vmlinux
+fabric setup
 ```
 
-The `vmlinux` kernel binary must be present. It's a Linux arm64 kernel used to boot lightweight VMs.
+This installs everything: the Apple `container` CLI (via Homebrew), the Linux kernel, and base images.
 
-## Architecture
+## Usage
 
-The local container runtime has two layers:
+### Interactive Shell
 
+```bash
+fabric shell                      # Ubuntu (default)
+fabric shell --image alpine       # Alpine
+fabric shell --image omarchy      # Arch Linux
+fabric shell --image python       # Python 3.12
+fabric shell --image nginx:latest # Any OCI image
 ```
-TypeScript (Bun)                      Swift
-┌──────────────────────┐    Unix     ┌──────────────────────────┐
-│ ContainerDaemonRT    │   socket   │ fabric-container serve    │
-│ LocalContainerSandbox│ ─────────▶ │ Apple Containerization    │
-│ LocalContainerFactory│            │ Virtualization.framework  │
-└──────────────────────┘            └──────────────────────────┘
-```
 
-**Swift layer** (`FabricContainer/`): Native executable wrapping Apple's Containerization framework. Provides both a CLI and an HTTP API over a Unix domain socket.
-
-**TypeScript layer** (`src/index.ts`): Three runtime classes that talk to the Swift layer:
-
-| Class | Communication | Use Case |
-|-------|--------------|----------|
-| `SubprocessRuntime` | Direct host exec | No isolation, fastest |
-| `ContainerRuntime` | Invokes binary directly | One-shot commands |
-| `ContainerDaemonRuntime` | Unix socket HTTP | Long-running containers, snapshots |
-
-## Basic Usage
+### Programmatic (SDK)
 
 ```typescript
 import { LocalContainerSandboxFactory } from "@fabric/runtime-local"
 
 const factory = new LocalContainerSandboxFactory()
+const sandbox = await factory.create({ image: "ubuntu:latest" })
 
-// Create a sandbox
-const sandbox = await factory.create({
-  image: "alpine:latest"
-})
-console.log(`Sandbox ID: ${sandbox.id}`)
+const result = await sandbox.exec("uname -a")
+console.log(result.stdout) // Linux ... aarch64
 
-// Execute shell commands
-const result = await sandbox.exec("ls -la /")
-console.log(result.stdout)
+await sandbox.writeFile("hello.ts", "console.log('hi')")
+await sandbox.exec("bun hello.ts")
 
-// Run code
-const codeResult = await sandbox.runCode(`
-  console.log("Hello from local container!")
-  console.log("Running on Apple Silicon")
-`)
-console.log(codeResult.output)
-
-// Clean up
 await sandbox.stop()
 ```
 
+## Architecture
+
+```
+┌──────────────────────────────────────┐
+│           Your Mac (Host)            │
+├──────────────────────────────────────┤
+│  Apple container CLI                 │
+│  └─ Virtualization.framework         │
+│     └─ Lightweight Linux VM          │
+│        └─ Your Container (OCI image) │
+│           Mounted: ~/project ↔ /workspace
+└──────────────────────────────────────┘
+```
+
+The `container` CLI manages everything through a privileged system daemon — networking, image pulls, VM lifecycle. No entitlements or code signing needed.
+
+### TypeScript Classes
+
+| Class | Description |
+|-------|-------------|
+| `SubprocessRuntime` | Direct host execution, no isolation |
+| `ContainerRuntime` | Shells out to `container` CLI for one-shot commands |
+| `LocalContainerSandbox` | Long-running container with `exec`, `writeFile`, `snapshot` |
+| `LocalContainerSandboxFactory` | Creates and manages sandboxes |
+
 ## Container Images
 
-Image references are auto-normalized to fully-qualified OCI references:
+| Name | Image | Description |
+|------|-------|-------------|
+| ubuntu | ubuntu:latest | Ubuntu 24.04 LTS |
+| omarchy / arch | lopsided/archlinux | Arch Linux (arm64) |
+| alpine | alpine:latest | Alpine Linux (minimal) |
+| debian | debian:latest | Debian |
+| fedora | fedora:latest | Fedora |
+| bun | oven/bun:latest | Bun runtime |
+| node | node:22 | Node.js 22 |
+| python | python:3.12 | Python 3.12 |
 
-| Input | Resolved To |
-|-------|------------|
-| `alpine` | `docker.io/library/alpine:latest` |
-| `alpine:3.19` | `docker.io/library/alpine:3.19` |
-| `oven/bun:latest` | `docker.io/oven/bun:latest` |
-| `ghcr.io/org/image:tag` | `ghcr.io/org/image:tag` (unchanged) |
-
-Default images:
-- Shell commands: `alpine:latest`
-- Code execution: `oven/bun:latest`
+Any OCI-compatible arm64 image works: `fabric shell --image myregistry/myimage:tag`
 
 ## File Operations
 
-Files are shared between host and container via mounted volumes. The workspace directory on the host is mounted to `/workspace` inside the container.
+Files are shared via mounted volumes. The workspace directory on the host is mounted to `/workspace` inside the container.
 
 ```typescript
-// Write a file (written to host, visible in container at /workspace/)
 await sandbox.writeFile("hello.ts", `
 export function greet(name: string) {
   return \`Hello, \${name}!\`
 }
 `)
 
-// Read a file
 const content = await sandbox.readFile("hello.ts")
-console.log(content)
-
-// List files
 const files = await sandbox.listFiles(".")
-console.log("Files:", files)
 ```
 
-## Snapshots
+## Snapshots and Handoff
 
 Capture and restore workspace state for handoff between runtimes:
 
 ```typescript
-// Capture snapshot (files are base64-encoded)
+// Capture snapshot
 const snapshot = await sandbox.snapshot()
-console.log(`Files captured: ${snapshot.files.length}`)
+await sandbox.stop()
 
-// Restore to a different sandbox
-const newSandbox = await factory.create({})
-await newSandbox.restore(snapshot)
-```
-
-## Handoff to Cloud
-
-Delegate work from local to a cloud provider while preserving context:
-
-```typescript
-// Capture state and stop local sandbox
-const { token, snapshot } = await sandbox.delegate("e2b")
-
-// Create cloud sandbox and restore
+// Restore to cloud sandbox
 const cloudSandbox = await e2bFactory.create({})
-await cloudSandbox.reclaim(token, snapshot)
+await cloudSandbox.restore(snapshot)
 ```
 
-## CLI Usage
+## Known Issues
 
-The `fabric-container` binary can be used directly:
-
-```bash
-# Run a one-shot command
-fabric-container run --image alpine:latest --cmd "echo hello"
-
-# Start the HTTP daemon
-fabric-container serve --socket /tmp/fabric-container.sock
-
-# Check runtime status
-fabric-container status
-
-# List running containers
-fabric-container list
-```
-
-Or use the helper script:
-
-```bash
-./scripts/run-container.sh "echo hello"
-./scripts/run-container.sh --image oven/bun:latest "bun --version"
-```
-
-## HTTP API
-
-When running as a daemon (`fabric-container serve`), the Swift server exposes these endpoints on a Unix socket:
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/status` | Runtime status and kernel info |
-| `GET` | `/list` | List running containers |
-| `POST` | `/run` | Execute a one-shot command |
-| `POST` | `/start` | Start a long-running container |
-| `POST` | `/stop/{id}` | Stop a container |
-| `POST` | `/snapshot/{id}` | Capture workspace files |
-| `POST` | `/restore/{id}` | Restore workspace files |
-
-### Example: Run via API
-
-```bash
-curl --unix-socket /tmp/fabric-container.sock \
-  -X POST http://localhost/run \
-  -H "Content-Type: application/json" \
-  -d '{"image": "alpine:latest", "command": "uname -a"}'
-```
-
-## Container Configuration
-
-The Swift runtime supports these configuration options:
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| Memory | 512 MiB | RAM allocated to the VM |
-| CPUs | 2 | Virtual CPU count |
-| Rootfs | 2 GiB | Root filesystem size |
-| Network | VmnetNetwork | Container networking via vmnet |
-
-## Kernel Lookup
-
-The `fabric-container` binary searches for the `vmlinux` kernel in this order:
-
-1. Sibling to the executable
-2. `FabricContainer/bin/vmlinux` (relative to build output)
-3. `/usr/local/share/fabric/vmlinux`
-4. `~/.fabric/vmlinux`
-
-## Troubleshooting
-
-**Binary not found**: Build it with `cd packages/runtime-local/FabricContainer && swift build -c release`
-
-**Kernel not found**: Ensure `vmlinux` exists at `packages/runtime-local/bin/vmlinux`. This is a Linux arm64 kernel required by Virtualization.framework.
-
-**First run slow**: Initial image pull downloads the OCI image and boots the VM. Subsequent runs are faster.
-
-**PTY required**: The Virtualization.framework requires a TTY. The TypeScript adapter wraps invocations with `script -q /dev/null` to provide one.
+- **Arch Linux**: The official `archlinux:latest` image has broken platform metadata for the Apple container CLI. Fabric uses `lopsided/archlinux` instead.
+- **pacman sandboxing**: Newer pacman versions use Landlock (kernel sandboxing) which the VM kernel doesn't support. Fix: `echo "DisableSandbox" >> /etc/pacman.conf`
 
 ## Comparison with Cloud Providers
 
 | Feature | Local Container | Daytona | E2B | exe.dev |
 |---------|----------------|---------|-----|---------|
-| Startup | ~2-5s (first), <1s (cached) | ~2-3s | <200ms | ~5-10s |
+| Startup | ~1s | ~2-3s | <200ms | ~5-10s |
 | API Key | None | Required | Required | SSH key |
 | Internet | Host network | Tier-based | Full | Full |
-| Persistence | Workspace dir | Session | Session | Persistent VM |
 | Cost | Free | Pay per use | Pay per use | Pay per use |
-| Platform | macOS + Apple Silicon only | Any | Any | Any |
-| Isolation | VM-level (Virtualization.framework) | Container | Container | VM |
-
-## Resources
-
-- [Apple Containerization framework](https://github.com/apple/containerization)
-- [Virtualization.framework docs](https://developer.apple.com/documentation/virtualization)
-- [Swift Package: FabricContainer](packages/runtime-local/FabricContainer/Package.swift)
+| Platform | macOS + Apple Silicon | Any | Any | Any |
+| Isolation | VM (Virtualization.framework) | Container | Container | VM |
 
 ## Daytona Runtime
 
@@ -2058,4 +1341,4 @@ try {
 - [Shelley Agent Docs](https://exe.dev/docs/shelley)
 
 ---
-Generated by [Dewey](https://github.com/arach/dewey) | Last updated: 2026-02-23
+Generated by [Dewey](https://github.com/arach/dewey) | Last updated: 2026-03-09

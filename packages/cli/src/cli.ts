@@ -6,7 +6,9 @@
  */
 
 import { parseArgs } from "node:util"
-import type { SandboxFactory, Sandbox } from "fabric-ai-core"
+import { readFileSync, existsSync } from "node:fs"
+import { resolve, dirname } from "node:path"
+import type { SandboxFactory, Sandbox, MountSpec } from "fabric-ai-core"
 
 const version = "0.1.1"
 
@@ -39,6 +41,7 @@ ${c("bold", "USAGE")}
 
 ${c("bold", "COMMANDS")}
   ${c("green", "setup")}      Set up local container runtime
+  ${c("green", "init")}       Create a .fabric config for this project
   ${c("green", "shell")}     Drop into an interactive Linux shell
   ${c("green", "create")}     Create a new sandbox
   ${c("green", "exec")}       Execute a command in a sandbox
@@ -48,7 +51,7 @@ ${c("bold", "COMMANDS")}
   ${c("green", "config")}     Manage configuration
 
 ${c("bold", "OPTIONS")}
-  ${c("yellow", "-p, --provider")}  Provider to use (daytona, e2b, exe)
+  ${c("yellow", "-p, --provider")}  Provider to use (local, daytona, e2b, exe)
   ${c("yellow", "-l, --language")}  Language for sandbox (typescript, python, go, rust)
   ${c("yellow", "--image")}         Container image (for shell command)
   ${c("yellow", "-i, --interactive")}  Interactive mode (for setup)
@@ -91,6 +94,150 @@ ${c("bold", "DOCUMENTATION")}
 ${c("bold", "GITHUB")}
   https://github.com/arach/fabric
 `
+
+// ── .fabric config ────────────────────────────────────────────────────
+
+interface FabricConfig {
+  provider?: Provider
+  image?: string
+  network?: boolean
+  mounts?: string[]
+  env?: string[]
+  profile?: string
+  cpus?: number
+  memory?: string
+}
+
+const PROFILES: Record<string, Partial<FabricConfig>> = {
+  minimal: {
+    image: "alpine:latest",
+    mounts: [".:/workspace:ro"],
+  },
+  node: {
+    image: "node:22",
+    mounts: [
+      "./src:/workspace/src:ro",
+      "./package.json:/workspace/package.json:ro",
+    ],
+  },
+  python: {
+    image: "python:3.12",
+    mounts: [
+      "./src:/workspace/src:ro",
+      "./requirements.txt:/workspace/requirements.txt:ro",
+    ],
+  },
+  bun: {
+    image: "oven/bun:latest",
+    mounts: [
+      "./src:/workspace/src:ro",
+      "./package.json:/workspace/package.json:ro",
+    ],
+  },
+}
+
+function loadFabricConfig(startDir?: string): FabricConfig | null {
+  let dir = startDir || process.cwd()
+
+  // Walk up looking for .fabric
+  for (let i = 0; i < 10; i++) {
+    const configPath = resolve(dir, ".fabric")
+    if (existsSync(configPath)) {
+      try {
+        const raw = readFileSync(configPath, "utf8")
+        const config = parseConfigFile(raw)
+
+        // If a profile is specified, merge it as base
+        if (config.profile && PROFILES[config.profile]) {
+          const profile = PROFILES[config.profile]
+          return {
+            ...profile,
+            ...config,
+            // Config mounts extend profile mounts
+            mounts: [
+              ...(profile.mounts || []),
+              ...(config.mounts || []).filter(
+                (m) => !profile.mounts?.includes(m)
+              ),
+            ],
+          }
+        }
+
+        return config
+      } catch {
+        return null
+      }
+    }
+    const parent = dirname(dir)
+    if (parent === dir) break
+    dir = parent
+  }
+  return null
+}
+
+function parseConfigFile(raw: string): FabricConfig {
+  const config: FabricConfig = {}
+
+  for (const line of raw.split("\n")) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith("#")) continue
+
+    const [key, ...rest] = trimmed.split(":")
+    const value = rest.join(":").trim()
+    if (!value) continue
+
+    switch (key.trim()) {
+      case "provider":
+        config.provider = value as Provider
+        break
+      case "image":
+        config.image = value
+        break
+      case "profile":
+        config.profile = value
+        break
+      case "network":
+        config.network = value !== "false"
+        break
+      case "cpus":
+        config.cpus = parseInt(value)
+        break
+      case "memory":
+        config.memory = value
+        break
+      case "mount":
+        config.mounts = config.mounts || []
+        config.mounts.push(value)
+        break
+      case "env":
+        config.env = config.env || []
+        config.env.push(value)
+        break
+    }
+  }
+  return config
+}
+
+function parseMounts(mountStrings: string[]): MountSpec[] {
+  return mountStrings.map((m) => {
+    const parts = m.split(":")
+    const source = resolve(process.cwd(), parts[0])
+    const destination = parts[1] || parts[0]
+    const readOnly = parts[2] === "ro"
+    return { source, destination, readOnly }
+  })
+}
+
+function parseEnvVars(envStrings: string[]): Record<string, string> {
+  const env: Record<string, string> = {}
+  for (const e of envStrings) {
+    const eqIdx = e.indexOf("=")
+    if (eqIdx > 0) {
+      env[e.slice(0, eqIdx)] = e.slice(eqIdx + 1)
+    }
+  }
+  return env
+}
 
 /**
  * Resolve a provider name to a SandboxFactory instance.
@@ -180,17 +327,24 @@ async function cmdCreate(options: {
   provider?: string
   language?: string
 }) {
-  const provider = validateProvider(options.provider || "local")
+  const config = loadFabricConfig()
+  const provider = validateProvider(options.provider || config?.provider || "local")
   const language = options.language || "typescript"
 
   console.log(c("cyan", `Creating ${provider} sandbox...`))
+  if (config) console.log(c("dim", "  Using .fabric config"))
 
   const factory = await resolveFactory(provider, { language })
-  const sandbox = await factory.create({})
+
+  const createOpts: Record<string, unknown> = {}
+  if (config?.image) createOpts.image = config.image
+  if (config?.mounts) createOpts.mounts = parseMounts(config.mounts)
+
+  const sandbox = await factory.create(createOpts)
 
   console.log(c("green", `✓ Sandbox created: ${sandbox.id}`))
   console.log(c("dim", `  Provider: ${provider}`))
-  console.log(c("dim", `  Language: ${language}`))
+  if (config?.image) console.log(c("dim", `  Image: ${config.image}`))
   console.log(c("dim", `  Status: ${sandbox.status}`))
   console.log()
   console.log(c("cyan", "Next: Run commands with"))
@@ -198,14 +352,24 @@ async function cmdCreate(options: {
 }
 
 async function cmdExec(command: string, options: { id?: string; provider?: string }) {
-  const provider = validateProvider(options.provider || "local")
+  const config = loadFabricConfig()
+  const provider = validateProvider(options.provider || config?.provider || "local")
 
   console.log(c("cyan", `Executing in ${provider} sandbox...`))
+  if (config) console.log(c("dim", "  Using .fabric config"))
   console.log(c("dim", `$ ${command}`))
   console.log()
 
   const factory = await resolveFactory(provider)
-  const sandbox = await factory.create({})
+
+  const createOpts: Record<string, unknown> = {}
+  if (config?.image) createOpts.image = config.image
+  if (config?.mounts) createOpts.mounts = parseMounts(config.mounts)
+
+  const sandbox = await factory.create(createOpts)
+
+  // Pass env vars from config
+  const env = config?.env ? parseEnvVars(config.env) : undefined
 
   let exitCode = 1
   try {
@@ -220,14 +384,21 @@ async function cmdExec(command: string, options: { id?: string; provider?: strin
 }
 
 async function cmdRun(code: string, options: { language?: string; provider?: string }) {
-  const provider = validateProvider(options.provider || "local")
+  const config = loadFabricConfig()
+  const provider = validateProvider(options.provider || config?.provider || "local")
   const language = options.language || "typescript"
 
   console.log(c("cyan", `Running ${language} code in ${provider}...`))
+  if (config) console.log(c("dim", "  Using .fabric config"))
   console.log()
 
   const factory = await resolveFactory(provider, { language })
-  const sandbox = await factory.create({})
+
+  const createOpts: Record<string, unknown> = {}
+  if (config?.image) createOpts.image = config.image
+  if (config?.mounts) createOpts.mounts = parseMounts(config.mounts)
+
+  const sandbox = await factory.create(createOpts)
 
   try {
     const result = await sandbox.runCode!(code, language)
@@ -281,6 +452,70 @@ async function cmdStop(options: { id?: string; provider?: string }) {
   console.log(c("green", `✓ Sandbox stopped: ${options.id}`))
 }
 
+// ── Init command ──────────────────────────────────────────────────────
+
+async function cmdInit(profile?: string) {
+  const configPath = resolve(process.cwd(), ".fabric")
+
+  if (existsSync(configPath)) {
+    console.log(c("yellow", "  .fabric already exists in this directory"))
+    console.log(c("dim", `  ${configPath}`))
+    return
+  }
+
+  const selectedProfile = profile && PROFILES[profile] ? profile : undefined
+
+  let content: string
+  if (selectedProfile) {
+    const prof = PROFILES[selectedProfile]
+    content = `# Fabric sandbox config\n# Profile: ${selectedProfile}\nprofile: ${selectedProfile}\n`
+    if (prof.mounts) {
+      content += `\n# Additional mounts (profile provides defaults)\n# mount: ./data:/workspace/data\n`
+    }
+    content += `\n# Override image (optional)\n# image: ${prof.image}\n`
+  } else {
+    content = `# Fabric sandbox config
+# Docs: https://fabric.arach.dev/docs/getting-started
+
+# Provider (local, daytona, e2b, exe)
+# provider: local
+
+# Container image
+image: alpine:latest
+
+# Mount host directories into the container
+# mount: ./src:/workspace/src:ro
+# mount: ./data:/workspace/data
+
+# Environment variables
+# env: NODE_ENV=development
+
+# Network access (default: true)
+# network: true
+
+# Use a preset profile (minimal, node, python, bun)
+# profile: node
+`
+  }
+
+  const { writeFileSync } = await import("fs")
+  writeFileSync(configPath, content)
+
+  console.log(c("green", `✓ Created .fabric`))
+  if (selectedProfile) {
+    console.log(c("dim", `  Profile: ${selectedProfile}`))
+  }
+  console.log(c("dim", `  ${configPath}`))
+  console.log()
+  console.log(c("cyan", "Available profiles:"))
+  for (const [name, prof] of Object.entries(PROFILES)) {
+    console.log(c("dim", `  ${name.padEnd(10)} ${prof.image}`))
+  }
+  console.log()
+  console.log(c("dim", "Usage: fabric init [profile]"))
+  console.log(c("dim", "  e.g. fabric init node"))
+}
+
 // ── Shell command ─────────────────────────────────────────────────────
 
 const SHELL_IMAGES: Record<string, { image: string; description: string }> = {
@@ -297,6 +532,7 @@ const SHELL_IMAGES: Record<string, { image: string; description: string }> = {
 
 async function cmdShell(options: { image?: string } = {}) {
   const { spawnSync } = await import("child_process")
+  const config = loadFabricConfig()
 
   // Check container CLI is available
   const check = spawnSync("container", ["--version"], { stdio: "pipe" })
@@ -306,32 +542,54 @@ async function cmdShell(options: { image?: string } = {}) {
     process.exit(1)
   }
 
-  // Resolve image name
+  // Resolve image: CLI flag > .fabric config > default
+  const imageName = options.image || config?.image
   let image: string
   let label: string
 
-  if (!options.image || options.image === "ubuntu") {
+  if (!imageName || imageName === "ubuntu") {
     image = SHELL_IMAGES.ubuntu.image
     label = SHELL_IMAGES.ubuntu.description
-  } else if (SHELL_IMAGES[options.image]) {
-    image = SHELL_IMAGES[options.image].image
-    label = SHELL_IMAGES[options.image].description
+  } else if (SHELL_IMAGES[imageName]) {
+    image = SHELL_IMAGES[imageName].image
+    label = SHELL_IMAGES[imageName].description
   } else {
-    // Treat as a raw image reference
-    image = options.image
-    label = options.image
+    image = imageName
+    label = imageName
   }
 
   console.log(c("cyan", `Launching ${label}...`))
   console.log(c("dim", `Image: ${image}`))
+  if (config) console.log(c("dim", "  Using .fabric config"))
   console.log(c("dim", "Exit with: exit or Ctrl+D"))
   console.log()
 
-  // Run interactively — inherits stdio so user gets a live shell
-  const result = spawnSync("container", ["run", "--rm", "-it", image, "sh", "-c",
-    // Try bash first, fall back to sh
+  // Build container args
+  const containerArgs = ["run", "--rm", "-it"]
+
+  // Add mounts from config
+  if (config?.mounts) {
+    for (const mount of parseMounts(config.mounts)) {
+      const mountStr = mount.readOnly
+        ? `${mount.source}:${mount.destination}:ro`
+        : `${mount.source}:${mount.destination}`
+      containerArgs.push("-v", mountStr)
+    }
+  }
+
+  // Add env from config
+  if (config?.env) {
+    for (const e of config.env) {
+      containerArgs.push("-e", e)
+    }
+  }
+
+  containerArgs.push(image, "sh", "-c",
     "if command -v bash >/dev/null 2>&1; then exec bash; else exec sh; fi"
-  ], {
+  )
+
+  // Run interactively — inherits stdio so user gets a live shell
+  const result = spawnSync("container", containerArgs, {
     stdio: "inherit",
   })
 
@@ -759,6 +1017,10 @@ async function main() {
 
     case "shell":
       await cmdShell({ image: values.image })
+      break
+
+    case "init":
+      await cmdInit(args[0])
       break
 
     case "setup":

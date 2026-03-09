@@ -6,41 +6,43 @@ order: 2
 
 # Getting Started
 
-## Install
+## Quick Start
 
 ```bash
-npm install -g fabric-ai
+git clone https://github.com/arach/fabric.git && cd fabric
+bun run packages/cli/src/cli.ts setup
 ```
 
-## Set up a provider
+This installs the Apple `container` CLI, downloads the Linux kernel, and pulls base images.
 
-Pick one and set the env var:
-
-```bash
-export DAYTONA_API_KEY=your_key    # from app.daytona.io
-# or
-export E2B_API_KEY=your_key        # from e2b.dev/dashboard
-# or
-ssh exe.dev                        # registers your SSH key
-```
-
-Check your config:
-
-```bash
-fabric config
-```
-
-## Use it
+## Use It
 
 ### CLI
 
 ```bash
-fabric create --provider daytona
-fabric exec "echo hello"
-fabric run --language python "print(2 + 2)"
-fabric list
+fabric shell                      # interactive Linux shell
+fabric exec "echo Hello World"    # run a command
+fabric run --language typescript "console.log(2 + 2)"
+fabric list                       # list active sandboxes
 fabric stop --id <sandbox-id>
 ```
+
+### Project Config
+
+Add a `.fabric` file to your project:
+
+```bash
+fabric init node     # create config with node profile
+```
+
+```ini
+# .fabric
+profile: node
+mount: ./data:/workspace/data
+env: NODE_ENV=development
+```
+
+Available profiles: `minimal` (alpine), `node` (node:22), `python` (python:3.12), `bun` (oven/bun).
 
 ### SDK
 
@@ -56,33 +58,46 @@ const factory = new DaytonaSandboxFactory({
 })
 
 const sandbox = await factory.create({})
-
 const result = await sandbox.exec("echo hello")
 console.log(result.stdout)
-
 await sandbox.stop()
 ```
 
 Swap `fabric-ai-daytona` for `fabric-ai-e2b` or `fabric-ai-exe` — the `Sandbox` interface is identical.
 
-## Run Claude Code in a sandbox
+## Cloud Providers
 
-```typescript
-const sandbox = await factory.create({})
+Set your API key and use the same interface:
 
-await sandbox.exec("npm install -g @anthropic-ai/claude-code")
-
-const result = await sandbox.exec(
-  `ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY} echo 'Build a REST API' | claude -p --dangerously-skip-permissions`
-)
-
-console.log(result.stdout)
-await sandbox.stop()
+```bash
+export DAYTONA_API_KEY=your_key
+fabric create --provider daytona
+fabric exec "echo Hello from the cloud!"
 ```
+
+| Provider | Startup | Auth | Best for |
+|----------|---------|------|----------|
+| Local | ~1s | None | Development, offline |
+| Daytona | ~2-3s | API Key | Enterprise, TypeScript |
+| E2B | <200ms | API Key | Data science, Python |
+| exe.dev | ~2s | SSH Key | Persistent VMs |
+
+## Available Images
+
+| Name | Image | Description |
+|------|-------|-------------|
+| ubuntu | ubuntu:latest | Ubuntu Linux (default) |
+| alpine | alpine:latest | Alpine Linux (minimal) |
+| omarchy / arch | lopsided/archlinux | Arch Linux (arm64) |
+| bun | oven/bun:latest | Bun runtime |
+| node | node:22 | Node.js 22 |
+| python | python:3.12 | Python 3.12 |
+
+Any OCI-compatible arm64 image works: `fabric shell --image nginx:latest`
 
 ## Next steps
 
-- [Daytona guide](./daytona.md) — network policies, multi-language support
-- [E2B guide](./e2b.md) — pre-built Claude Code template, Jupyter
-- [exe.dev guide](./exe.md) — persistent VMs, pre-installed agents
-- [Local containers](./local-container.md) — Apple Virtualization.framework, no cloud needed
+- [Local containers](./local-container.md) — How the container runtime works
+- [Daytona guide](./daytona.md) — Network policies, multi-language support
+- [E2B guide](./e2b.md) — Pre-built Claude Code template, Jupyter
+- [exe.dev guide](./exe.md) — Persistent VMs, pre-installed agents

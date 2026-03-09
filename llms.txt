@@ -1,6 +1,6 @@
 # fabric
 
-> Ambient compute fabric — run agentic workloads across local and cloud runtimes
+> Lightweight sandboxes for agentic workloads — one interface, any runtime
 
 ## Documentation
 
@@ -13,15 +13,18 @@
 
 ## Overview
 
-Fabric is an ambient compute framework that lets you run agentic workloads across local and cloud runtimes through a unified interface. Work starts anywhere, runs wherever it can, and context persists always.
+Fabric is a lightweight sandbox toolkit that lets you run agentic workloads across local containers and cloud runtimes through a unified interface. Start local, scale anywhere.
 
 ## Getting Started
 
-Fabric is an ambient compute framework for running code and AI agents across local and cloud sandboxes. This guide will help you get up and running quickly.
+```bash
+git clone https://github.com/arach/fabric.git && cd fabric
+bun run packages/cli/src/cli.ts setup
+```
 
 ## Local Container Runtime
 
-The local container runtime runs isolated Linux containers on your Mac using Apple's [Containerization framework](https://github.com/apple/containerization) (Virtualization.framework). No cloud dependency, no API keys — just native Apple Silicon performance.
+The local container runtime runs isolated Linux containers on your Mac using Apple's `container` CLI and Virtualization.framework. No Docker required — just native Apple Silicon performance.
 
 ## Daytona Runtime
 

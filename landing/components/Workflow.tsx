@@ -50,6 +50,10 @@ export const Workflow: React.FC = () => {
                         <Check size={12} className="text-purple-400 mt-0.5 flex-shrink-0" />
                         <span>Volume mounts, env vars, working directories</span>
                       </li>
+                      <li className="flex items-start gap-2">
+                        <Check size={12} className="text-purple-400 mt-0.5 flex-shrink-0" />
+                        <span>Per-project <code className="text-purple-300 text-[10px]">.fabric</code> config with composable profiles</span>
+                      </li>
                     </ul>
                   </div>
                 </div>
