@@ -1,0 +1,27 @@
+{
+  "name": "fabric",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "prebuild": "node scripts/generate-og.js",
+    "build": "astro build",
+    "og:generate": "node scripts/generate-og.js",
+    "postbuild": "npx -y pagefind --site dist",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@arach/arc": "link:/Users/arach/dev/arc/packages/arc",
+    "@astrojs/react": "^4.4.2",
+    "@tailwindcss/vite": "^4.1.0",
+    "astro": "^5.2.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwindcss": "^4.1.0"
+  },
+  "devDependencies": {
+    "satori": "^0.25.0",
+    "sharp": "^0.34.5"
+  }
+}

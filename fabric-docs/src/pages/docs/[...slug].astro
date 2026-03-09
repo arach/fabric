@@ -1,0 +1,153 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro'
+import ProviderCards from '../../components/ProviderCards.astro'
+import AdapterDiagram from '../../components/AdapterDiagram.astro'
+import ContextLayerDiagram from '../../components/ContextLayerDiagram.astro'
+
+export async function getStaticPaths() {
+  const markdownFiles = import.meta.glob('../../../docs/**/*.md')
+
+  const entries = Object.entries(markdownFiles).filter(([filePath]) => {
+    if (filePath.endsWith('.agent.md')) return false
+    return true
+  })
+
+  return Promise.all(
+    entries.map(async ([filePath, loader]) => {
+      const page = await loader()
+      const slug = filePath.split('/docs/')[1].replace(/\.md$/, '')
+
+      return {
+        params: { slug },
+        props: { page, filePath },
+      }
+    }),
+  )
+}
+
+const { page, filePath } = Astro.props
+const { Content, frontmatter } = page
+const headings = (await page.getHeadings?.()) ?? page.headings ?? []
+const slug = Astro.params.slug || 'overview'
+const fileName = slug.split('/').pop() ?? 'Docs'
+const fallbackTitle = fileName
+  .split('-')
+  .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+  .join(' ')
+const title = frontmatter?.title ?? fallbackTitle
+const description = frontmatter?.description
+const isGettingStarted = slug === 'getting-started'
+const isArchitecture = slug === 'architecture'
+const isPhilosophy = slug === 'philosophy'
+
+const rawMarkdownFiles = import.meta.glob('../../../docs/**/*.md', {
+  query: '?raw',
+  import: 'default',
+})
+const agentMarkdownFiles = import.meta.glob('../../../docs/**/*.agent.md', {
+  query: '?raw',
+  import: 'default',
+})
+
+const rawLoader = rawMarkdownFiles[filePath]
+const rawMarkdown = rawLoader ? await rawLoader() : ''
+
+const agentFilePath = filePath.replace(/\.md$/, '.agent.md')
+const agentLoader = agentMarkdownFiles[agentFilePath]
+const agentMarkdown = agentLoader ? await agentLoader() : ''
+---
+
+<DocsLayout title={title} headings={headings} description={description} rawMarkdown={rawMarkdown} agentMarkdown={agentMarkdown} ogSlug={slug}>
+  <Content />
+  {isArchitecture && <div style="display:none"><AdapterDiagram /></div>}
+  {isPhilosophy && <div style="display:none"><ContextLayerDiagram /></div>}
+  {isGettingStarted && <ProviderCards />}
+</DocsLayout>
+
+{isGettingStarted && (
+  <script is:inline>
+    // Replace the provider comparison table with rich ProviderCards component
+    ;(function() {
+      var cards = document.querySelector('.provider-cards')
+      if (!cards) return
+      // Find the "Scale to the Cloud" heading
+      var headings = document.querySelectorAll('.doc-content h2')
+      var scaleHeading = null
+      headings.forEach(function(h) {
+        if (h.textContent.trim() === 'Scale to the Cloud') scaleHeading = h
+      })
+      if (!scaleHeading) return
+      // Walk forward to find the table
+      var el = scaleHeading.nextElementSibling
+      while (el && el.tagName !== 'TABLE' && el.tagName !== 'H2') {
+        el = el.nextElementSibling
+      }
+      if (el && el.tagName === 'TABLE') {
+        el.after(cards)
+        el.remove()
+      }
+      // Remove the "Cloud providers" h3 and its code block (now redundant with cards)
+      var h3s = document.querySelectorAll('.doc-content h3')
+      h3s.forEach(function(h3) {
+        if (h3.textContent.trim() === 'Cloud providers') {
+          var toRemove = [h3]
+          var next = h3.nextElementSibling
+          while (next && next.tagName !== 'H2' && next.tagName !== 'H3') {
+            toRemove.push(next)
+            next = next.nextElementSibling
+          }
+          toRemove.forEach(function(el) { el.remove() })
+        }
+      })
+    })()
+  </script>
+)}
+
+{isPhilosophy && (
+  <script is:inline>
+    // Replace the ASCII context layer diagram with the Arc diagram
+    ;(function check() {
+      var diagram = document.getElementById('context-layer-diagram')
+      if (!diagram) return setTimeout(check, 50)
+      var headings = document.querySelectorAll('.doc-content h2')
+      var approachHeading = null
+      headings.forEach(function(h) {
+        if (h.textContent.trim() === 'Our Approach') approachHeading = h
+      })
+      if (!approachHeading) return
+      var descP = approachHeading.nextElementSibling
+      if (descP && descP.tagName === 'P') {
+        var codeBlock = descP.nextElementSibling
+        if (codeBlock && (codeBlock.tagName === 'PRE' || codeBlock.querySelector('pre'))) {
+          codeBlock.replaceWith(diagram)
+        }
+      }
+    })()
+  </script>
+)}
+
+{isArchitecture && (
+  <script is:inline>
+    // Replace the ASCII adapter diagram with the Arc diagram
+    ;(function check() {
+      var diagram = document.getElementById('adapter-arc-diagram')
+      if (!diagram) return setTimeout(check, 50)
+      // Find the "Runtime Adapter Pattern" heading
+      var headings = document.querySelectorAll('.doc-content h2')
+      var adapterHeading = null
+      headings.forEach(function(h) {
+        if (h.textContent.trim() === 'Runtime Adapter Pattern') adapterHeading = h
+      })
+      if (!adapterHeading) return
+      // Find the description paragraph after the heading
+      var descP = adapterHeading.nextElementSibling
+      if (descP && descP.tagName === 'P') {
+        // Find the code block after the paragraph
+        var codeBlock = descP.nextElementSibling
+        if (codeBlock && (codeBlock.tagName === 'PRE' || codeBlock.querySelector('pre'))) {
+          codeBlock.replaceWith(diagram)
+        }
+      }
+    })()
+  </script>
+)}

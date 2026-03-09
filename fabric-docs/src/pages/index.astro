@@ -1,0 +1,90 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro'
+import OverviewDiagram from '../components/OverviewDiagram.astro'
+
+const sections = [
+  {
+    title: 'Overview',
+    href: '/docs/overview',
+    description: 'What Fabric is, how it works, and why it exists.',
+  },
+  {
+    title: 'Getting Started',
+    href: '/docs/getting-started',
+    description: 'Get a sandbox running in under 2 minutes.',
+  },
+  {
+    title: 'Philosophy',
+    href: '/docs/philosophy',
+    description: 'Why Fabric exists and the design principles behind it.',
+  },
+  {
+    title: 'Architecture',
+    href: '/docs/architecture',
+    description: 'Project structure, runtime adapters, and how components connect.',
+  },
+  {
+    title: 'API Reference',
+    href: '/docs/api',
+    description: 'TypeScript interfaces for the Fabric SDK.',
+  },
+  {
+    title: 'Skills',
+    href: '/docs/skill',
+    description: 'Pre-built skills for AI agents working with Fabric.',
+  },
+  {
+    title: 'Runtimes',
+    items: [
+      { title: 'Local Container', href: '/docs/local-container' },
+      { title: 'Daytona', href: '/docs/daytona' },
+      { title: 'E2B', href: '/docs/e2b' },
+      { title: 'exe.dev', href: '/docs/exe' },
+    ],
+  },
+]
+---
+
+<DocsLayout title="Fabric" headings={[]} rawMarkdown="" agentMarkdown="" ogSlug="index" description="Lightweight sandboxes for agentic workloads — one interface, any runtime">
+  <div class="space-y-8">
+    <div>
+      <p class="text-[var(--color-text-muted)] text-sm leading-relaxed" style="margin-top: 0;">
+        Fabric gives your AI agents lightweight, isolated sandboxes to run code in.
+        One interface, any runtime — local containers, Daytona, E2B, exe.dev, or your own.
+      </p>
+    </div>
+
+    <OverviewDiagram />
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+      {sections.map((section) => (
+        'items' in section ? (
+          <div class="rounded-lg border border-[var(--color-border)] p-5 text-sm">
+            <span class="font-medium text-[var(--color-text)]">{section.title}</span>
+            <div class="mt-3 space-y-1.5">
+              {section.items.map((item) => (
+                <a
+                  href={item.href}
+                  class="group flex items-center gap-1 text-xs text-[var(--color-text-muted)] no-underline hover:text-[var(--color-text)]"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-40"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  {item.title}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <a
+            href={section.href}
+            class="group block rounded-lg border border-[var(--color-border)] p-5 text-sm no-underline transition hover:border-[var(--color-text-muted)] hover:bg-[var(--color-surface)]"
+          >
+            <span class="font-medium text-[var(--color-text)]">{section.title}</span>
+            {section.description && (
+              <span class="mt-1.5 block text-xs text-[var(--color-text-muted)] leading-relaxed">{section.description}</span>
+            )}
+          </a>
+        )
+      ))}
+    </div>
+  </div>
+</DocsLayout>

@@ -1,0 +1,73 @@
+{
+  "name": "fabric",
+  "groups": [
+    {
+      "id": "guides",
+      "title": "Guides",
+      "items": [
+        {
+          "id": "overview",
+          "title": "Overview",
+          "description": "Lightweight sandboxes for agentic workloads. One interface, any runtime."
+        },
+        {
+          "id": "getting-started",
+          "title": "Getting Started",
+          "description": "Get a sandbox running in under 2 minutes."
+        },
+        {
+          "id": "philosophy",
+          "title": "Philosophy",
+          "description": "Why Fabric exists and the design principles behind it."
+        },
+        {
+          "id": "architecture",
+          "title": "Architecture",
+          "description": "Project structure, runtime adapters, and how components connect."
+        }
+      ]
+    },
+    {
+      "id": "runtimes",
+      "title": "Runtimes",
+      "items": [
+        {
+          "id": "local-container",
+          "title": "Local Container",
+          "description": "Run isolated Linux containers on macOS using Apple's container CLI."
+        },
+        {
+          "id": "daytona",
+          "title": "Daytona",
+          "description": "Enterprise cloud sandboxes with secure network policies."
+        },
+        {
+          "id": "e2b",
+          "title": "E2B",
+          "description": "Fast-starting code interpreter sandboxes with sub-200ms startup."
+        },
+        {
+          "id": "exe",
+          "title": "exe.dev",
+          "description": "Persistent VMs with SSH access and pre-installed agents."
+        }
+      ]
+    },
+    {
+      "id": "reference",
+      "title": "Reference",
+      "items": [
+        {
+          "id": "api",
+          "title": "API Reference",
+          "description": "TypeScript interfaces for the Fabric SDK."
+        },
+        {
+          "id": "skill",
+          "title": "Skills",
+          "description": "Pre-built skills for AI agents working with Fabric."
+        }
+      ]
+    }
+  ]
+}

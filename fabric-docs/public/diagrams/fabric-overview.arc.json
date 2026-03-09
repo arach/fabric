@@ -1,0 +1,66 @@
+{
+  "layout": { "width": 820, "height": 420 },
+  "nodes": {
+    "agent":    { "x": 50,  "y": 160, "size": "l" },
+    "fabric":   { "x": 310, "y": 160, "size": "l" },
+    "local":    { "x": 590, "y": 30,  "size": "m" },
+    "daytona":  { "x": 590, "y": 130, "size": "m" },
+    "e2b":      { "x": 590, "y": 230, "size": "m" },
+    "exe":      { "x": 590, "y": 330, "size": "m" }
+  },
+  "nodeData": {
+    "agent": {
+      "icon": "Terminal",
+      "name": "Your Code",
+      "subtitle": "CLI or SDK",
+      "description": "Agent, script, or interactive shell",
+      "color": "violet"
+    },
+    "fabric": {
+      "icon": "Layers",
+      "name": "Fabric",
+      "subtitle": "One Interface",
+      "description": "exec · runCode · snapshot · restore",
+      "color": "emerald"
+    },
+    "local": {
+      "icon": "Monitor",
+      "name": "Local",
+      "subtitle": "Apple VM",
+      "description": "~1s · Free · Offline",
+      "color": "blue"
+    },
+    "daytona": {
+      "icon": "Cloud",
+      "name": "Daytona",
+      "subtitle": "Enterprise",
+      "description": "~2-3s · Network policies",
+      "color": "emerald"
+    },
+    "e2b": {
+      "icon": "Zap",
+      "name": "E2B",
+      "subtitle": "Fast sandbox",
+      "description": "<200ms · Jupyter",
+      "color": "amber"
+    },
+    "exe": {
+      "icon": "Server",
+      "name": "exe.dev",
+      "subtitle": "Persistent VM",
+      "description": "SSH · Full root",
+      "color": "sky"
+    }
+  },
+  "connectors": [
+    { "from": "agent",  "to": "fabric",  "fromAnchor": "right",    "toAnchor": "left",      "style": "api" },
+    { "from": "fabric", "to": "local",   "fromAnchor": "right",    "toAnchor": "left",      "style": "runtime", "curve": "natural" },
+    { "from": "fabric", "to": "daytona", "fromAnchor": "right",    "toAnchor": "left",      "style": "runtime", "curve": "natural" },
+    { "from": "fabric", "to": "e2b",     "fromAnchor": "right",    "toAnchor": "left",      "style": "runtime", "curve": "natural" },
+    { "from": "fabric", "to": "exe",     "fromAnchor": "right",    "toAnchor": "left",      "style": "runtime", "curve": "natural" }
+  ],
+  "connectorStyles": {
+    "api":     { "color": "violet",  "strokeWidth": 2.5, "label": "same API" },
+    "runtime": { "color": "emerald", "strokeWidth": 1.5, "dashed": true }
+  }
+}
