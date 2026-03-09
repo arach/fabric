@@ -12,7 +12,7 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@arach/arc": "link:/Users/arach/dev/arc/packages/arc",
+    "@arach/arc": "^0.3.1",
     "@astrojs/react": "^4.4.2",
     "@tailwindcss/vite": "^4.1.0",
     "astro": "^5.2.0",
