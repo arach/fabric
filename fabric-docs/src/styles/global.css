@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@source "../../node_modules/@arach/arc/dist";
+@source "../../node_modules/@arach/arc/lib";
 @import "./tokens.css";
 @import "./base.css";
 @import "./markdown.css";

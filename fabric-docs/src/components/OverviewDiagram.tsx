@@ -73,10 +73,10 @@ export default function OverviewDiagramReact() {
     <div id="overview-arc-diagram" style={{ margin: '12px -24px 36px' }}>
       {/* Render both modes, toggle visibility with CSS based on data-theme */}
       <div className="arc-light-diagram">
-        <ArcDiagram data={diagram} mode="light" interactive={true} />
+        <ArcDiagram data={diagram} mode="light" interactive={false} />
       </div>
       <div className="arc-dark-diagram" style={{ display: 'none' }}>
-        <ArcDiagram data={diagram} mode="dark" interactive={true} />
+        <ArcDiagram data={diagram} mode="dark" interactive={false} />
       </div>
     </div>
   )
