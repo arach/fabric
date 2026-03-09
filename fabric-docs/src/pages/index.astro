@@ -2,44 +2,46 @@
 import DocsLayout from '../layouts/DocsLayout.astro'
 import OverviewDiagram from '../components/OverviewDiagram.astro'
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 const sections = [
   {
     title: 'Overview',
-    href: '/docs/overview',
+    href: base + '/overview',
     description: 'What Fabric is, how it works, and why it exists.',
   },
   {
     title: 'Getting Started',
-    href: '/docs/getting-started',
+    href: base + '/getting-started',
     description: 'Get a sandbox running in under 2 minutes.',
   },
   {
     title: 'Philosophy',
-    href: '/docs/philosophy',
+    href: base + '/philosophy',
     description: 'Why Fabric exists and the design principles behind it.',
   },
   {
     title: 'Architecture',
-    href: '/docs/architecture',
+    href: base + '/architecture',
     description: 'Project structure, runtime adapters, and how components connect.',
   },
   {
     title: 'API Reference',
-    href: '/docs/api',
+    href: base + '/api',
     description: 'TypeScript interfaces for the Fabric SDK.',
   },
   {
     title: 'Skills',
-    href: '/docs/skill',
+    href: base + '/skill',
     description: 'Pre-built skills for AI agents working with Fabric.',
   },
   {
     title: 'Runtimes',
     items: [
-      { title: 'Local Container', href: '/docs/local-container' },
-      { title: 'Daytona', href: '/docs/daytona' },
-      { title: 'E2B', href: '/docs/e2b' },
-      { title: 'exe.dev', href: '/docs/exe' },
+      { title: 'Local Container', href: base + '/local-container' },
+      { title: 'Daytona', href: base + '/daytona' },
+      { title: 'E2B', href: base + '/e2b' },
+      { title: 'exe.dev', href: base + '/exe' },
     ],
   },
 ]

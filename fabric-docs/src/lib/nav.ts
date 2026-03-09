@@ -1,5 +1,7 @@
 import docsJson from '../../docs.json'
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 export type NavItem = {
   title: string
   href: string
@@ -16,6 +18,6 @@ export const navGroups: NavGroup[] = (docsJson as any).groups.map((group: any) =
   title: group.title,
   items: group.items.map((item: any) => ({
     title: item.title,
-    href: '/docs/' + item.id,
+    href: base + '/' + item.id,
   })),
 }))

@@ -3,6 +3,7 @@ import tailwind from '@tailwindcss/vite'
 import react from '@astrojs/react'
 
 export default defineConfig({
+  base: '/docs',
   integrations: [react()],
   markdown: {
     shikiConfig: {

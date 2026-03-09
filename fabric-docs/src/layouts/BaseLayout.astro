@@ -2,13 +2,14 @@
 import '../styles/global.css'
 
 const { title = 'Docs', description, ogSlug } = Astro.props
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const ogImage = ogSlug ? `/og/${ogSlug}.png` : '/og/index.png'
 const pageTitle = `${title} - fabric`
 const pageDescription = description || 'Lightweight sandboxes for agentic workloads — one interface, any runtime'
 const siteUrl = 'https://fabric.arach.dev'
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" data-base={base}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -32,7 +33,7 @@ const siteUrl = 'https://fabric.arach.dev'
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+    <link rel="stylesheet" href={`${base}/pagefind/pagefind-ui.css`} />
     <script is:inline>
       ;(function () {
         try {
@@ -326,7 +327,7 @@ const siteUrl = 'https://fabric.arach.dev'
                   return
                 }
                 var script = document.createElement('script')
-                script.src = '/pagefind/pagefind-ui.js'
+                script.src = (document.documentElement.dataset.base || '') + '/pagefind/pagefind-ui.js'
                 script.async = true
                 script.dataset.pagefind = 'true'
                 script.addEventListener('load', function () { resolve(true) })

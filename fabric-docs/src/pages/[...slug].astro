@@ -1,11 +1,11 @@
 ---
-import DocsLayout from '../../layouts/DocsLayout.astro'
-import ProviderCards from '../../components/ProviderCards.astro'
-import AdapterDiagram from '../../components/AdapterDiagram.astro'
-import ContextLayerDiagram from '../../components/ContextLayerDiagram.astro'
+import DocsLayout from '../layouts/DocsLayout.astro'
+import ProviderCards from '../components/ProviderCards.astro'
+import AdapterDiagram from '../components/AdapterDiagram.astro'
+import ContextLayerDiagram from '../components/ContextLayerDiagram.astro'
 
 export async function getStaticPaths() {
-  const markdownFiles = import.meta.glob('../../../docs/**/*.md')
+  const markdownFiles = import.meta.glob('../../docs/**/*.md')
 
   const entries = Object.entries(markdownFiles).filter(([filePath]) => {
     if (filePath.endsWith('.agent.md')) return false
@@ -40,11 +40,11 @@ const isGettingStarted = slug === 'getting-started'
 const isArchitecture = slug === 'architecture'
 const isPhilosophy = slug === 'philosophy'
 
-const rawMarkdownFiles = import.meta.glob('../../../docs/**/*.md', {
+const rawMarkdownFiles = import.meta.glob('../../docs/**/*.md', {
   query: '?raw',
   import: 'default',
 })
-const agentMarkdownFiles = import.meta.glob('../../../docs/**/*.agent.md', {
+const agentMarkdownFiles = import.meta.glob('../../docs/**/*.agent.md', {
   query: '?raw',
   import: 'default',
 })

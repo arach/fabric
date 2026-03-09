@@ -1,5 +1,6 @@
 ---
 // Rich provider cards matching the live site treatment
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 ---
 
 <div class="provider-cards">
@@ -10,7 +11,7 @@
         <span class="provider-card-name provider-card-name--local">Local</span>
         <span class="provider-card-tagline">Development, offline, no cloud costs</span>
       </div>
-      <a href="/docs/local-container" class="provider-card-link">Setup guide →</a>
+      <a href={`${base}/local-container`} class="provider-card-link">Setup guide →</a>
     </div>
     <ul class="provider-card-features">
       <li>Apple Virtualization.framework</li>

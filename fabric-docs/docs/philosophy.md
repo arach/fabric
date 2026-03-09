@@ -91,7 +91,7 @@ For local development, Fabric uses Apple's Virtualization.framework to run Linux
 - **Full Linux** - Real kernel, real filesystem, real networking
 - **Fast startup** - Containers boot in ~1 second
 
-Learn more in our [Local Containers](/docs/local-container) guide.
+Learn more in our [Local Containers](/local-container) guide.
 
 ## The Handoff Pattern
 

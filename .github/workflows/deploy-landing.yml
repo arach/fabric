@@ -1,10 +1,11 @@
-name: Deploy Landing Page
+name: Deploy Site
 
 on:
   push:
     branches: [master]
     paths:
       - 'landing/**'
+      - 'fabric-docs/**'
       - '.github/workflows/deploy-landing.yml'
   workflow_dispatch:
 
@@ -29,16 +30,33 @@ jobs:
           cache: npm
           cache-dependency-path: landing/package-lock.json
 
-      - name: Install dependencies
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # Build landing page
+      - name: Install landing dependencies
         working-directory: landing
         run: npm ci
 
-      - name: Build
+      - name: Build landing
         working-directory: landing
         run: npm run build
 
-      - name: Copy CNAME to dist
-        run: cp landing/CNAME landing/dist/
+      # Build docs site
+      - name: Install docs dependencies
+        working-directory: fabric-docs
+        run: pnpm install --frozen-lockfile
+
+      - name: Build docs
+        working-directory: fabric-docs
+        run: pnpm run build
+
+      # Merge into single artifact
+      - name: Merge landing + docs
+        run: |
+          cp -r fabric-docs/dist landing/dist/docs
+          cp landing/CNAME landing/dist/
 
       - uses: actions/configure-pages@v4
 
