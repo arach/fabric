@@ -56,15 +56,12 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       # Tag-triggered publish (publishes CLI + core)
-      - name: Set CLI version (from tag)
+      - name: Set versions (from tag)
         if: startsWith(github.ref, 'refs/tags/v')
-        working-directory: packages/cli
-        run: npm version ${{ steps.tag_version.outputs.VERSION }} --no-git-tag-version --allow-same-version
-
-      - name: Set core version (from tag)
-        if: startsWith(github.ref, 'refs/tags/v')
-        working-directory: packages/core
-        run: npm version ${{ steps.tag_version.outputs.VERSION }} --no-git-tag-version --allow-same-version
+        run: |
+          VERSION=${{ steps.tag_version.outputs.VERSION }}
+          node -e "const f='packages/cli/package.json';const p=JSON.parse(require('fs').readFileSync(f));p.version='$VERSION';require('fs').writeFileSync(f,JSON.stringify(p,null,2)+'\n')"
+          node -e "const f='packages/core/package.json';const p=JSON.parse(require('fs').readFileSync(f));p.version='$VERSION';require('fs').writeFileSync(f,JSON.stringify(p,null,2)+'\n')"
 
       - name: Publish CLI (tag)
         if: startsWith(github.ref, 'refs/tags/v')
