@@ -35,30 +35,6 @@ const routes = [
     description: 'Run Claude agents in persistent exe.dev Ubuntu VMs. Full root access, SSH native, and Shelley agent built-in.',
     image: '/og-exe.png',
   },
-  {
-    path: '/docs',
-    title: 'Fabric Docs | Getting Started',
-    description: 'Learn how to use Fabric to run agents locally or in the cloud with one interface.',
-    image: '/og-image.png',
-  },
-  {
-    path: '/docs/getting-started',
-    title: 'Getting Started | Fabric Docs',
-    description: 'Get started with Fabric - install, configure, and run your first agent sandbox.',
-    image: '/og-image.png',
-  },
-  {
-    path: '/docs/philosophy',
-    title: 'Philosophy | Fabric Docs',
-    description: 'The philosophy behind Fabric - ambient compute that follows you from local to cloud.',
-    image: '/og-image.png',
-  },
-  {
-    path: '/docs/local-containers',
-    title: 'Local Containers | Fabric Docs',
-    description: 'Run agents in local Apple containers using Virtualization.framework.',
-    image: '/og-image.png',
-  },
 ];
 
 function updateMetaTags(html, route) {
