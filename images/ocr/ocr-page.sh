@@ -77,7 +77,8 @@ print(int(time.time() * 1000))
 PY
 )"
 
-TEXT="$(tesseract "$IMAGE_PATH" stdout -l "$LANGUAGE" 2>/dev/null)"
+TEXT_FILE="$TMPDIR/text.txt"
+tesseract "$IMAGE_PATH" "$TMPDIR/text" -l "$LANGUAGE" >/dev/null 2>&1
 
 END_MS="$(python3 - <<'PY'
 import time
@@ -88,12 +89,13 @@ PY
 DURATION_MS="$((END_MS - START_MS))"
 
 mkdir -p "$(dirname "$OUTPUT")"
-python3 - "$OUTPUT" "$PAGE" "$LANGUAGE" "$DURATION_MS" <<'PY' <<<"$TEXT"
+python3 - "$OUTPUT" "$PAGE" "$LANGUAGE" "$DURATION_MS" "$TEXT_FILE" <<'PY'
 import json
 import sys
 
-output_path, page, language, duration_ms = sys.argv[1:5]
-text = sys.stdin.read()
+output_path, page, language, duration_ms, text_path = sys.argv[1:6]
+with open(text_path, "r", encoding="utf-8") as f:
+    text = f.read()
 
 with open(output_path, "w", encoding="utf-8") as f:
     json.dump(

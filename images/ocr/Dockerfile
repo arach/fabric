@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   bash \
   ca-certificates \
   poppler-utils \
-  python3-minimal \
+  python3 \
   tesseract-ocr \
   tesseract-ocr-eng \
   && rm -rf /var/lib/apt/lists/*

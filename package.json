@@ -12,7 +12,8 @@
     "test": "bun test",
     "typecheck": "bun run --filter '*' typecheck",
     "ocr:build-image": "container build --progress plain -t fabric-ocr:local -f images/ocr/Dockerfile .",
-    "ocr:evaluate": "bun run scripts/evaluate-ocr.ts"
+    "ocr:evaluate": "bun run scripts/evaluate-ocr.ts",
+    "runner:install": "bash scripts/install-runner.sh"
   },
   "devDependencies": {
     "@types/bun": "latest",

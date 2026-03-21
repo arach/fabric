@@ -184,7 +184,7 @@ async function evaluateRecipe(options: CliOptions, workDir: string): Promise<Str
       containerName,
       [
         "apt-get update",
-        "apt-get install -y --no-install-recommends bash ca-certificates poppler-utils python3-minimal tesseract-ocr tesseract-ocr-eng",
+        "apt-get install -y --no-install-recommends bash ca-certificates poppler-utils python3 tesseract-ocr tesseract-ocr-eng",
         "rm -rf /var/lib/apt/lists/*",
       ].join(" && "),
     );
