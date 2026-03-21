@@ -16,7 +16,10 @@
     "runner:install": "bash scripts/install-runner.sh",
     "site:dev": "cd landing && bun run dev",
     "site:build": "cd landing && bun run build",
-    "site:preview": "cd landing && bun run preview"
+    "site:preview": "cd landing && bun run preview",
+    "app:build": "cd app && swift build -c release",
+    "app:run": "cd app && swift run Fabric",
+    "app:dmg": "bash scripts/build-dmg.sh"
   },
   "devDependencies": {
     "@types/bun": "latest",
