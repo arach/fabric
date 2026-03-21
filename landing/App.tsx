@@ -49,7 +49,7 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="animate-fade-up delay-4 w-full max-w-[540px] lg:max-w-none">
+            <div className="animate-fade-up delay-4 w-full">
               <TerminalDemo />
             </div>
 
@@ -84,7 +84,7 @@ const App: React.FC = () => {
             </div>
 
             <h2 className="text-3xl sm:text-4xl font-display italic tracking-[-0.03em] mb-4 text-ink">
-              Fabric Runner for Mac
+              fabrun for Mac
             </h2>
             <p className="text-[15px] leading-7 text-secondary max-w-md mx-auto mb-8">
               A lightweight menu bar app that manages the Apple container runtime. Install once, run cookbooks from Linia or the CLI.

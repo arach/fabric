@@ -5,7 +5,7 @@ struct FabricApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     var body: some Scene {
-        Window("Fabric Runner", id: "settings") {
+        Window("fabrun", id: "settings") {
             SettingsView()
                 .environmentObject(delegate.monitor)
         }

@@ -7,12 +7,12 @@ const STEPS = [
   { text: '✔ Container CLI ready', output: true, delay: 300 },
   { text: '✔ Container builder ready', output: true, delay: 300 },
   { text: '✔ Runner home prepared', output: true, color: 'text-accent', delay: 700 },
-  { text: 'fabric runner run --cookbook ocr-page --input pdf=book.pdf --input page=7', delay: 1200 },
+  { text: 'fab run --cookbook ocr-page', delay: 1200 },
   { text: 'Resolving cookbook: ocr-page@v1', output: true, color: 'text-accent', delay: 350 },
   { text: 'Image: fabric-ocr:local', output: true, delay: 300 },
   { text: '', output: true, delay: 200 },
   { text: 'Running OCR on scanned page 7...', output: true, color: 'text-ink', delay: 500 },
-  { text: '{ "pageNumber": 7, "engine": "tesseract", "text": "A BOOK OF VERSES" }', output: true, color: 'text-accent', delay: 1200 },
+  { text: '{ "text": "A BOOK OF VERSES" }', output: true, color: 'text-accent', delay: 1200 },
 ];
 
 export const TerminalDemo: React.FC = () => {
@@ -39,7 +39,7 @@ export const TerminalDemo: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto md:mx-0 rounded-xl overflow-hidden border border-line-strong bg-canvas shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+    <div className="w-full mx-auto md:mx-0 rounded-xl overflow-hidden border border-line-strong bg-canvas shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-line bg-panel">
         <div className="flex gap-2">
@@ -57,10 +57,10 @@ export const TerminalDemo: React.FC = () => {
       </div>
 
       {/* Body */}
-      <div className="p-5 h-[300px] overflow-y-auto scrollbar-hide">
-        <div className="space-y-2.5 font-mono text-[12px] leading-6">
+      <div className="p-5 min-h-[280px] overflow-y-auto scrollbar-hide">
+        <div className="space-y-2 font-mono text-[12px] leading-6">
           {lines.map((line, i) => (
-            <div key={i} className={line.output ? 'opacity-70' : 'flex items-center'}>
+            <div key={i} className={line.output ? 'opacity-70' : 'flex items-start'}>
               {!line.output && <span className="text-muted mr-3 select-none">$</span>}
               <span className={line.color || (line.output ? 'text-secondary' : 'text-ink')}>
                 {line.text}
@@ -79,6 +79,15 @@ export const TerminalDemo: React.FC = () => {
               <span className="w-2 h-4 bg-muted animate-pulse" />
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-2.5 border-t border-line bg-panel/50 flex items-center justify-between">
+        <span className="font-mono text-[10px] text-muted tracking-[0.08em]">fabrun · local</span>
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+          <span className="font-mono text-[10px] text-muted tracking-[0.08em]">connected</span>
         </div>
       </div>
     </div>

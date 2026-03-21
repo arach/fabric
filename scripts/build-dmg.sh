@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$SCRIPT_DIR/.."
 APP_DIR="$ROOT/app"
 BUILD_DIR="$ROOT/dist"
-APP_NAME="Fabric Runner.app"
+APP_NAME="fabrun.app"
 DMG_NAME="FabricRunner.dmg"
 BUNDLE="$BUILD_DIR/$APP_NAME"
 VERSION="0.2.0"
@@ -70,9 +70,9 @@ cat > "$BUNDLE/Contents/Info.plist" << PLIST
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>Fabric Runner</string>
+    <string>fabrun</string>
     <key>CFBundleDisplayName</key>
-    <string>Fabric Runner</string>
+    <string>fabrun</string>
     <key>CFBundleIdentifier</key>
     <string>run.fab.app</string>
     <key>CFBundleVersion</key>
@@ -127,7 +127,7 @@ cp -R "$BUNDLE" "$DMG_STAGING/"
 ln -s /Applications "$DMG_STAGING/Applications"
 
 hdiutil create \
-    -volname "Fabric Runner" \
+    -volname "fabrun" \
     -srcfolder "$DMG_STAGING" \
     -ov \
     -format UDZO \

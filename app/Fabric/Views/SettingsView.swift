@@ -176,11 +176,11 @@ struct AboutTab: View {
                         .font(.system(.body, design: .monospaced))
                 }
             } header: {
-                Text("Fabric Runner")
+                Text("fabrun")
             }
 
             Section {
-                Text("Fabric Runner is a local-first compute substrate for macOS. It manages Apple containers and exposes a simple HTTP API for running cookbook-driven tasks from Linia and other clients.")
+                Text("fabrun is a local-first compute substrate for macOS. It manages Apple containers and exposes a simple HTTP API for running cookbook-driven tasks from Linia and other clients.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             } header: {

@@ -44,7 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
 
         let menu = NSMenu()
-        menu.addItem(withTitle: "Fabric Runner v\(FabricVersion.current)", action: nil, keyEquivalent: "")
+        menu.addItem(withTitle: "fabrun v\(FabricVersion.current)", action: nil, keyEquivalent: "")
         menu.addItem(.separator())
 
         let statusMenuItem = NSMenuItem(title: "Checking...", action: nil, keyEquivalent: "")
@@ -59,7 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         menu.addItem(withTitle: "Open Settings...", action: #selector(showSettings), keyEquivalent: ",")
         menu.addItem(withTitle: "Restart Runtime", action: #selector(restartRuntime), keyEquivalent: "")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit Fabric", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: "Quit fabrun", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
         statusItem.menu = menu
 
@@ -91,7 +91,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     @objc func showSettings() {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
-        if let window = NSApp.windows.first(where: { $0.title == "Fabric Runner" }) {
+        if let window = NSApp.windows.first(where: { $0.title == "fabrun" }) {
             window.makeKeyAndOrderFront(nil)
         }
     }
