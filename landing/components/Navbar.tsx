@@ -28,96 +28,75 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handle hash navigation - if not on homepage, navigate there first then scroll
   const handleHashClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
     e.preventDefault();
     if (isHomePage) {
-      // Already on homepage, just scroll
       const element = document.getElementById(hash);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
+      if (element) element.scrollIntoView({ behavior: 'smooth' });
     } else {
-      // Navigate to homepage, then scroll after a short delay
       navigate('/');
       setTimeout(() => {
         const element = document.getElementById(hash);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
     setMobileMenuOpen(false);
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-dark-950/80 backdrop-blur-md border-dark-border' : 'bg-transparent border-transparent py-4'}`}>
-      <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-        <a href="/" className="flex items-center gap-2 group cursor-pointer">
-          <div className="w-6 h-6 rounded bg-white flex items-center justify-center text-black">
-             <FabricLogo />
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-canvas/92 backdrop-blur-xl border-line' : 'bg-transparent border-transparent'}`}>
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 h-14 flex items-center justify-between">
+        <a href="/" className="flex items-center gap-2.5 group">
+          <div className="w-6 h-6 rounded bg-ink flex items-center justify-center text-canvas">
+            <FabricLogo />
           </div>
-          <span className="text-lg font-bold tracking-tight text-white">fabric</span>
-          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-dark-800 border border-dark-border text-[10px] font-mono text-gray-400">v0.2.0</span>
+          <span className="font-mono text-[12px] uppercase tracking-[0.14em] text-ink">fabric</span>
+          <span className="hidden sm:inline-block rounded-full bg-wave px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-accent">v0.2.0</span>
         </a>
 
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-1">
           <a
             href="/docs/getting-started"
-            className={`text-sm transition-colors ${isDocsPage ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`rounded-md px-3.5 py-1.5 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors ${isDocsPage ? 'text-ink' : 'text-muted hover:bg-wave hover:text-ink'}`}
           >
             Docs
           </a>
           <a
             href="/#how-it-works"
             onClick={(e) => handleHashClick(e, 'how-it-works')}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
+            className="rounded-md px-3.5 py-1.5 font-mono text-[12px] uppercase tracking-[0.14em] text-muted hover:bg-wave hover:text-ink transition-colors"
           >
             How it Works
           </a>
           <a
             href="/#features"
             onClick={(e) => handleHashClick(e, 'features')}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
+            className="rounded-md px-3.5 py-1.5 font-mono text-[12px] uppercase tracking-[0.14em] text-muted hover:bg-wave hover:text-ink transition-colors"
           >
             Features
           </a>
-          <a href="https://github.com/arach/fabric" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2">
-            <Github size={16} />
-            <span>GitHub</span>
+          <a
+            href="https://github.com/arach/fabric"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-md px-3.5 py-1.5 font-mono text-[12px] uppercase tracking-[0.14em] text-muted hover:bg-wave hover:text-ink transition-colors flex items-center gap-2"
+          >
+            <Github size={14} />
+            GitHub
           </a>
         </div>
 
-        <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X /> : <Menu />}
+        <button className="md:hidden text-ink" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-dark-950 border-b border-dark-border p-6 md:hidden flex flex-col gap-4 shadow-xl">
-          <a
-            href="/docs/getting-started"
-            onClick={() => setMobileMenuOpen(false)}
-            className={`text-sm font-medium ${isDocsPage ? 'text-white' : 'text-gray-400 hover:text-white'}`}
-          >
-            Docs
-          </a>
-          <a
-            href="/#how-it-works"
-            onClick={(e) => handleHashClick(e, 'how-it-works')}
-            className="text-sm font-medium text-gray-400 hover:text-white"
-          >
-            How it Works
-          </a>
-          <a
-            href="/#features"
-            onClick={(e) => handleHashClick(e, 'features')}
-            className="text-sm font-medium text-gray-400 hover:text-white"
-          >
-            Features
-          </a>
-          <a href="https://github.com/arach/fabric" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-gray-400 hover:text-white">GitHub</a>
+        <div className="absolute top-full left-0 right-0 bg-canvas/95 backdrop-blur-xl border-b border-line p-6 md:hidden flex flex-col gap-4">
+          <a href="/docs/getting-started" onClick={() => setMobileMenuOpen(false)} className={`font-mono text-[12px] uppercase tracking-[0.14em] ${isDocsPage ? 'text-ink' : 'text-muted hover:text-ink'}`}>Docs</a>
+          <a href="/#how-it-works" onClick={(e) => handleHashClick(e, 'how-it-works')} className="font-mono text-[12px] uppercase tracking-[0.14em] text-muted hover:text-ink">How it Works</a>
+          <a href="/#features" onClick={(e) => handleHashClick(e, 'features')} className="font-mono text-[12px] uppercase tracking-[0.14em] text-muted hover:text-ink">Features</a>
+          <a href="https://github.com/arach/fabric" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)} className="font-mono text-[12px] uppercase tracking-[0.14em] text-muted hover:text-ink">GitHub</a>
         </div>
       )}
     </nav>

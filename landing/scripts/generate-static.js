@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const BASE_URL = 'https://fabric.arach.dev';
+const BASE_URL = 'https://fab.run';
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
 // Route configurations with their meta tags

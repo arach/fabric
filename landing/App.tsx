@@ -1,70 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navbar } from './components/Navbar';
 import { TerminalDemo } from './components/TerminalDemo';
 import { Features } from './components/Features';
 import { Workflow } from './components/Workflow';
 import { Footer } from './components/Footer';
 import { Logos } from './components/Logos';
-import { ArrowRight, Terminal as TerminalIcon } from 'lucide-react';
+import { ArrowRight, Copy, Check } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-dark-950 text-white selection:bg-brand-500/30 overflow-x-hidden">
+    <div className="min-h-screen text-ink overflow-x-hidden">
       <Navbar />
-      
-      {/* Parallax Background Grid Pattern */}
-      <div 
-        className="fixed inset-0 z-0 pointer-events-none bg-grid opacity-[0.1]"
-        style={{ transform: `translateY(${scrollY * 0.2}px)` }}
-      ></div>
+
+      {/* Hero Grid Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none hero-grid" />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 z-10">
-        <div className="max-w-7xl mx-auto px-6 relative">
-          <div className="flex flex-col lg:flex-row items-center gap-16">
-            
-            <div className="flex-1 text-center lg:text-left opacity-0 animate-fade-in-up" style={{ animationFillMode: 'forwards' }}>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono text-zinc-400 mb-8 hover:bg-white/10 transition-colors cursor-pointer tracking-wide uppercase">
-                <span className="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]"></span>
-                v0.2.0 is live
+      <section className="relative pt-32 pb-16 lg:pt-44 lg:pb-24 z-10">
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="flex flex-col lg:grid lg:grid-cols-[1.3fr_0.7fr] gap-16 items-center">
+
+            <div className="text-center lg:text-left">
+              <div className="animate-fade-up">
+                <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-wave border border-line text-accent font-mono text-[10px] uppercase tracking-[0.1em] mb-10">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                  v0.2.0 is live
+                </div>
               </div>
-              
-              <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-8 leading-[1.05] text-white">
-                Portable runtimes for<br/>
-                <span className="brand-gradient-text">local and cloud tasks</span>
+
+              <h1 className="animate-fade-up delay-1 text-4xl sm:text-6xl lg:text-[5.4rem] font-display tracking-[-0.04em] leading-[1.05] mb-8 text-ink">
+                Portable runtimes for{' '}
+                <em className="text-accent">local and cloud</em> tasks
               </h1>
 
-              <p className="text-lg text-zinc-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
+              <p className="animate-fade-up delay-2 text-[15px] leading-7 text-secondary max-w-xl mx-auto lg:mx-0 mb-10">
                 Start with Fabric Runner on Apple containers, execute trusted cookbooks locally, and keep the same execution model when you move to Daytona, E2B, or exe.dev.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+              <div className="animate-fade-up delay-3 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
                 <a
                   href="/docs/getting-started"
-                  className="h-12 px-6 bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.25)]"
+                  className="group inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-6 font-mono text-[12px] uppercase tracking-[0.1em] text-black transition-all hover:bg-accent-bright"
                 >
                   Get Started
-                  <ArrowRight size={16} />
+                  <ArrowRight size={14} className="transition-transform group-hover:-translate-y-px group-hover:translate-x-px" />
                 </a>
-                <div className="h-12 px-6 bg-zinc-900 border border-dark-border hover:border-zinc-700 hover:bg-zinc-800/80 text-zinc-400 rounded-lg font-mono text-sm flex items-center gap-3 transition-all duration-200 group">
-                  <span className="select-none text-zinc-600 group-hover:text-zinc-500 transition-colors">$</span>
-                  <span className="group-hover:text-zinc-300 transition-colors">bash scripts/install-runner.sh</span>
-                  <CopyButton />
-                </div>
+                <CopyCommand />
               </div>
             </div>
 
-            <div className="flex-1 w-full max-w-[600px] lg:max-w-none opacity-0 animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+            <div className="animate-fade-up delay-4 w-full max-w-[540px] lg:max-w-none">
               <TerminalDemo />
             </div>
 
@@ -73,35 +58,46 @@ const App: React.FC = () => {
       </section>
 
       {/* Integration Logos */}
-      <section className="py-12 border-y border-dark-border bg-dark-950/50 backdrop-blur-sm relative z-10 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 mb-8 text-center">
-            <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Supported Infrastructure Providers</p>
+      <section className="py-12 border-y border-line bg-panel px-6 sm:px-8 lg:px-12 relative z-10">
+        <div className="max-w-6xl mx-auto mb-8 text-center">
+          <p className="font-mono text-[10px] text-muted uppercase tracking-[0.14em]">Supported Infrastructure Providers</p>
         </div>
         <Logos />
       </section>
 
-      <div className="relative z-10 bg-dark-950/50 backdrop-blur-sm">
-          <Features />
+      <div className="relative z-10">
+        <Features />
       </div>
-      
-      <div className="relative z-10 bg-dark-950">
+
+      <div className="relative z-10">
         <Workflow />
       </div>
 
-      {/* Minimal CTA */}
-      <section className="py-32 relative z-10 bg-dark-950 border-t border-dark-border">
+      {/* CTA Section */}
+      <section className="py-28 relative z-10 border-t border-line">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6 tracking-tight text-white">Install the runner. Ship the task.</h2>
-          <p className="text-zinc-400 mb-10 text-lg font-light">
+          <h2 className="text-3xl sm:text-5xl font-display italic tracking-[-0.03em] mb-6 text-ink">
+            Install the runner. Ship the task.
+          </h2>
+          <p className="text-[15px] leading-7 text-secondary mb-10 max-w-lg mx-auto">
             Bootstrap Apple containers once, run cookbook-driven tasks locally, and keep a clean path to remote execution.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-             <a href="https://github.com/arach/fabric" target="_blank" rel="noopener noreferrer" className="px-8 py-3 bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] rounded-full font-medium transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a
+              href="https://github.com/arach/fabric"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex h-11 items-center gap-2 rounded-lg bg-ink px-6 font-mono text-[12px] uppercase tracking-[0.1em] text-canvas transition-all hover:opacity-90"
+            >
               View on GitHub
-             </a>
-             <a href="/docs/" className="px-8 py-3 text-zinc-400 hover:text-white transition-colors hover:bg-white/5 rounded-full">
+              <ArrowRight size={14} className="transition-transform group-hover:-translate-y-px group-hover:translate-x-px" />
+            </a>
+            <a
+              href="/docs/"
+              className="inline-flex h-11 items-center gap-2 rounded-lg border border-line-strong px-6 font-mono text-[12px] uppercase tracking-[0.1em] text-secondary transition-colors hover:border-accent/50 hover:text-ink hover:bg-wave"
+            >
               Read Documentation
-             </a>
+            </a>
           </div>
         </div>
       </section>
@@ -111,21 +107,28 @@ const App: React.FC = () => {
   );
 };
 
-const CopyButton = () => {
-    const [copied, setCopied] = React.useState(false);
+const CopyCommand = () => {
+  const [copied, setCopied] = React.useState(false);
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText('npm i -g @fabric-ai/cli');
-        navigator.clipboard.writeText('bash scripts/install-runner.sh');
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    }
+  const handleCopy = () => {
+    navigator.clipboard.writeText('bash scripts/install-runner.sh');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-    return (
-        <button onClick={handleCopy} className="ml-2 hover:text-white transition-colors">
-            {copied ? <span className="text-emerald-400 text-xs">Copied</span> : <TerminalIcon size={14} />}
-        </button>
-    )
-}
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex h-11 items-center gap-3 rounded-lg border border-line-strong bg-panel px-5 font-mono text-[12px] text-secondary transition-colors hover:border-accent/30 hover:bg-canvas hover:text-ink"
+    >
+      <span className="text-muted select-none">$</span>
+      <span>bash scripts/install-runner.sh</span>
+      {copied
+        ? <Check size={14} className="text-accent ml-1" />
+        : <Copy size={14} className="text-muted ml-1" />
+      }
+    </button>
+  );
+};
 
 export default App;

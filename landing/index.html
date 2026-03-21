@@ -11,123 +11,126 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://fabric.arach.dev/" />
+    <meta property="og:url" content="https://fab.run/" />
     <meta property="og:title" content="Fabric | Runner-first portable execution" />
     <meta property="og:description" content="Bootstrap Fabric Runner locally on Apple containers, execute trusted cookbooks, and keep the same execution model across Daytona, E2B, and exe.dev." />
-    <meta property="og:image" content="https://fabric.arach.dev/og-image.png" />
+    <meta property="og:image" content="https://fab.run/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://fabric.arach.dev/" />
+    <meta property="twitter:url" content="https://fab.run/" />
     <meta property="twitter:title" content="Fabric | Runner-first portable execution" />
     <meta property="twitter:description" content="Bootstrap Fabric Runner locally on Apple containers, execute trusted cookbooks, and keep the same execution model across Daytona, E2B, and exe.dev." />
-    <meta property="twitter:image" content="https://fabric.arach.dev/og-image.png" />
+    <meta property="twitter:image" content="https://fab.run/og-image.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              brand: {
-                50: '#f0f9ff',
-                100: '#e0f2fe',
-                200: '#bae6fd',
-                300: '#7dd3fc',
-                400: '#38bdf8',
-                500: '#0ea5e9',
-                600: '#0284c7',
-                700: '#0369a1',
-                800: '#075985',
-                900: '#0c4a6e',
-                950: '#082f49',
-              },
-              // New Accent Color for gradients
-              accent: {
-                400: '#818cf8', // Indigo
-                500: '#6366f1',
-              },
-              dark: {
-                950: '#050508', // Slightly tinted black
-                900: '#0a0a0f',
-                800: '#13131a',
-                700: '#1c1c26',
-                border: '#272730',
-              }
+              canvas: '#0a0a0a',
+              panel: '#141414',
+              ink: '#e5e5e5',
+              secondary: '#b5b5b5',
+              muted: '#737373',
+              accent: '#38bdf8',
+              'accent-bright': '#7dd3fc',
+              line: 'rgba(255,255,255,0.09)',
+              'line-strong': 'rgba(255,255,255,0.14)',
+              wave: 'rgba(56,189,248,0.10)',
             },
             fontFamily: {
-              sans: ['Inter', 'system-ui', 'sans-serif'],
-              mono: ['Geist Mono', 'ui-monospace', 'monospace'],
-            },
-            backgroundImage: {
-              'grid-pattern': "linear-gradient(to right, #272730 1px, transparent 1px), linear-gradient(to bottom, #272730 1px, transparent 1px)",
-              'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+              sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+              mono: ['IBM Plex Mono', 'ui-monospace', 'monospace'],
+              display: ['Instrument Serif', 'Georgia', 'serif'],
             },
             animation: {
-              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'float': 'float 6s ease-in-out infinite',
-              'fade-in-up': 'fadeInUp 1s ease-out forwards',
+              'fade-up': 'fade-up 0.5s ease-out both',
+              'mesh-float': 'mesh-float 12s ease-in-out infinite alternate',
               'scroll': 'scroll 40s linear infinite',
             },
             keyframes: {
-              float: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-20px)' },
+              'fade-up': {
+                from: { opacity: '0', transform: 'translateY(6px)' },
+                to: { opacity: '1', transform: 'translateY(0)' },
               },
-              fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
+              'mesh-float': {
+                from: { transform: 'translateY(0)' },
+                to: { transform: 'translateY(-12px)' },
               },
               scroll: {
                 '0%': { transform: 'translateX(0)' },
                 '100%': { transform: 'translateX(-50%)' },
-              }
+              },
             }
           },
         },
       };
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --canvas: #0a0a0a;
+        --panel: #141414;
+        --ink: #e5e5e5;
+        --secondary: #b5b5b5;
+        --muted: #737373;
+        --accent: #38bdf8;
+        --accent-bright: #7dd3fc;
+        --line: rgba(255,255,255,0.09);
+        --line-strong: rgba(255,255,255,0.14);
+        --wave: rgba(56,189,248,0.10);
+      }
+
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #050508;
-        color: #ffffff;
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        font-weight: 300;
+        background:
+          radial-gradient(circle at top left, rgba(56,189,248,0.08), transparent 28%),
+          linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)),
+          var(--canvas);
+        color: var(--ink);
         -webkit-font-smoothing: antialiased;
       }
-      .gradient-text {
-        background: linear-gradient(to right, #ffffff, #a1a1aa);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+
+      h1, h2, h3 { font-family: 'Instrument Serif', Georgia, serif; }
+
+      .hero-grid {
+        background-image:
+          linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 88%);
+        -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 88%);
       }
-      .brand-gradient-text {
-        background: linear-gradient(to right, #38bdf8, #818cf8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+
+      .signal-bar {
+        height: 3px;
+        background: linear-gradient(90deg, transparent, var(--accent) 30%, var(--accent-bright) 60%, transparent);
+        opacity: 0.4;
       }
-      .glass-card {
-        background: rgba(19, 19, 26, 0.6);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      /* Subtle Grid Background */
-      .bg-grid {
-        background-size: 50px 50px;
-        mask-image: linear-gradient(to bottom, transparent, 5%, black, 90%, transparent);
-        -webkit-mask-image: linear-gradient(to bottom, transparent, 5%, black, 90%, transparent);
-      }
+
       ::selection {
-        background: #0ea5e9;
+        background: rgba(56,189,248,0.3);
         color: white;
       }
-      .scrollbar-hide::-webkit-scrollbar {
-          display: none;
+
+      .delay-1 { animation-delay: 0.08s; }
+      .delay-2 { animation-delay: 0.16s; }
+      .delay-3 { animation-delay: 0.24s; }
+      .delay-4 { animation-delay: 0.32s; }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
       }
-      .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-      }
+
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
   <script type="importmap">
 {

@@ -7,7 +7,7 @@ interface MetaProps {
   url?: string;
 }
 
-const BASE_URL = 'https://fabric.arach.dev';
+const BASE_URL = 'https://fab.run';
 
 export function useMeta({ title, description, image, url }: MetaProps) {
   useEffect(() => {
