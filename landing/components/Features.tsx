@@ -7,10 +7,10 @@ export const Features: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-20">
             <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">
-                Built for <span className="brand-gradient-text">agentic workflows</span>.
+                Built for <span className="brand-gradient-text">portable execution</span>.
             </h2>
             <p className="text-xl text-zinc-400 max-w-2xl leading-relaxed">
-                Lightweight containers that boot in a second. Same interface locally and in the cloud. No Docker, no friction.
+                Thin local substrate, trusted cookbooks, and the same execution model across Apple containers and remote runtimes.
             </p>
         </div>
 
@@ -23,9 +23,9 @@ export const Features: React.FC = () => {
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg">
                         <Terminal className="text-white group-hover:text-brand-400 transition-colors" size={24} />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Local-First Sandboxes</h3>
+                    <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Fabric Runner</h3>
                     <p className="text-zinc-400 leading-relaxed max-w-md text-base">
-                        Lightweight Linux containers on Apple Silicon via Virtualization.framework. Exec commands, mount files, run code — all isolated, all fast.
+                        Install a narrow local substrate once, then execute cookbook-driven tasks inside Apple containers without dragging users through a developer setup.
                     </p>
                 </div>
                 <div className="absolute right-0 bottom-0 w-1/2 h-full opacity-10 group-hover:opacity-25 transition-opacity duration-500">
@@ -46,21 +46,21 @@ export const Features: React.FC = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Cloud When You Need It</h3>
                 <p className="text-zinc-400 leading-relaxed mb-8 text-base">
-                    Same Sandbox interface across Daytona, E2B, and exe.dev. Snapshot locally, restore in the cloud. Switch providers by changing one line.
+                    Keep the same task and cookbook model when you move to Daytona, E2B, or exe.dev. Local-first does not mean local-only.
                 </p>
                 <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-brand-900/30 to-transparent"></div>
                 <div className="absolute bottom-6 left-6 right-6 p-4 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md text-xs font-mono text-zinc-400 shadow-xl group-hover:translate-y-[-4px] transition-transform duration-300">
                     <div className="flex justify-between mb-2">
-                        <span>provider</span>
-                        <span className="text-white">daytona</span>
+                        <span>cookbook</span>
+                        <span className="text-white">ocr-page</span>
                     </div>
                     <div className="flex justify-between mb-2">
-                        <span>status</span>
-                        <span className="text-emerald-400 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>running</span>
+                        <span>runtime</span>
+                        <span className="text-emerald-400 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>local runner</span>
                     </div>
                     <div className="flex justify-between">
-                        <span>handoff</span>
-                        <span className="text-brand-400">local → cloud</span>
+                        <span>upgrade path</span>
+                        <span className="text-brand-400">runner → cloud</span>
                     </div>
                 </div>
             </div>
@@ -70,9 +70,9 @@ export const Features: React.FC = () => {
                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg">
                     <Cpu className="text-white group-hover:text-accent-400 transition-colors" size={24} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">No Docker Required</h3>
+                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">No Host Toolchain</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                    Uses Apple's <code className="text-zinc-300">container</code> CLI directly. Native arm64 performance, minimal memory overhead, ~1s boot time.
+                    Keep OCR, PDF tooling, and task dependencies inside the container. The host only needs the runner substrate and Apple container runtime.
                 </p>
             </div>
 
@@ -81,9 +81,9 @@ export const Features: React.FC = () => {
                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg">
                     <FileCode className="text-white group-hover:text-emerald-400 transition-colors" size={24} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Per-Project Config</h3>
+                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Cookbook-Driven Tasks</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                    Drop a <code className="text-zinc-300">.fabric</code> file in your project. Composable profiles for Node, Python, Bun, or custom setups.
+                    Promote repeatable jobs into guided cookbooks. OCR is the first concrete example, but the same shape applies to media, extraction, and transforms.
                 </p>
             </div>
 
@@ -92,9 +92,9 @@ export const Features: React.FC = () => {
                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3 shadow-lg">
                     <Zap className="text-white group-hover:text-yellow-400 transition-colors" size={24} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Seamless Handoffs</h3>
+                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Image or Recipe</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed">
-                    Snapshot sandbox state locally, restore in the cloud. Move between providers without losing context. One interface everywhere.
+                    Learn with a cookbook on Ubuntu, then graduate hot paths into a baked image. The current OCR benchmark showed a real cold-start win from the baked image.
                 </p>
             </div>
 

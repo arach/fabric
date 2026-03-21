@@ -36,16 +36,16 @@ const App: React.FC = () => {
             <div className="flex-1 text-center lg:text-left opacity-0 animate-fade-in-up" style={{ animationFillMode: 'forwards' }}>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono text-zinc-400 mb-8 hover:bg-white/10 transition-colors cursor-pointer tracking-wide uppercase">
                 <span className="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]"></span>
-                v0.1.1 is live
+                v0.2.0 is live
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-8 leading-[1.05] text-white">
-                Lightweight sandboxes for<br/>
-                <span className="brand-gradient-text">agentic workloads</span>
+                Portable runtimes for<br/>
+                <span className="brand-gradient-text">local and cloud tasks</span>
               </h1>
 
               <p className="text-lg text-zinc-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
-                Run agents locally in lightweight containers or scale to the cloud with Daytona, E2B, and exe.dev. One interface, any runtime.
+                Start with Fabric Runner on Apple containers, execute trusted cookbooks locally, and keep the same execution model when you move to Daytona, E2B, or exe.dev.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
@@ -58,7 +58,7 @@ const App: React.FC = () => {
                 </a>
                 <div className="h-12 px-6 bg-zinc-900 border border-dark-border hover:border-zinc-700 hover:bg-zinc-800/80 text-zinc-400 rounded-lg font-mono text-sm flex items-center gap-3 transition-all duration-200 group">
                   <span className="select-none text-zinc-600 group-hover:text-zinc-500 transition-colors">$</span>
-                  <span className="group-hover:text-zinc-300 transition-colors">npm i -g @fabric-ai/cli</span>
+                  <span className="group-hover:text-zinc-300 transition-colors">bash scripts/install-runner.sh</span>
                   <CopyButton />
                 </div>
               </div>
@@ -91,9 +91,9 @@ const App: React.FC = () => {
       {/* Minimal CTA */}
       <section className="py-32 relative z-10 bg-dark-950 border-t border-dark-border">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6 tracking-tight text-white">Start local. Scale anywhere.</h2>
+          <h2 className="text-4xl font-bold mb-6 tracking-tight text-white">Install the runner. Ship the task.</h2>
           <p className="text-zinc-400 mb-10 text-lg font-light">
-            Open source. Lightweight containers. One interface across local and cloud.
+            Bootstrap Apple containers once, run cookbook-driven tasks locally, and keep a clean path to remote execution.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
              <a href="https://github.com/arach/fabric" target="_blank" rel="noopener noreferrer" className="px-8 py-3 bg-white text-black hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] rounded-full font-medium transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">
@@ -116,6 +116,7 @@ const CopyButton = () => {
 
     const handleCopy = () => {
         navigator.clipboard.writeText('npm i -g @fabric-ai/cli');
+        navigator.clipboard.writeText('bash scripts/install-runner.sh');
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     }

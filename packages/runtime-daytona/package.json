@@ -1,6 +1,6 @@
 {
   "name": "fabric-ai-daytona",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Daytona cloud sandbox adapter for Fabric",
   "type": "module",
   "main": "dist/index.js",
@@ -23,7 +23,7 @@
     "@daytonaio/sdk": "^0.128.1"
   },
   "peerDependencies": {
-    "fabric-ai-core": "^0.1.0"
+    "fabric-ai-core": "^0.2.0"
   },
   "devDependencies": {
     "fabric-ai-core": "workspace:*",

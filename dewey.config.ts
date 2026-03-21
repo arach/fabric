@@ -4,7 +4,7 @@ export default {
     name: 'fabric',
     tagline: 'Lightweight sandboxes for agentic workloads — one interface, any runtime',
     type: 'npm-package',
-    version: '0.1.1',
+    version: '0.2.0',
   },
 
   agent: {

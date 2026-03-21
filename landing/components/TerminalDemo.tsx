@@ -2,21 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Copy, Check } from 'lucide-react';
 
 const STEPS = [
-  { text: 'npm i -g @fabric-ai/cli', delay: 1000 },
-  { text: '+ @fabric-ai/cli@0.2.0', output: true, color: 'text-emerald-400', delay: 600 },
-  { text: 'fabric setup', delay: 1200 },
-  { text: '=> Installing dependencies...', output: true, delay: 400 },
+  { text: 'bash scripts/install-runner.sh', delay: 1000 },
+  { text: '=> Fabric Runner bootstrap', output: true, color: 'text-cyan-400', delay: 500 },
   { text: '✔ Container CLI ready', output: true, delay: 300 },
-  { text: '✔ Linux kernel downloaded', output: true, delay: 300 },
-  { text: '✔ Base images pulled', output: true, color: 'text-emerald-400', delay: 800 },
-  { text: 'fabric shell', delay: 1200 },
-  { text: 'Launching Fabric base (Alpine + essentials)...', output: true, color: 'text-cyan-400', delay: 400 },
-  { text: 'Image: fabric-base:latest', output: true, delay: 300 },
+  { text: '✔ Container builder ready', output: true, delay: 300 },
+  { text: '✔ Runner home prepared', output: true, color: 'text-emerald-400', delay: 700 },
+  { text: 'fabric runner run --cookbook ocr-page --input pdf=book.pdf --input page=7', delay: 1200 },
+  { text: 'Resolving cookbook: ocr-page@v1', output: true, color: 'text-cyan-400', delay: 350 },
+  { text: 'Image: fabric-ocr:local', output: true, delay: 300 },
   { text: '', output: true, delay: 200 },
-  { text: 'root@fabric:~# echo "Hello from Fabric!"', output: true, color: 'text-zinc-100', delay: 600 },
-  { text: 'Hello from Fabric!', output: true, color: 'text-emerald-400', delay: 400 },
-  { text: 'root@fabric:~# uname -a', output: true, color: 'text-zinc-100', delay: 600 },
-  { text: 'Linux aarch64 6.18.5 #1 SMP', output: true, color: 'text-zinc-300', delay: 1500 },
+  { text: 'Running OCR on scanned page 7...', output: true, color: 'text-zinc-100', delay: 500 },
+  { text: '{ "pageNumber": 7, "engine": "tesseract", "text": "A BOOK OF VERSES" }', output: true, color: 'text-emerald-400', delay: 1200 },
 ];
 
 export const TerminalDemo: React.FC = () => {
@@ -37,7 +33,7 @@ export const TerminalDemo: React.FC = () => {
   }, [currentStepIndex]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText('npm i -g @fabric-ai/cli');
+    navigator.clipboard.writeText('bash scripts/install-runner.sh');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

@@ -10,7 +10,7 @@ import { readFileSync, existsSync } from "node:fs"
 import { resolve, dirname } from "node:path"
 import type { SandboxFactory, Sandbox, MountSpec } from "fabric-ai-core"
 
-const version = "0.1.1"
+const version = "0.2.0"
 
 // ANSI colors
 const colors = {

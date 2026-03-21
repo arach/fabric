@@ -1,6 +1,6 @@
 {
   "name": "fabric-ai-e2b",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "E2B cloud sandbox adapter for Fabric",
   "type": "module",
   "main": "dist/index.js",
@@ -22,7 +22,7 @@
     "@e2b/code-interpreter": "^1.0.0"
   },
   "peerDependencies": {
-    "fabric-ai-core": "^0.1.0"
+    "fabric-ai-core": "^0.2.0"
   },
   "devDependencies": {
     "fabric-ai-core": "workspace:*",

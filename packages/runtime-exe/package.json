@@ -1,6 +1,6 @@
 {
   "name": "fabric-ai-exe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "exe.dev VM sandbox adapter for Fabric - SSH-based cloud VMs",
   "type": "module",
   "main": "dist/index.js",
@@ -26,7 +26,7 @@
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
-    "fabric-ai-core": "^0.1.0"
+    "fabric-ai-core": "^0.2.0"
   },
   "keywords": [
     "fabric",
