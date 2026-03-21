@@ -8,6 +8,8 @@
   ],
   "scripts": {
     "dev": "bun run --filter @fabric/server dev",
+    "runner:dev": "bun run --filter @arach/runner dev",
+    "runner:start": "bun run --filter @arach/runner start",
     "build": "bun run --filter '*' build",
     "test": "bun test",
     "typecheck": "bun run --filter '*' typecheck",

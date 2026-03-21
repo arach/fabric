@@ -259,6 +259,53 @@ Possible CLI shapes:
 fabric runner run --cookbook ocr-page --input pdf=/path/book.pdf --input page=6
 ```
 
+## v0 Runner API
+
+The first concrete surface should stay very small:
+
+- `GET /health`
+- `GET /capabilities`
+- `POST /jobs`
+- `GET /jobs/:id`
+
+Default local address:
+
+- `http://127.0.0.1:52157`
+
+Runtime discovery file:
+
+- `~/.fabric-runner/state/runtime.json`
+
+### Supported job types
+
+Initial task set:
+
+- `ocr.page`
+
+Request:
+
+```json
+{
+  "type": "ocr.page",
+  "input": {
+    "pdfPath": "/absolute/path/to/file.pdf",
+    "page": 7,
+    "language": "eng"
+  }
+}
+```
+
+Capabilities should report:
+
+- service name and version
+- task list
+- container availability
+- OCR image availability
+- supported OCR languages
+
+This keeps the first end-to-end flow focused on one real workload while leaving
+the cookbook layer behind the task interface.
+
 or:
 
 ```sh
@@ -291,4 +338,3 @@ This direction is successful if:
 1. a downstream product can ask Fabric to perform OCR without caring about setup details
 2. the same cookbook shape can plausibly target local and remote runtimes
 3. the runner remains narrower than the full sandbox abstraction
-
