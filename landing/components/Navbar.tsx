@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Github } from 'lucide-react';
+import { Menu, X, Github, Download } from 'lucide-react';
 
 const FabricLogo = () => (
   <svg width="14" height="14" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -84,6 +84,13 @@ export const Navbar: React.FC = () => {
             <Github size={14} />
             GitHub
           </a>
+          <a
+            href="https://github.com/arach/fabric/releases/latest/download/FabricRunner.dmg"
+            className="rounded-md px-3.5 py-1.5 font-mono text-[12px] uppercase tracking-[0.14em] bg-wave text-accent hover:bg-accent/20 transition-colors flex items-center gap-1.5"
+          >
+            <Download size={13} />
+            Download
+          </a>
         </div>
 
         <button className="md:hidden text-ink" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -97,6 +104,7 @@ export const Navbar: React.FC = () => {
           <a href="/#how-it-works" onClick={(e) => handleHashClick(e, 'how-it-works')} className="font-mono text-[12px] uppercase tracking-[0.14em] text-muted hover:text-ink">How it Works</a>
           <a href="/#features" onClick={(e) => handleHashClick(e, 'features')} className="font-mono text-[12px] uppercase tracking-[0.14em] text-muted hover:text-ink">Features</a>
           <a href="https://github.com/arach/fabric" target="_blank" rel="noopener noreferrer" onClick={() => setMobileMenuOpen(false)} className="font-mono text-[12px] uppercase tracking-[0.14em] text-muted hover:text-ink">GitHub</a>
+          <a href="https://github.com/arach/fabric/releases/latest/download/FabricRunner.dmg" onClick={() => setMobileMenuOpen(false)} className="font-mono text-[12px] uppercase tracking-[0.14em] text-accent">Download .dmg</a>
         </div>
       )}
     </nav>

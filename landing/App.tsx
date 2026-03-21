@@ -5,7 +5,7 @@ import { Features } from './components/Features';
 import { Workflow } from './components/Workflow';
 import { Footer } from './components/Footer';
 import { Logos } from './components/Logos';
-import { ArrowRight, Copy, Check } from 'lucide-react';
+import { ArrowRight, Copy, Check, Download, Apple } from 'lucide-react';
 
 const App: React.FC = () => {
   return (
@@ -39,11 +39,11 @@ const App: React.FC = () => {
 
               <div className="animate-fade-up delay-3 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
                 <a
-                  href="/docs/getting-started"
+                  href="https://github.com/arach/fabric/releases/latest/download/FabricRunner.dmg"
                   className="group inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-6 font-mono text-[12px] uppercase tracking-[0.1em] text-black transition-all hover:bg-accent-bright"
                 >
-                  Get Started
-                  <ArrowRight size={14} className="transition-transform group-hover:-translate-y-px group-hover:translate-x-px" />
+                  <Download size={14} />
+                  Download for Mac
                 </a>
                 <CopyCommand />
               </div>
@@ -73,8 +73,49 @@ const App: React.FC = () => {
         <Workflow />
       </div>
 
-      {/* CTA Section */}
-      <section className="py-28 relative z-10 border-t border-line">
+      {/* Download CTA */}
+      <section className="relative z-10 border-y border-line bg-panel px-6 sm:px-8 lg:px-12 py-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="rounded-xl border border-line-strong bg-canvas p-10 sm:p-14 text-center">
+            <div className="signal-bar mb-8 rounded-full mx-auto max-w-xs" />
+
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-wave border border-line mb-6">
+              <Apple size={28} strokeWidth={1.5} className="text-accent" />
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl font-display italic tracking-[-0.03em] mb-4 text-ink">
+              Fabric Runner for Mac
+            </h2>
+            <p className="text-[15px] leading-7 text-secondary max-w-md mx-auto mb-8">
+              A lightweight menu bar app that manages the Apple container runtime. Install once, run cookbooks from Linia or the CLI.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+              <a
+                href="https://github.com/arach/fabric/releases/latest/download/FabricRunner.dmg"
+                className="group inline-flex h-12 items-center gap-2.5 rounded-lg bg-ink px-7 font-mono text-[12px] uppercase tracking-[0.1em] text-canvas transition-all hover:opacity-90"
+              >
+                <Download size={15} />
+                Download .dmg
+                <span className="text-[10px] text-canvas/50 ml-1">122 KB</span>
+              </a>
+              <a
+                href="/docs/getting-started"
+                className="inline-flex h-12 items-center gap-2 rounded-lg border border-line-strong px-7 font-mono text-[12px] uppercase tracking-[0.1em] text-secondary transition-colors hover:border-accent/50 hover:text-ink hover:bg-wave"
+              >
+                Read the docs
+              </a>
+            </div>
+
+            <p className="text-[11px] text-muted font-mono">
+              Requires macOS 14+ · Apple Silicon · Signed & Notarized
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="py-28 relative z-10">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl sm:text-5xl font-display italic tracking-[-0.03em] mb-6 text-ink">
             Install the runner. Ship the task.
