@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, ObservableObject {
     private var statusItem: NSStatusItem!
     let monitor = RunnerMonitor()
     private var apiServer: RunnerAPI?
@@ -44,10 +44,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
 
         let menu = NSMenu()
+        menu.delegate = self
         menu.addItem(withTitle: "fabrun v\(FabricVersion.current)", action: nil, keyEquivalent: "")
         menu.addItem(.separator())
 
-        let statusMenuItem = NSMenuItem(title: "Checking...", action: nil, keyEquivalent: "")
+        let statusMenuItem = NSMenuItem(title: "Runtime: —", action: nil, keyEquivalent: "")
         statusMenuItem.tag = 100
         menu.addItem(statusMenuItem)
 
@@ -62,13 +63,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         menu.addItem(withTitle: "Quit fabrun", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
         statusItem.menu = menu
-
-        Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.updateMenuBarState()
-            }
-        }
         updateMenuBarState()
+    }
+
+    // Refresh status when menu is about to open — no background polling
+    nonisolated func menuWillOpen(_ menu: NSMenu) {
+        Task { @MainActor in
+            monitor.checkNow()
+            // Update after a short delay to let the check complete
+            try? await Task.sleep(for: .milliseconds(300))
+            updateMenuBarState()
+        }
     }
 
     private func updateMenuBarState() {

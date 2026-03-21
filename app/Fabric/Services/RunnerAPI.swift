@@ -10,7 +10,7 @@ import Network
 ///   GET  /jobs/{id}           → job status + output
 ///
 final class RunnerAPI: @unchecked Sendable {
-    static let defaultPort: UInt16 = 8765
+    static let defaultPort: UInt16 = 52137
 
     private let listener: NWListener
     private let monitor: RunnerMonitor

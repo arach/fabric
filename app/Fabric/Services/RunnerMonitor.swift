@@ -1,14 +1,14 @@
 import Foundation
 
-/// Monitors the Apple container runtime by checking `container system status`.
+/// Monitors the Apple container runtime status.
+/// Polls lazily — only checks on demand (menu open, settings view, manual refresh).
 @MainActor
 final class RunnerMonitor: ObservableObject {
     @Published var isRunning = false
     @Published var builderReady = false
     @Published var runnerHomeExists = false
     @Published var lastError: String?
-
-    private var timer: Timer?
+    @Published var lastChecked: Date?
 
     private let runnerHome: String = {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
@@ -16,41 +16,30 @@ final class RunnerMonitor: ObservableObject {
             ?? "\(home)/.fabric-runner"
     }()
 
+    /// Initial check on launch — no recurring timer.
     func start() {
         checkNow()
-        timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.checkNow()
-            }
-        }
-    }
-
-    func stop() {
-        timer?.invalidate()
-        timer = nil
     }
 
     func checkNow() {
-        // Check container system
-        let systemStatus = shell("/usr/bin/env", ["container", "system", "status"])
-        isRunning = systemStatus.status == 0
-
-        // Check builder
-        let builderStatus = shell("/usr/bin/env", ["container", "builder", "status"])
-        builderReady = builderStatus.status == 0
-
-        // Check runner home
+        // Runner home is cheap — just a file existence check
         runnerHomeExists = FileManager.default.fileExists(atPath: runnerHome)
 
+        // Shell out for container status
+        let systemStatus = Self.shell("/usr/bin/env", ["container", "system", "status"])
+        let builderStatus = Self.shell("/usr/bin/env", ["container", "builder", "status"])
+
+        isRunning = systemStatus.status == 0
+        builderReady = builderStatus.status == 0
         lastError = nil
+        lastChecked = Date()
     }
 
-    nonisolated private func shell(_ executable: String, _ arguments: [String]) -> (status: Int32, output: String) {
+    nonisolated private static func shell(_ executable: String, _ arguments: [String]) -> (status: Int32, output: String) {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = arguments
 
-        // Include Homebrew in PATH for Apple Silicon
         var env = ProcessInfo.processInfo.environment
         let path = env["PATH"] ?? "/usr/bin:/bin"
         env["PATH"] = "/opt/homebrew/bin:/usr/local/bin:\(path)"
