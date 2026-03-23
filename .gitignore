@@ -1,3 +1,8 @@
+# Dotfiles (catch-all)
+.*
+!.gitignore
+!.github
+
 # Dependencies
 node_modules/
 
@@ -14,17 +19,9 @@ dist/
 # Bun
 bun.lockb
 
-# Environment
-.env
-.env.local
-.env.*.local
-
 # IDE
-.idea/
-.vscode/
 *.swp
 *.swo
-.DS_Store
 
 # Logs
 *.log
@@ -33,5 +30,3 @@ npm-debug.log*
 # Test
 coverage/
 
-# Claude Code local settings
-.claude/settings.local.json
