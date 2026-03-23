@@ -1,0 +1,15 @@
+{
+  "name": "diarize",
+  "tag": "fabric-diarize:local",
+  "description": "Speaker diarization (pyannote 3.3.2)",
+  "repo": "https://github.com/arach/fabric",
+  "path": "images/diarize",
+  "dockerfile": "images/diarize/Dockerfile",
+  "context": ".",
+  "buildArgs": {
+    "HF_TOKEN": {
+      "source": "file",
+      "path": "~/.cache/huggingface/token"
+    }
+  }
+}

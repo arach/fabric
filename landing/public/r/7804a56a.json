@@ -1,0 +1,9 @@
+{
+  "name": "ubuntu",
+  "tag": "fabric-ubuntu:latest",
+  "description": "Ubuntu 24.04 + dev tools (200 MB)",
+  "repo": "https://github.com/arach/fabric",
+  "path": "images/ubuntu",
+  "dockerfile": "images/ubuntu/Dockerfile",
+  "context": "."
+}

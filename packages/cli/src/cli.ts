@@ -6,8 +6,11 @@
  */
 
 import { parseArgs } from "node:util"
-import { readFileSync, existsSync } from "node:fs"
-import { resolve, dirname } from "node:path"
+import { readFileSync, existsSync, mkdirSync, writeFileSync, readdirSync } from "node:fs"
+import { resolve, dirname, join } from "node:path"
+import { spawnSync, execSync } from "node:child_process"
+import { homedir } from "node:os"
+import { createHash } from "node:crypto"
 import type { SandboxFactory, Sandbox, MountSpec } from "fabric-ai-core"
 
 const version = "0.2.0"
@@ -42,6 +45,9 @@ ${c("bold", "USAGE")}
 ${c("bold", "COMMANDS")}
   ${c("green", "setup")}      Set up local container runtime
   ${c("green", "init")}       Create a .fabric config for this project
+  ${c("green", "build")}      Build container images from manifest
+  ${c("green", "images")}     List available container images
+  ${c("green", "publish")}    Generate shareable recipe refs
   ${c("green", "shell")}     Drop into an interactive Linux shell
   ${c("green", "create")}     Create a new sandbox
   ${c("green", "exec")}       Execute a command in a sandbox
@@ -54,6 +60,11 @@ ${c("bold", "OPTIONS")}
   ${c("yellow", "-p, --provider")}  Provider to use (local, daytona, e2b, exe)
   ${c("yellow", "-l, --language")}  Language for sandbox (typescript, python, go, rust)
   ${c("yellow", "--image")}         Container image (for shell command)
+  ${c("yellow", "--all")}           Build all images (for build command)
+  ${c("yellow", "--no-cache")}      Disable build cache (for build command)
+  ${c("yellow", "--build-arg")}     Build argument KEY=VAL (for build command)
+  ${c("yellow", "--ref")}           Build from a fab.run recipe ref
+  ${c("yellow", "--ext-ref")}       Build from an external recipe ref
   ${c("yellow", "-i, --interactive")}  Interactive mode (for setup)
   ${c("yellow", "-h, --help")}      Show this help message
   ${c("yellow", "-v, --version")}   Show version number
@@ -76,6 +87,21 @@ ${c("bold", "EXAMPLES")}
 
   ${c("dim", "# Bare Alpine (minimal)")}
   fabric shell --image bare
+
+  ${c("dim", "# Build default images")}
+  fabric build
+
+  ${c("dim", "# Build a specific image")}
+  fabric build ocr
+
+  ${c("dim", "# Build all images")}
+  fabric build --all
+
+  ${c("dim", "# Build from a shared recipe")}
+  fabric build --ref=a1b2c3
+
+  ${c("dim", "# List available images")}
+  fabric images
 
   ${c("dim", "# Set up local container runtime")}
   fabric setup
@@ -242,6 +268,329 @@ function parseEnvVars(envStrings: string[]): Record<string, string> {
   return env
 }
 
+// ── Image manifest ───────────────────────────────────────────────────
+
+interface BuildArgSpec {
+  source: "file" | "env"
+  path?: string
+  var?: string
+}
+
+interface ImageEntry {
+  tag: string
+  dockerfile: string
+  context?: string
+  description?: string
+  default?: boolean
+  buildArgs?: Record<string, string | BuildArgSpec>
+}
+
+interface ImageManifest {
+  root?: string
+  images: Record<string, ImageEntry>
+}
+
+interface ImageRef {
+  name: string
+  tag: string
+  description?: string
+  repo: string
+  path: string
+  dockerfile: string
+  context: string
+  buildArgs?: Record<string, string | BuildArgSpec>
+}
+
+const GLOBAL_FABRIC_DIR = join(homedir(), ".fabric")
+const GLOBAL_MANIFEST_PATH = join(GLOBAL_FABRIC_DIR, "images.json")
+const REF_CACHE_DIR = join(GLOBAL_FABRIC_DIR, "refs")
+const REF_BASE_URL = "https://fab.run/r"
+
+function findProjectRoot(): string | null {
+  try {
+    const result = execSync("git rev-parse --show-toplevel 2>/dev/null", {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+    })
+    return result.trim() || null
+  } catch {
+    return null
+  }
+}
+
+function loadImageManifest(): { manifest: ImageManifest; root: string } | null {
+  // 1. Try project manifest
+  const projectRoot = findProjectRoot()
+  if (projectRoot) {
+    const manifestPath = join(projectRoot, "images", "fabric-images.json")
+    if (existsSync(manifestPath)) {
+      try {
+        const raw = readFileSync(manifestPath, "utf8")
+        return { manifest: JSON.parse(raw) as ImageManifest, root: projectRoot }
+      } catch { /* fall through */ }
+    }
+  }
+
+  // 2. Try global manifest at ~/.fabric/images.json
+  if (existsSync(GLOBAL_MANIFEST_PATH)) {
+    try {
+      const raw = readFileSync(GLOBAL_MANIFEST_PATH, "utf8")
+      const parsed = JSON.parse(raw) as ImageManifest
+      const root = parsed.root || homedir()
+      return { manifest: parsed, root }
+    } catch { /* fall through */ }
+  }
+
+  return null
+}
+
+function writeGlobalManifest(projectRoot: string, manifest: ImageManifest): void {
+  mkdirSync(GLOBAL_FABRIC_DIR, { recursive: true })
+  const global = {
+    root: projectRoot,
+    generatedAt: new Date().toISOString(),
+    images: manifest.images,
+  }
+  writeFileSync(GLOBAL_MANIFEST_PATH, JSON.stringify(global, null, 2) + "\n")
+}
+
+function resolveBuildArgs(
+  entry: ImageEntry,
+  cliBuildArgs: string[]
+): string[] {
+  const args: string[] = []
+
+  // Resolve manifest buildArgs
+  if (entry.buildArgs) {
+    for (const [key, spec] of Object.entries(entry.buildArgs)) {
+      if (typeof spec === "string") {
+        args.push(`${key}=${spec}`)
+      } else if (spec.source === "file" && spec.path) {
+        const filePath = spec.path.replace(/^~/, homedir())
+        if (!existsSync(filePath)) {
+          console.error(c("red", `Error: Build arg ${key} requires file ${spec.path}`))
+          console.error(c("dim", `  File not found: ${filePath}`))
+          process.exit(1)
+        }
+        const value = readFileSync(filePath, "utf8").trim()
+        args.push(`${key}=${value}`)
+      } else if (spec.source === "env" && spec.var) {
+        const value = process.env[spec.var]
+        if (!value) {
+          console.error(c("red", `Error: Build arg ${key} requires env var ${spec.var}`))
+          process.exit(1)
+        }
+        args.push(`${key}=${value}`)
+      }
+    }
+  }
+
+  // CLI --build-arg overrides (later entries win)
+  for (const arg of cliBuildArgs) {
+    const key = arg.split("=")[0]
+    // Remove any manifest arg with same key
+    const idx = args.findIndex((a) => a.startsWith(`${key}=`))
+    if (idx >= 0) args.splice(idx, 1)
+    args.push(arg)
+  }
+
+  return args
+}
+
+function imageIsAvailable(tag: string): boolean {
+  const result = spawnSync("container", ["image", "inspect", tag], {
+    stdio: "pipe",
+  })
+  return result.status === 0
+}
+
+// Third-party image aliases (not built from Dockerfiles)
+const THIRD_PARTY_IMAGES: Record<string, { image: string; description: string }> = {
+  bare: { image: "alpine:latest", description: "Alpine Linux (bare)" },
+  alpine: { image: "alpine:latest", description: "Alpine Linux (bare)" },
+  omarchy: { image: "lopsided/archlinux:latest", description: "Arch Linux (Omarchy base)" },
+  arch: { image: "lopsided/archlinux:latest", description: "Arch Linux" },
+  debian: { image: "debian:latest", description: "Debian Linux" },
+  fedora: { image: "fedora:latest", description: "Fedora Linux" },
+  bun: { image: "oven/bun:latest", description: "Bun runtime" },
+  node: { image: "node:22", description: "Node.js 22" },
+  python: { image: "python:3.12", description: "Python 3.12" },
+}
+
+function resolveImageName(name: string): { image: string; label: string } {
+  // 0. Handle ref: prefix — resolve from cached ref
+  if (name.startsWith("ref:")) {
+    const refId = name.slice(4)
+    const cachedPath = join(REF_CACHE_DIR, `${refId}.json`)
+    if (existsSync(cachedPath)) {
+      const ref = JSON.parse(readFileSync(cachedPath, "utf8")) as ImageRef
+      return { image: ref.tag, label: ref.description || ref.tag }
+    }
+    // Not cached yet — ensureImage will handle fetch+build
+    return { image: `ref:${refId}`, label: `Recipe ${refId}` }
+  }
+
+  // 1. Check manifest by name
+  const loaded = loadImageManifest()
+  if (loaded && loaded.manifest.images[name]) {
+    const entry = loaded.manifest.images[name]
+    return { image: entry.tag, label: entry.description || entry.tag }
+  }
+
+  // 2. Check third-party aliases
+  if (THIRD_PARTY_IMAGES[name]) {
+    return {
+      image: THIRD_PARTY_IMAGES[name].image,
+      label: THIRD_PARTY_IMAGES[name].description,
+    }
+  }
+
+  // 3. Treat as literal OCI reference
+  return { image: name, label: name }
+}
+
+async function ensureImage(tag: string): Promise<void> {
+  // Handle ref: tags — fetch and build from fab.run
+  if (tag.startsWith("ref:")) {
+    const refId = tag.slice(4)
+    await fetchAndBuildRef(refId)
+    return
+  }
+
+  if (imageIsAvailable(tag)) return
+
+  // Check if it's a manifest image we can build
+  const loaded = loadImageManifest()
+  if (loaded) {
+    for (const [name, entry] of Object.entries(loaded.manifest.images)) {
+      if (entry.tag === tag) {
+        console.log(c("cyan", `Image ${tag} not found locally. Building ${name}...`))
+        const buildArgs = resolveBuildArgs(entry, [])
+        const args = ["build", "--progress", "plain", "-t", entry.tag, "-f", join(loaded.root, entry.dockerfile)]
+        for (const ba of buildArgs) args.push("--build-arg", ba)
+        args.push(join(loaded.root, entry.context || "."))
+
+        const result = spawnSync("container", args, { stdio: "inherit" })
+        if (result.status !== 0) {
+          console.error(c("red", `Failed to build ${tag}`))
+          process.exit(1)
+        }
+        console.log(c("green", `✓ Built ${tag}`))
+        return
+      }
+    }
+  }
+
+  // Try pulling from registry
+  console.log(c("cyan", `Image ${tag} not found locally. Pulling...`))
+  const result = spawnSync("container", ["image", "pull", tag], { stdio: "inherit" })
+  if (result.status !== 0) {
+    console.error(c("red", `Failed to pull ${tag}`))
+    console.error(c("dim", "  If this is a Fabric image, run 'fabric build' first"))
+    process.exit(1)
+  }
+}
+
+// ── Ref-based image discovery ────────────────────────────────────────
+
+async function fetchRef(refId: string): Promise<ImageRef> {
+  const url = `${REF_BASE_URL}/${refId}.json`
+  console.log(c("dim", `Fetching ref from ${url}...`))
+
+  const res = await fetch(url)
+  if (!res.ok) {
+    console.error(c("red", `Failed to fetch ref: ${res.status} ${res.statusText}`))
+    console.error(c("dim", `  URL: ${url}`))
+    process.exit(1)
+  }
+
+  const ref = (await res.json()) as ImageRef
+
+  // Cache locally
+  mkdirSync(REF_CACHE_DIR, { recursive: true })
+  writeFileSync(join(REF_CACHE_DIR, `${refId}.json`), JSON.stringify(ref, null, 2) + "\n")
+
+  return ref
+}
+
+async function fetchAndBuildRef(
+  refId: string,
+  options: { noCache?: boolean; cliBuildArgs?: string[]; external?: boolean } = {}
+): Promise<void> {
+  // 1. Check cache or fetch
+  const cachedPath = join(REF_CACHE_DIR, `${refId}.json`)
+  let ref: ImageRef
+
+  if (existsSync(cachedPath) && !options.noCache) {
+    ref = JSON.parse(readFileSync(cachedPath, "utf8"))
+    console.log(c("dim", `Using cached ref ${refId}`))
+  } else {
+    ref = await fetchRef(refId)
+  }
+
+  // External ref warning
+  if (options.external) {
+    console.log(c("yellow", `! Building from external recipe — review the Dockerfile at ${ref.repo}`))
+  }
+
+  // 2. If image already built, skip
+  if (!options.noCache && imageIsAvailable(ref.tag)) {
+    console.log(c("green", `✓ ${ref.tag} already available`))
+    return
+  }
+
+  // 3. Download repo as tarball
+  const buildDir = join(GLOBAL_FABRIC_DIR, "builds", refId)
+  mkdirSync(buildDir, { recursive: true })
+
+  console.log(c("cyan", `Downloading build context from ${ref.repo}...`))
+
+  const tarballUrl = `${ref.repo}/archive/refs/heads/master.tar.gz`
+  const tarPath = join(buildDir, "repo.tar.gz")
+
+  const tarRes = await fetch(tarballUrl, { redirect: "follow" })
+  if (!tarRes.ok) {
+    console.error(c("red", `Failed to download repo: ${tarRes.status} ${tarRes.statusText}`))
+    process.exit(1)
+  }
+
+  const buffer = Buffer.from(await tarRes.arrayBuffer())
+  writeFileSync(tarPath, buffer)
+
+  // 4. Extract
+  const extractDir = join(buildDir, "src")
+  mkdirSync(extractDir, { recursive: true })
+  spawnSync("tar", ["xzf", tarPath, "-C", extractDir, "--strip-components=1"], { stdio: "pipe" })
+
+  // 5. Build
+  const entry: ImageEntry = {
+    tag: ref.tag,
+    dockerfile: ref.dockerfile,
+    context: ref.context || ".",
+    buildArgs: ref.buildArgs,
+  }
+
+  const buildArgs = resolveBuildArgs(entry, options.cliBuildArgs || [])
+  const args = ["build", "--progress", "plain", "-t", entry.tag, "-f", join(extractDir, entry.dockerfile)]
+  if (options.noCache) args.push("--no-cache")
+  for (const ba of buildArgs) args.push("--build-arg", ba)
+  args.push(join(extractDir, entry.context || "."))
+
+  console.log(`${c("blue", "=>")} Building ${ref.name} ${c("dim", `(${ref.tag})`)}`)
+  const result = spawnSync("container", args, { stdio: "inherit" })
+
+  if (result.status !== 0) {
+    console.error(c("red", `Failed to build ${ref.tag}`))
+    process.exit(1)
+  }
+
+  console.log(c("green", `✓ Built ${ref.tag} from ref ${refId}`))
+}
+
+function generateRefId(name: string): string {
+  return createHash("sha256").update(name).digest("hex").slice(0, 8)
+}
+
 /**
  * Resolve a provider name to a SandboxFactory instance.
  * Validates required credentials and dynamically imports the provider package.
@@ -302,10 +651,42 @@ function validateProvider(provider: string): Provider {
   return provider as Provider
 }
 
+// Extract --build-arg values from argv before parseArgs (which doesn't handle repeated string options)
+function extractBuildArgs(): string[] {
+  const args: string[] = []
+  const argv = process.argv.slice(2)
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--build-arg" && i + 1 < argv.length) {
+      args.push(argv[i + 1])
+      i++ // skip value
+    } else if (argv[i].startsWith("--build-arg=")) {
+      args.push(argv[i].slice("--build-arg=".length))
+    }
+  }
+  return args
+}
+
+// Strip --build-arg entries from argv so parseArgs doesn't choke
+function getCleanArgv(): string[] {
+  const argv = process.argv.slice(2)
+  const clean: string[] = []
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--build-arg" && i + 1 < argv.length) {
+      i++ // skip value
+    } else if (argv[i].startsWith("--build-arg=")) {
+      // skip
+    } else {
+      clean.push(argv[i])
+    }
+  }
+  return clean
+}
+
 // Parse command line arguments
 function parseCliArgs() {
   try {
     const { values, positionals } = parseArgs({
+      args: getCleanArgv(),
       allowPositionals: true,
       options: {
         provider: { type: "string", short: "p" },
@@ -315,6 +696,10 @@ function parseCliArgs() {
         version: { type: "boolean", short: "v" },
         interactive: { type: "boolean", short: "i" },
         id: { type: "string" },
+        all: { type: "boolean" },
+        "no-cache": { type: "boolean" },
+        ref: { type: "string" },
+        "ext-ref": { type: "string" },
       },
     })
 
@@ -519,28 +904,202 @@ image: alpine:latest
   console.log(c("dim", "  e.g. fabric init node"))
 }
 
-// ── Shell command ─────────────────────────────────────────────────────
+// ── Build command ─────────────────────────────────────────────────────
 
-const SHELL_IMAGES: Record<string, { image: string; description: string }> = {
-  // Default: Alpine + bash, git, curl, ssh, jq (32 MB)
-  default: { image: "fabric-base:latest", description: "Fabric base (Alpine + essentials)" },
-  // Bare: stock Alpine, nothing extra (5 MB)
-  bare: { image: "alpine:latest", description: "Alpine Linux (bare)" },
-  // Ubuntu: full dev environment with build-essential (200+ MB)
-  ubuntu: { image: "fabric-ubuntu:latest", description: "Ubuntu 24.04 (dev tools)" },
-  // Aliases for common images
-  alpine: { image: "alpine:latest", description: "Alpine Linux (bare)" },
-  omarchy: { image: "lopsided/archlinux:latest", description: "Arch Linux (Omarchy base)" },
-  arch: { image: "lopsided/archlinux:latest", description: "Arch Linux" },
-  debian: { image: "debian:latest", description: "Debian Linux" },
-  fedora: { image: "fedora:latest", description: "Fedora Linux" },
-  bun: { image: "oven/bun:latest", description: "Bun runtime" },
-  node: { image: "node:22", description: "Node.js 22" },
-  python: { image: "python:3.12", description: "Python 3.12" },
+async function cmdBuild(
+  name?: string,
+  options: { all?: boolean; noCache?: boolean; ref?: string; extRef?: string } = {}
+) {
+  // Handle ref-based builds (bypass manifest)
+  if (options.ref || options.extRef) {
+    const refId = (options.ref || options.extRef)!
+    const cliBuildArgs = extractBuildArgs()
+    await fetchAndBuildRef(refId, {
+      noCache: options.noCache,
+      cliBuildArgs,
+      external: !!options.extRef,
+    })
+    return
+  }
+
+  const loaded = loadImageManifest()
+  if (!loaded) {
+    console.error(c("red", "Error: No image manifest found"))
+    console.error(c("dim", "  Expected images/fabric-images.json in the project root or ~/.fabric/images.json"))
+    process.exit(1)
+  }
+
+  const { manifest, root } = loaded
+  const cliBuildArgs = extractBuildArgs()
+
+  // Determine which images to build
+  let entries: [string, ImageEntry][]
+  if (name) {
+    const entry = manifest.images[name]
+    if (!entry) {
+      console.error(c("red", `Unknown image: ${name}`))
+      console.log(c("dim", `Available: ${Object.keys(manifest.images).join(", ")}`))
+      process.exit(1)
+    }
+    entries = [[name, entry]]
+  } else if (options.all) {
+    entries = Object.entries(manifest.images)
+  } else {
+    entries = Object.entries(manifest.images).filter(([, e]) => e.default)
+    if (entries.length === 0) {
+      console.log(c("dim", "No default images to build. Use --all or specify a name."))
+      return
+    }
+  }
+
+  console.log(c("bold", `Building ${entries.length} image${entries.length > 1 ? "s" : ""}...`))
+  console.log()
+
+  let failed = 0
+  for (const [imgName, entry] of entries) {
+    console.log(`${c("blue", "=>")} ${imgName} ${c("dim", `(${entry.tag})`)}`)
+
+    const buildArgs = resolveBuildArgs(entry, cliBuildArgs)
+    const args = ["build", "--progress", "plain", "-t", entry.tag, "-f", join(root, entry.dockerfile)]
+    if (options.noCache) args.push("--no-cache")
+    for (const ba of buildArgs) args.push("--build-arg", ba)
+    args.push(join(root, entry.context || "."))
+
+    const result = spawnSync("container", args, { stdio: "inherit" })
+    if (result.status === 0) {
+      console.log(`${c("green", "✓")}  ${entry.tag}`)
+    } else {
+      console.log(`${c("red", "✗")}  ${entry.tag} failed`)
+      failed++
+    }
+    console.log()
+  }
+
+  if (failed > 0) {
+    console.error(c("red", `${failed} image${failed > 1 ? "s" : ""} failed to build`))
+    process.exit(1)
+  }
 }
 
+// ── Images command ───────────────────────────────────────────────────
+
+async function cmdImages() {
+  const loaded = loadImageManifest()
+
+  if (!loaded) {
+    console.log(c("dim", "No image manifest found (not in a Fabric workspace)"))
+    console.log()
+    console.log(c("bold", "Third-party aliases:"))
+    for (const [name, info] of Object.entries(THIRD_PARTY_IMAGES)) {
+      console.log(`  ${name.padEnd(12)} ${c("dim", info.image.padEnd(30))} ${c("dim", info.description)}`)
+    }
+    return
+  }
+
+  const { manifest } = loaded
+
+  console.log(c("bold", "Fabric images"))
+  console.log()
+
+  for (const [name, entry] of Object.entries(manifest.images)) {
+    const available = imageIsAvailable(entry.tag)
+    const icon = available ? c("green", "✓") : c("red", "✗")
+    const defaultLabel = entry.default ? c("cyan", " (default)") : ""
+    console.log(`  ${icon}  ${name.padEnd(12)} ${c("dim", entry.tag.padEnd(28))} ${entry.description || ""}${defaultLabel}`)
+  }
+
+  console.log()
+  console.log(c("bold", "Third-party aliases"))
+  console.log()
+  for (const [name, info] of Object.entries(THIRD_PARTY_IMAGES)) {
+    console.log(`     ${name.padEnd(12)} ${c("dim", info.image.padEnd(28))} ${info.description}`)
+  }
+
+  // Show cached refs
+  if (existsSync(REF_CACHE_DIR)) {
+    try {
+      const refFiles = readdirSync(REF_CACHE_DIR).filter((f: string) => f.endsWith(".json"))
+      if (refFiles.length > 0) {
+        console.log()
+        console.log(c("bold", "Cached refs"))
+        console.log()
+        for (const file of refFiles) {
+          const ref = JSON.parse(readFileSync(join(REF_CACHE_DIR, file), "utf8")) as ImageRef
+          const refId = file.replace(".json", "")
+          const available = imageIsAvailable(ref.tag)
+          const icon = available ? c("green", "✓") : c("red", "✗")
+          console.log(`  ${icon}  ref:${refId.padEnd(10)} ${c("dim", ref.tag.padEnd(28))} ${ref.description || ""}`)
+        }
+      }
+    } catch { /* ignore */ }
+  }
+
+  console.log()
+  console.log(c("dim", "Build missing images with: fabric build [name|--all|--ref=ID]"))
+}
+
+// ── Publish command ──────────────────────────────────────────────────
+
+async function cmdPublish(name?: string) {
+  const loaded = loadImageManifest()
+  if (!loaded) {
+    console.error(c("red", "Error: No image manifest found"))
+    process.exit(1)
+  }
+
+  const { manifest, root } = loaded
+
+  // Get repo URL from git remote
+  let repoUrl = "https://github.com/arach/fabric"
+  try {
+    const remote = execSync("git remote get-url origin", { encoding: "utf8", cwd: root }).trim()
+    repoUrl = remote
+      .replace(/^git@github\.com:/, "https://github.com/")
+      .replace(/\.git$/, "")
+  } catch { /* use default */ }
+
+  const refDir = join(root, "landing", "public", "r")
+  mkdirSync(refDir, { recursive: true })
+
+  const entries = name
+    ? ([[name, manifest.images[name]] as [string, ImageEntry]])
+    : Object.entries(manifest.images)
+
+  if (name && !manifest.images[name]) {
+    console.error(c("red", `Unknown image: ${name}`))
+    console.log(c("dim", `Available: ${Object.keys(manifest.images).join(", ")}`))
+    process.exit(1)
+  }
+
+  console.log(c("bold", "Publishing refs to landing/public/r/"))
+  console.log()
+
+  for (const [imgName, entry] of entries) {
+    const refId = generateRefId(imgName)
+
+    const ref: ImageRef = {
+      name: imgName,
+      tag: entry.tag,
+      description: entry.description,
+      repo: repoUrl,
+      path: dirname(entry.dockerfile),
+      dockerfile: entry.dockerfile,
+      context: entry.context || ".",
+      ...(entry.buildArgs && { buildArgs: entry.buildArgs }),
+    }
+
+    const refPath = join(refDir, `${refId}.json`)
+    writeFileSync(refPath, JSON.stringify(ref, null, 2) + "\n")
+    console.log(`${c("green", "✓")} ${imgName.padEnd(12)} ${c("dim", "→")} ${c("cyan", `fab.run/r/${refId}`)}`)
+  }
+
+  console.log()
+  console.log(c("dim", "Deploy the landing site to make refs live."))
+}
+
+// ── Shell command ─────────────────────────────────────────────────────
+
 async function cmdShell(options: { image?: string } = {}) {
-  const { spawnSync } = await import("child_process")
   const config = loadFabricConfig()
 
   // Check container CLI is available
@@ -557,15 +1116,19 @@ async function cmdShell(options: { image?: string } = {}) {
   let label: string
 
   if (!imageName) {
-    image = SHELL_IMAGES.default.image
-    label = SHELL_IMAGES.default.description
-  } else if (SHELL_IMAGES[imageName]) {
-    image = SHELL_IMAGES[imageName].image
-    label = SHELL_IMAGES[imageName].description
+    // Default to fabric-base from manifest or fallback
+    const loaded = loadImageManifest()
+    const baseEntry = loaded?.manifest.images["base"]
+    image = baseEntry?.tag || "fabric-base:latest"
+    label = baseEntry?.description || "Fabric base (Alpine + essentials)"
   } else {
-    image = imageName
-    label = imageName
+    const resolved = resolveImageName(imageName)
+    image = resolved.image
+    label = resolved.label
   }
+
+  // Ensure image is available (auto-build from manifest or pull)
+  await ensureImage(image)
 
   console.log(c("cyan", `Launching ${label}...`))
   console.log(c("dim", `Image: ${image}`))
@@ -811,36 +1374,61 @@ async function cmdSetup(options: { interactive?: boolean } = {}) {
     }
   }
 
-  // ── Step 8: Pre-pull images ──────────────────────────────────────
+  // ── Step 7.5: Populate global image manifest ────────────────────
 
-  const images = [
-    { name: "fabric-base:latest", desc: "Alpine + bash, git, curl, ssh, jq (32 MB)", default: true, buildDir: "images/base" },
-    { name: "fabric-ubuntu:latest", desc: "Ubuntu 24.04 + dev tools (200 MB)", default: false, buildDir: "images/ubuntu" },
+  const loaded = loadImageManifest()
+  if (loaded && projectRoot) {
+    writeGlobalManifest(projectRoot, loaded.manifest)
+    ok("Global manifest written to ~/.fabric/images.json")
+    console.log(c("dim", "     Images discoverable from any directory"))
+  }
+
+  // ── Step 8: Build/pull images (manifest-driven) ────────────────
+  const manifestImages = loaded ? Object.entries(loaded.manifest.images) : []
+
+  // Also include common third-party images for pulling
+  const pullableImages = [
     { name: "alpine:latest", desc: "Bare Alpine (5 MB)", default: false },
     { name: "oven/bun:latest", desc: "Bun JS runtime", default: false },
     { name: "node:22-slim", desc: "Node.js runtime", default: false },
     { name: "python:3-slim", desc: "Python runtime", default: false },
   ]
 
-  let selectedImages = images.filter((i) => i.default)
+  type SetupImage = { name: string; tag: string; desc: string; default: boolean; manifestEntry?: ImageEntry }
+  const allImages: SetupImage[] = [
+    ...manifestImages.map(([name, entry]) => ({
+      name,
+      tag: entry.tag,
+      desc: entry.description || entry.tag,
+      default: !!entry.default,
+      manifestEntry: entry,
+    })),
+    ...pullableImages.map((img) => ({
+      name: img.name,
+      tag: img.name,
+      desc: img.desc,
+      default: img.default,
+    })),
+  ]
+
+  let selectedImages = allImages.filter((i) => i.default)
 
   if (options.interactive) {
-    // Interactive mode: let user pick which images to pull
     const { createInterface } = await import("readline")
     const rl = createInterface({ input: process.stdin, output: process.stdout })
     const ask = (q: string): Promise<string> =>
       new Promise((resolve) => rl.question(q, resolve))
 
     console.log()
-    info("Which container images would you like to pre-pull?")
-    console.log(c("dim", "  These will be downloaded now so your first sandbox starts fast."))
+    info("Which container images would you like to build/pull?")
+    console.log(c("dim", "  These will be ready now so your first sandbox starts fast."))
     console.log()
 
-    const picked: typeof images = []
-    for (const img of images) {
+    const picked: SetupImage[] = []
+    for (const img of allImages) {
       const def = img.default ? " [Y/n]" : " [y/N]"
       const answer = await ask(
-        `  ${img.name.padEnd(22)} ${c("dim", img.desc)}${def} `
+        `  ${img.tag.padEnd(26)} ${c("dim", img.desc)}${def} `
       )
       const yes = img.default
         ? answer.trim().toLowerCase() !== "n"
@@ -853,44 +1441,49 @@ async function cmdSetup(options: { interactive?: boolean } = {}) {
     console.log()
   } else {
     console.log()
-    info("Pre-pulling default container images...")
-    console.log(c("dim", "  Run with --interactive to choose which images to pull."))
+    info("Building default container images...")
+    console.log(c("dim", "  Run with --interactive to choose which images to build/pull."))
     console.log()
 
-    for (const img of images) {
-      const action = img.default ? (img.buildDir ? c("green", " (building)") : c("green", " (pulling)")) : ""
-      console.log(`  ${img.name.padEnd(26)} ${c("dim", img.desc)}${action}`)
+    for (const img of allImages) {
+      const action = img.default
+        ? (img.manifestEntry ? c("green", " (building)") : c("green", " (pulling)"))
+        : ""
+      console.log(`  ${img.tag.padEnd(26)} ${c("dim", img.desc)}${action}`)
     }
     console.log()
   }
 
   for (const img of selectedImages) {
-    if ((img as any).buildDir && projectRoot) {
-      const buildPath = join(projectRoot, (img as any).buildDir)
-      if (existsSync(buildPath)) {
-        info(`Building ${img.name}...`)
-        const buildResult = spawnSync("container", ["build", "-t", img.name, buildPath], {
-          stdio: "pipe",
-        })
-        if (buildResult.status === 0) {
-          ok(`${img.name} built`)
-        } else {
-          // Fallback: try pulling a pre-built base image
-          console.log(`${c("yellow", "!")}  Build failed, pulling base image instead...`)
+    if (img.manifestEntry && projectRoot) {
+      // Build from manifest Dockerfile
+      const entry = img.manifestEntry
+      info(`Building ${img.tag}...`)
+      const buildArgs = resolveBuildArgs(entry, [])
+      const args = ["build", "--progress", "plain", "-t", entry.tag, "-f", join(projectRoot, entry.dockerfile)]
+      for (const ba of buildArgs) args.push("--build-arg", ba)
+      args.push(join(projectRoot, entry.context || "."))
+
+      const buildResult = spawnSync("container", args, { stdio: "pipe" })
+      if (buildResult.status === 0) {
+        ok(`${img.tag} built`)
+      } else {
+        console.log(`${c("yellow", "!")}  Build failed for ${img.tag}`)
+        if (img.name === "base") {
+          console.log(`${c("yellow", "!")}  Pulling alpine:latest as fallback...`)
           spawnSync("container", ["image", "pull", "alpine:latest"], { stdio: "pipe" })
           ok("alpine:latest ready (fallback)")
         }
-        continue
       }
-    }
-    info(`Pulling ${img.name}...`)
-    const pullResult = spawnSync("container", ["image", "pull", img.name], {
-      stdio: "pipe",
-    })
-    if (pullResult.status === 0) {
-      ok(`${img.name} ready`)
     } else {
-      console.log(`${c("yellow", "!")}  Failed to pull ${img.name}`)
+      // Pull from registry
+      info(`Pulling ${img.tag}...`)
+      const pullResult = spawnSync("container", ["image", "pull", img.tag], { stdio: "pipe" })
+      if (pullResult.status === 0) {
+        ok(`${img.tag} ready`)
+      } else {
+        console.log(`${c("yellow", "!")}  Failed to pull ${img.tag}`)
+      }
     }
   }
 
@@ -1036,6 +1629,23 @@ async function main() {
         language: values.language,
         provider: values.provider,
       })
+      break
+
+    case "build":
+      await cmdBuild(args[0], {
+        all: values.all,
+        noCache: values["no-cache"],
+        ref: values.ref as string | undefined,
+        extRef: values["ext-ref"] as string | undefined,
+      })
+      break
+
+    case "images":
+      await cmdImages()
+      break
+
+    case "publish":
+      await cmdPublish(args[0])
       break
 
     case "shell":

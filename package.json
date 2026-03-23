@@ -13,7 +13,7 @@
     "build": "bun run --filter '*' build",
     "test": "bun test",
     "typecheck": "bun run --filter '*' typecheck",
-    "ocr:build-image": "container build --progress plain -t fabric-ocr:local -f images/ocr/Dockerfile .",
+    "build:images": "bun run packages/cli/src/cli.ts build --all",
     "ocr:evaluate": "bun run scripts/evaluate-ocr.ts",
     "runner:install": "bash scripts/install-runner.sh",
     "site:dev": "cd landing && bun run dev",

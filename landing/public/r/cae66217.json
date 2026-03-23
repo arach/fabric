@@ -1,0 +1,9 @@
+{
+  "name": "base",
+  "tag": "fabric-base:latest",
+  "description": "Alpine + bash, git, curl, ssh, jq (32 MB)",
+  "repo": "https://github.com/arach/fabric",
+  "path": "images/base",
+  "dockerfile": "images/base/Dockerfile",
+  "context": "."
+}

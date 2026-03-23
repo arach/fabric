@@ -1,0 +1,9 @@
+{
+  "name": "ocr",
+  "tag": "fabric-ocr:local",
+  "description": "OCR pipeline (tesseract + poppler)",
+  "repo": "https://github.com/arach/fabric",
+  "path": "images/ocr",
+  "dockerfile": "images/ocr/Dockerfile",
+  "context": "."
+}

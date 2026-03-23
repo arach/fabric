@@ -1,0 +1,32 @@
+{
+  "images": {
+    "base": {
+      "tag": "fabric-base:latest",
+      "dockerfile": "images/base/Dockerfile",
+      "context": ".",
+      "description": "Alpine + bash, git, curl, ssh, jq (32 MB)",
+      "default": true
+    },
+    "ubuntu": {
+      "tag": "fabric-ubuntu:latest",
+      "dockerfile": "images/ubuntu/Dockerfile",
+      "context": ".",
+      "description": "Ubuntu 24.04 + dev tools (200 MB)"
+    },
+    "ocr": {
+      "tag": "fabric-ocr:local",
+      "dockerfile": "images/ocr/Dockerfile",
+      "context": ".",
+      "description": "OCR pipeline (tesseract + poppler)"
+    },
+    "diarize": {
+      "tag": "fabric-diarize:local",
+      "dockerfile": "images/diarize/Dockerfile",
+      "context": ".",
+      "description": "Speaker diarization (pyannote 3.3.2)",
+      "buildArgs": {
+        "HF_TOKEN": { "source": "file", "path": "~/.cache/huggingface/token" }
+      }
+    }
+  }
+}
