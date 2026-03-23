@@ -14,7 +14,7 @@ Fabric runs Linux containers natively on your Mac using Apple's Virtualization f
 npx @fabric-ai/cli setup
 ```
 
-`fabric setup` installs the Apple `container` CLI, downloads the Linux kernel, and pulls base images. Requires macOS 26+ on Apple Silicon.
+`fabric setup` installs the Apple `container` CLI, downloads the Linux kernel, builds default images, and writes `~/.fabric/images.json` so images are discoverable from any directory. Requires macOS 26+ on Apple Silicon.
 
 ## Your First Container
 
@@ -102,16 +102,54 @@ console.log(result.output)
 
 ## Available Images
 
+List what's available:
+
+```bash
+fabric images
+```
+
+### Fabric Images (built from manifest)
+
+| Name | Tag | Description |
+|------|-----|-------------|
+| base | fabric-base:latest | Alpine + bash, git, curl, ssh, jq (32 MB) |
+| ubuntu | fabric-ubuntu:latest | Ubuntu 24.04 + dev tools (200 MB) |
+| ocr | fabric-ocr:local | OCR pipeline (tesseract + poppler) |
+| diarize | fabric-diarize:local | Speaker diarization (pyannote 3.3.2) |
+
+Build them with:
+
+```bash
+fabric build base          # Build one image
+fabric build --all         # Build everything
+fabric build diarize       # Auto-resolves HF_TOKEN from ~/.cache/huggingface/token
+```
+
+### Third-party Aliases
+
 | Name | Image | Description |
 |------|-------|-------------|
-| ubuntu | ubuntu:latest | Ubuntu Linux (default) |
-| alpine | alpine:latest | Alpine Linux (minimal) |
-| omarchy / arch | lopsided/archlinux | Arch Linux (arm64) |
+| alpine / bare | alpine:latest | Alpine Linux (minimal) |
+| omarchy / arch | lopsided/archlinux:latest | Arch Linux (arm64) |
 | debian | debian:latest | Debian |
 | fedora | fedora:latest | Fedora |
 | bun | oven/bun:latest | Bun runtime |
 | node | node:22 | Node.js 22 |
 | python | python:3.12 | Python 3.12 |
+
+### Build from a Shared Recipe
+
+Images can be shared as refs — lightweight JSON recipes hosted at fab.run:
+
+```bash
+fabric build --ref=a24e29dd    # Fetches recipe, downloads repo, builds locally
+```
+
+Use `ref:ID` in `.fabric` configs to auto-resolve:
+
+```bash
+image: ref:a24e29dd
+```
 
 ## Project Configuration
 
@@ -137,6 +175,7 @@ env: NODE_ENV=development
 
 # Override defaults
 # image: node:22
+# image: ref:a24e29dd    # or use a fab.run recipe ref
 # provider: local
 # network: true
 ```
@@ -285,6 +324,9 @@ try {
 |---------|-------------|
 | `fabric setup` | Install everything (container CLI, kernel, images) |
 | `fabric init` | Create a `.fabric` config for this project |
+| `fabric build` | Build container images from manifest |
+| `fabric images` | List available container images |
+| `fabric publish` | Generate shareable recipe refs for fab.run |
 | `fabric shell` | Interactive Linux shell |
 | `fabric create` | Create a sandbox |
 | `fabric exec` | Run a command in a sandbox |

@@ -73,6 +73,25 @@ curl http://localhost:8765/runtimes
 - **Runtime**: Execution environment (local subprocess, E2B, Modal)
 - **Orchestrator**: Routes tasks to runtimes based on availability and cost
 
+## Image Registry
+
+Fabric images are declared in `images/fabric-images.json` (the manifest). The CLI discovers images through a cascade:
+
+1. **Project manifest** — `{gitRoot}/images/fabric-images.json`
+2. **Global manifest** — `~/.fabric/images.json` (written by `fabric setup`)
+3. **Third-party aliases** — built-in map (alpine, node, python, bun, etc.)
+4. **URL refs** — `fab.run/r/{id}.json` via `--ref` flag
+5. **Literal OCI ref** — pass-through to `container` CLI
+
+```bash
+fabric images              # List available images
+fabric build [name]        # Build from manifest (--all, --no-cache, --build-arg)
+fabric build --ref=ID      # Build from a fab.run recipe ref
+fabric publish             # Generate ref files for fab.run
+```
+
+Image definitions live in `images/` with Dockerfiles. Build args (including secrets) are declared in the manifest with `source: "file"` or `source: "env"` resolution.
+
 ## Runtimes
 
 | Runtime | Status | Notes |
