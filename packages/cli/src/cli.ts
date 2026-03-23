@@ -295,6 +295,7 @@ interface ImageRef {
   tag: string
   description?: string
   repo: string
+  branch?: string
   path: string
   dockerfile: string
   context: string
@@ -506,6 +507,12 @@ async function fetchRef(refId: string): Promise<ImageRef> {
 
   const ref = (await res.json()) as ImageRef
 
+  // Validate required fields
+  if (!ref.name || !ref.tag || !ref.repo || !ref.dockerfile) {
+    console.error(c("red", "Invalid ref: missing required fields (name, tag, repo, dockerfile)"))
+    process.exit(1)
+  }
+
   // Cache locally
   mkdirSync(REF_CACHE_DIR, { recursive: true })
   writeFileSync(join(REF_CACHE_DIR, `${refId}.json`), JSON.stringify(ref, null, 2) + "\n")
@@ -528,9 +535,21 @@ async function fetchAndBuildRef(
     ref = await fetchRef(refId)
   }
 
-  // External ref warning
+  // External ref: require confirmation
   if (options.external) {
-    console.log(c("yellow", `! Building from external recipe — review the Dockerfile at ${ref.repo}`))
+    console.log(c("yellow", `! External recipe from ${ref.repo}`))
+    console.log(c("yellow", `  Image: ${ref.tag} — Dockerfile: ${ref.dockerfile}`))
+    console.log(c("dim", "  Review the Dockerfile before building. Builds can execute arbitrary code."))
+    const { createInterface } = await import("readline")
+    const rl = createInterface({ input: process.stdin, output: process.stdout })
+    const answer = await new Promise<string>((resolve) =>
+      rl.question(`  ${c("yellow", "Continue? [y/N]")} `, resolve)
+    )
+    rl.close()
+    if (answer.trim().toLowerCase() !== "y") {
+      console.log(c("dim", "Aborted."))
+      return
+    }
   }
 
   // 2. If image already built, skip
@@ -545,12 +564,19 @@ async function fetchAndBuildRef(
 
   console.log(c("cyan", `Downloading build context from ${ref.repo}...`))
 
-  const tarballUrl = `${ref.repo}/archive/refs/heads/master.tar.gz`
   const tarPath = join(buildDir, "repo.tar.gz")
-
-  const tarRes = await fetch(tarballUrl, { redirect: "follow" })
-  if (!tarRes.ok) {
-    console.error(c("red", `Failed to download repo: ${tarRes.status} ${tarRes.statusText}`))
+  const branches = ref.branch ? [ref.branch] : ["master", "main"]
+  let tarRes: Response | null = null
+  for (const branch of branches) {
+    const url = `${ref.repo}/archive/refs/heads/${branch}.tar.gz`
+    const res = await fetch(url, { redirect: "follow" })
+    if (res.ok) {
+      tarRes = res
+      break
+    }
+  }
+  if (!tarRes) {
+    console.error(c("red", `Failed to download repo (tried branches: ${branches.join(", ")})`))
     process.exit(1)
   }
 
@@ -583,6 +609,12 @@ async function fetchAndBuildRef(
     console.error(c("red", `Failed to build ${ref.tag}`))
     process.exit(1)
   }
+
+  // Clean up build directory
+  try {
+    const { rmSync } = await import("fs")
+    rmSync(buildDir, { recursive: true, force: true })
+  } catch { /* best effort */ }
 
   console.log(c("green", `✓ Built ${ref.tag} from ref ${refId}`))
 }
